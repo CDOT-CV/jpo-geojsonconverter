@@ -7,10 +7,12 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.map.ProcessedMap;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.bsm.ProcessedBsm;
+import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedTim;
 import us.dot.its.jpo.geojsonconverter.serialization.deserializers.*;
 import us.dot.its.jpo.geojsonconverter.serialization.serializers.*;
 import us.dot.its.jpo.ode.model.OdeMapData;
 import us.dot.its.jpo.ode.model.OdeSpatData;
+import us.dot.its.jpo.ode.model.OdeTimData;
 import us.dot.its.jpo.ode.model.OdeBsmData;
 
 import org.apache.kafka.common.serialization.Serde;
@@ -75,5 +77,17 @@ public class JsonSerdes {
             new JsonSerializer<RsuLogKey>(),
             new JsonDeserializer<>(RsuLogKey.class)
         );
+    }
+
+    public static Serde<OdeTimData> OdeTim() {
+        return Serdes.serdeFrom(
+            new JsonSerializer<OdeTimData>(), 
+            new JsonDeserializer<>(OdeTimData.class));
+    }
+
+    public static Serde<ProcessedTim<Point>> ProcessedTim() {
+        return Serdes.serdeFrom(
+            new JsonSerializer<ProcessedTim<Point>>(), 
+            new ProcessedTimDeserializer<>(Point.class));
     }
 }
