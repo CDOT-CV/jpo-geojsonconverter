@@ -6,21 +6,20 @@
                 "type": "Feature",
                 "id": 2,
                 "geometry": {
-                    "type": "MultiPolygon",
+                    "type": "Polygon",
                     "coordinates": [
                         [
-                            [ [100.0, 0.0], [101.0, 1.0], [102.0, 2.0], [103.0, 3.0], [100.0, 0.0] ]
+                            [100.0, 0.0], [101.0, 1.0], [102.0, 2.0], [103.0, 3.0], [100.0, 0.0]
                         ]
                     ]
                 },
                 "properties": {
-                    "laneWidth": 366,
                     "content":[
                         {
                             "type": "advisory",
                             "itis": 13585
                         }
-                    ],
+                    ]
 
                 }
             }
