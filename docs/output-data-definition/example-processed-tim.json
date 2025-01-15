@@ -1,0 +1,65 @@
+{
+    "timFeatureCollection": {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "id": 1,
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [100.0, 0.0], [101.0, 1.0], [102.0, 2.0], [103.0, 3.0], [100.0, 0.0]
+                        ]
+                    ]
+                },
+                "properties": {
+                    "name": "name",
+                    "deliveryStart": "2022-10-31T15:40:26.687Z",
+                    "deliveryEnd": "2022-11-01T15:40:26.687Z",
+                    "status": "active",
+                    "priority": 4,
+                    "viewAngle": 1234,
+                    "packetId": "1234567890",
+                    "msgCnt": 1,
+                    "urlB": "https://example.com/more-info",
+                    "heading": {
+                        "heading": 180.0,
+                        "tolerance": 20
+                    },
+                    "directionOfUse": "forward",
+                    "content": [
+                        {
+                            "type": "advisory",
+                            "itis": 13585,
+                            "text": "ROAD WORK AHEAD"
+                        },
+                        {
+                            "type": "roadSignage",
+                            "itis": 13585,
+                            "text": "ROAD WORK AHEAD"
+                        },
+                        {
+                            "type": "commercialSignage",
+                            "itis": 13585,
+                            "text": "ROAD WORK AHEAD"
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "properties": {
+        "odeReceivedAt": "2022-10-31T15:40:26.687292Z",
+        "timeStamp": "2022-10-31T15:40:26.687292Z",
+        "originIp": "172.19.0.1",
+        "schemaVersion": 1,
+        "messageType": "TIM",
+        "validationMessages": [
+            {
+                "message": "validation message",
+                "severity": "warning"
+            }
+        ]
+    }
+}
