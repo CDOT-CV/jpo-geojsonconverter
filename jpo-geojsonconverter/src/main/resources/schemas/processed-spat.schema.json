@@ -119,6 +119,146 @@
           "format" : "date-time"
         }
       }
+    },
+    "LineString-1" : {
+      "type" : "object",
+      "properties" : {
+        "bbox" : {
+          "type" : "array",
+          "items" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        },
+        "coordinates" : {
+          "type" : "array",
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "type" : "number",
+              "format" : "double"
+            }
+          }
+        }
+      }
+    },
+    "LineString-2" : {
+      "$ref" : "#/$defs/LineString-1",
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "LineString"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "Polygon-1" : {
+      "type" : "object",
+      "properties" : {
+        "bbox" : {
+          "type" : "array",
+          "items" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        },
+        "coordinates" : {
+          "type" : "array",
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "type" : "array",
+              "items" : {
+                "type" : "number",
+                "format" : "double"
+              }
+            }
+          }
+        }
+      }
+    },
+    "Polygon-2" : {
+      "$ref" : "#/$defs/Polygon-1",
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Polygon"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "MultiLineString-1" : {
+      "type" : "object",
+      "properties" : {
+        "bbox" : {
+          "type" : "array",
+          "items" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        },
+        "coordinates" : {
+          "type" : "array",
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "type" : "array",
+              "items" : {
+                "type" : "number",
+                "format" : "double"
+              }
+            }
+          }
+        }
+      }
+    },
+    "MultiLineString-2" : {
+      "$ref" : "#/$defs/MultiLineString-1",
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "MultiLineString"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "MultiPolygon-1" : {
+      "type" : "object",
+      "properties" : {
+        "bbox" : {
+          "type" : "array",
+          "items" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        },
+        "coordinates" : {
+          "type" : "array",
+          "items" : {
+            "type" : "array",
+            "items" : {
+              "type" : "array",
+              "items" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "number",
+                  "format" : "double"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "MultiPolygon-2" : {
+      "$ref" : "#/$defs/MultiPolygon-1",
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "MultiPolygon"
+        }
+      },
+      "required" : [ "type" ]
     }
   },
   "type" : "object",
