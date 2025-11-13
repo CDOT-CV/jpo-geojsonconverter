@@ -73,10 +73,8 @@ public class GeometryTypeResolver implements TypeAttributeOverrideV2 {
             ArrayNode oneOfArray = objectNode.putArray("oneOf");
 
             for (Class<? extends Geometry> geometrySubtype : GEOMETRY_SUBTYPES) {
-                // The schema generator creates definitions with names like "Point-2" for types with type discriminators
-                // We need to reference the definition that includes the "type" property
-                // Since Geometry types extend GeoJSON which has a "type" property, they get the "-2" suffix
-                String definitionName = geometrySubtype.getSimpleName() + "-2";
+                // Reference the consolidated definition (single definition per type, no suffix)
+                String definitionName = geometrySubtype.getSimpleName();
 
                 // Create a reference
                 ObjectNode subtypeSchema = JsonNodeFactory.instance.objectNode();

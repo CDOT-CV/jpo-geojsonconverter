@@ -76,12 +76,13 @@ public class SchemaGeneratorUtility {
                     mainDefs = (com.fasterxml.jackson.databind.node.ObjectNode) mainDefsNode;
                 }
 
-                // Add missing Geometry type definitions following the same pattern as Point
-                // Each Geometry type has a base definition (-1) and a full definition (-2) with type discriminator
-                addGeometryDefinitionIfMissing(mainDefs, "LineString", "array", 2);
-                addGeometryDefinitionIfMissing(mainDefs, "Polygon", "array", 3);
-                addGeometryDefinitionIfMissing(mainDefs, "MultiLineString", "array", 3);
-                addGeometryDefinitionIfMissing(mainDefs, "MultiPolygon", "array", 4);
+                // Add missing Geometry type definitions as single consolidated definitions
+                // Also consolidate Point if it exists in split format (-1/-2)
+                consolidateGeometryDefinition(mainDefs, "Point", 1);
+                addGeometryDefinitionIfMissing(mainDefs, "LineString", 2);
+                addGeometryDefinitionIfMissing(mainDefs, "Polygon", 3);
+                addGeometryDefinitionIfMissing(mainDefs, "MultiLineString", 3);
+                addGeometryDefinitionIfMissing(mainDefs, "MultiPolygon", 4);
 
                 // Create the schema file in the resources/schemas directory
                 // Add hyphen after "Processed"
@@ -106,67 +107,123 @@ public class SchemaGeneratorUtility {
     }
 
     /**
-     * Adds Geometry type definitions if they're missing from the schema. Follows the same pattern as Point: base
-     * definition (-1) and full definition (-2) with type discriminator.
+     * Consolidates a Geometry definition if it exists in split format (-1/-2) into a single definition.
      */
-    private static void addGeometryDefinitionIfMissing(com.fasterxml.jackson.databind.node.ObjectNode mainDefs,
-            String geometryName, String coordinatesType, int coordinatesDepth) {
+    private static void consolidateGeometryDefinition(com.fasterxml.jackson.databind.node.ObjectNode mainDefs,
+            String geometryName, int coordinatesDepth) {
         String baseDefName = geometryName + "-1";
         String fullDefName = geometryName + "-2";
+        String defName = geometryName;
 
-        // Add base definition if missing
-        if (!mainDefs.has(baseDefName)) {
-            com.fasterxml.jackson.databind.node.ObjectNode baseDef = JsonNodeFactory.instance.objectNode();
-            baseDef.put("type", "object");
-            com.fasterxml.jackson.databind.node.ObjectNode properties = JsonNodeFactory.instance.objectNode();
+        // If already consolidated or doesn't exist, nothing to do
+        if (mainDefs.has(defName) || (!mainDefs.has(baseDefName) && !mainDefs.has(fullDefName))) {
+            return;
+        }
 
-            // Add bbox property (same for all Geometry types)
-            com.fasterxml.jackson.databind.node.ObjectNode bbox = JsonNodeFactory.instance.objectNode();
-            bbox.put("type", "array");
-            com.fasterxml.jackson.databind.node.ObjectNode bboxItems = JsonNodeFactory.instance.objectNode();
-            bboxItems.put("type", "number");
-            bboxItems.put("format", "double");
-            bbox.set("items", bboxItems);
-            properties.set("bbox", bbox);
+        // Create consolidated definition from existing split definitions
+        com.fasterxml.jackson.databind.node.ObjectNode geometryDef = JsonNodeFactory.instance.objectNode();
+        geometryDef.put("type", "object");
+        com.fasterxml.jackson.databind.node.ObjectNode properties = JsonNodeFactory.instance.objectNode();
 
-            // Add coordinates property (varies by Geometry type)
-            com.fasterxml.jackson.databind.node.ObjectNode coordinates = JsonNodeFactory.instance.objectNode();
-            coordinates.put("type", "array");
-
-            // Build nested array structure based on depth
-            com.fasterxml.jackson.databind.node.ObjectNode currentLevel = coordinates;
-            for (int i = 0; i < coordinatesDepth - 1; i++) {
-                com.fasterxml.jackson.databind.node.ObjectNode items = JsonNodeFactory.instance.objectNode();
-                items.put("type", "array");
-                currentLevel.set("items", items);
-                currentLevel = items;
+        // Get properties from base definition if it exists
+        if (mainDefs.has(baseDefName)) {
+            JsonNode baseDef = mainDefs.get(baseDefName);
+            if (baseDef.has("properties")) {
+                baseDef.get("properties").fields().forEachRemaining(entry -> {
+                    properties.set(entry.getKey(), entry.getValue());
+                });
             }
-
-            // Final level: array of numbers
-            com.fasterxml.jackson.databind.node.ObjectNode finalItems = JsonNodeFactory.instance.objectNode();
-            finalItems.put("type", "number");
-            finalItems.put("format", "double");
-            currentLevel.set("items", finalItems);
-
-            properties.set("coordinates", coordinates);
-            baseDef.set("properties", properties);
-            mainDefs.set(baseDefName, baseDef);
+        } else {
+            // Create from scratch if base doesn't exist
+            createGeometryProperties(properties, geometryName, coordinatesDepth);
         }
 
-        // Add full definition with type discriminator if missing
-        if (!mainDefs.has(fullDefName)) {
-            com.fasterxml.jackson.databind.node.ObjectNode fullDef = JsonNodeFactory.instance.objectNode();
-            fullDef.set("$ref", JsonNodeFactory.instance.textNode("#/$defs/" + baseDefName));
-            fullDef.put("type", "object");
-            com.fasterxml.jackson.databind.node.ObjectNode properties = JsonNodeFactory.instance.objectNode();
-            com.fasterxml.jackson.databind.node.ObjectNode typeProp = JsonNodeFactory.instance.objectNode();
-            typeProp.put("const", geometryName);
-            properties.set("type", typeProp);
-            fullDef.set("properties", properties);
-            com.fasterxml.jackson.databind.node.ArrayNode required = JsonNodeFactory.instance.arrayNode();
-            required.add("type");
-            fullDef.set("required", required);
-            mainDefs.set(fullDefName, fullDef);
+        // Add type property (discriminator) - required
+        com.fasterxml.jackson.databind.node.ObjectNode typeProp = JsonNodeFactory.instance.objectNode();
+        typeProp.put("const", geometryName);
+        properties.set("type", typeProp);
+
+        geometryDef.set("properties", properties);
+
+        // Type is required
+        com.fasterxml.jackson.databind.node.ArrayNode required = JsonNodeFactory.instance.arrayNode();
+        required.add("type");
+        geometryDef.set("required", required);
+
+        // Replace split definitions with consolidated one
+        mainDefs.set(defName, geometryDef);
+        mainDefs.remove(baseDefName);
+        mainDefs.remove(fullDefName);
+    }
+
+    /**
+     * Adds Geometry type definitions if they're missing from the schema. Creates a single consolidated definition that
+     * includes all properties including the type discriminator.
+     */
+    private static void addGeometryDefinitionIfMissing(com.fasterxml.jackson.databind.node.ObjectNode mainDefs,
+            String geometryName, int coordinatesDepth) {
+        // Check if definition already exists (could be -1, -2, or just the name)
+        String defName = geometryName;
+        if (mainDefs.has(defName) || mainDefs.has(geometryName + "-1") || mainDefs.has(geometryName + "-2")) {
+            return; // Already exists
         }
+
+        // Create a single consolidated definition with all properties
+        com.fasterxml.jackson.databind.node.ObjectNode geometryDef = JsonNodeFactory.instance.objectNode();
+        geometryDef.put("type", "object");
+        com.fasterxml.jackson.databind.node.ObjectNode properties = JsonNodeFactory.instance.objectNode();
+
+        // Create geometry properties (bbox and coordinates)
+        createGeometryProperties(properties, geometryName, coordinatesDepth);
+
+        // Add type property (discriminator) - required
+        com.fasterxml.jackson.databind.node.ObjectNode typeProp = JsonNodeFactory.instance.objectNode();
+        typeProp.put("const", geometryName);
+        properties.set("type", typeProp);
+
+        geometryDef.set("properties", properties);
+
+        // Type is required
+        com.fasterxml.jackson.databind.node.ArrayNode required = JsonNodeFactory.instance.arrayNode();
+        required.add("type");
+        geometryDef.set("required", required);
+
+        mainDefs.set(defName, geometryDef);
+    }
+
+    /**
+     * Creates the bbox and coordinates properties for a Geometry type.
+     */
+    private static void createGeometryProperties(com.fasterxml.jackson.databind.node.ObjectNode properties,
+            String geometryName, int coordinatesDepth) {
+        // Add bbox property (optional, same for all Geometry types)
+        com.fasterxml.jackson.databind.node.ObjectNode bbox = JsonNodeFactory.instance.objectNode();
+        bbox.put("type", "array");
+        com.fasterxml.jackson.databind.node.ObjectNode bboxItems = JsonNodeFactory.instance.objectNode();
+        bboxItems.put("type", "number");
+        bboxItems.put("format", "double");
+        bbox.set("items", bboxItems);
+        properties.set("bbox", bbox);
+
+        // Add coordinates property (varies by Geometry type)
+        com.fasterxml.jackson.databind.node.ObjectNode coordinates = JsonNodeFactory.instance.objectNode();
+        coordinates.put("type", "array");
+
+        // Build nested array structure based on depth
+        com.fasterxml.jackson.databind.node.ObjectNode currentLevel = coordinates;
+        for (int i = 0; i < coordinatesDepth - 1; i++) {
+            com.fasterxml.jackson.databind.node.ObjectNode items = JsonNodeFactory.instance.objectNode();
+            items.put("type", "array");
+            currentLevel.set("items", items);
+            currentLevel = items;
+        }
+
+        // Final level: array of numbers
+        com.fasterxml.jackson.databind.node.ObjectNode finalItems = JsonNodeFactory.instance.objectNode();
+        finalItems.put("type", "number");
+        finalItems.put("format", "double");
+        currentLevel.set("items", finalItems);
+
+        properties.set("coordinates", coordinates);
     }
 }
