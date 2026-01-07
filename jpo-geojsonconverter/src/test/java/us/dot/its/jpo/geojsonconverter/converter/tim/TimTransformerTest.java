@@ -8,17 +8,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.kafka.streams.KeyValue;
 import org.junit.Before;
 import org.junit.Test;
 
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuTimKey;
-import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
-import us.dot.its.jpo.geojsonconverter.pojos.tim.DeserializedRawTim;
+import us.dot.its.jpo.geojsonconverter.pojos.common.DeserializedRawMessageFrame;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
+import us.dot.its.jpo.geojsonconverter.validator.JsonValidatorResult;
 import us.dot.its.jpo.geojsonconverter.serialization.deserializers.JsonDeserializer;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 
@@ -44,10 +42,10 @@ public class TimTransformerTest {
     @Test
     public void testTransformWithValidTim() {
         // Test successful TIM transformation
-        DeserializedRawTim deserializedRawTim = new DeserializedRawTim();
-        deserializedRawTim.setOdeTimMessageFrameData(timMF);
+        DeserializedRawMessageFrame deserializedRawTim = new DeserializedRawMessageFrame();
+        deserializedRawTim.setOdeMessageFrameData(timMF);
         deserializedRawTim.setValidationFailure(false);
-        deserializedRawTim.setValidatorResults(new ArrayList<>());
+        deserializedRawTim.setValidationResults(new JsonValidatorResult());
 
         KeyValue<RsuTimKey, ProcessedTim> result = timTransformer.transform(null, deserializedRawTim);
 
@@ -73,15 +71,14 @@ public class TimTransformerTest {
     @Test
     public void testTransformWithValidationFailure() {
         // Test TIM transformation with validation failure
-        List<ProcessedValidationMessage> validationMessages = new ArrayList<>();
-        ProcessedValidationMessage message = new ProcessedValidationMessage();
-        message.setMessage("Critical validation error");
-        validationMessages.add(message);
+        JsonValidatorResult validatorResult = new JsonValidatorResult();
+        Exception testException = new Exception("Critical validation error");
+        validatorResult.addException(testException);
 
-        DeserializedRawTim deserializedRawTim = new DeserializedRawTim();
-        deserializedRawTim.setOdeTimMessageFrameData(timMF);
+        DeserializedRawMessageFrame deserializedRawTim = new DeserializedRawMessageFrame();
+        deserializedRawTim.setOdeMessageFrameData(timMF);
         deserializedRawTim.setValidationFailure(true);
-        deserializedRawTim.setValidatorResults(validationMessages);
+        deserializedRawTim.setValidationResults(validatorResult);
         deserializedRawTim.setFailedMessage("Invalid TIM message");
 
         KeyValue<RsuTimKey, ProcessedTim> result = timTransformer.transform(null, deserializedRawTim);
@@ -114,10 +111,10 @@ public class TimTransformerTest {
     @Test
     public void testTransformWithException() {
         // Test exception handling by providing malformed data
-        DeserializedRawTim deserializedRawTim = new DeserializedRawTim();
-        deserializedRawTim.setOdeTimMessageFrameData(null); // This should cause an exception
+        DeserializedRawMessageFrame deserializedRawTim = new DeserializedRawMessageFrame();
+        deserializedRawTim.setOdeMessageFrameData(null); // This should cause an exception
         deserializedRawTim.setValidationFailure(false);
-        deserializedRawTim.setValidatorResults(new ArrayList<>());
+        deserializedRawTim.setValidationResults(new JsonValidatorResult());
 
         KeyValue<RsuTimKey, ProcessedTim> result = timTransformer.transform(null, deserializedRawTim);
 

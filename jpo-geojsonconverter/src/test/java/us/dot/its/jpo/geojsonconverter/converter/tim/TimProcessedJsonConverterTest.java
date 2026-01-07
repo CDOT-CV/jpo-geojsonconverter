@@ -8,8 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.kafka.streams.KeyValue;
 import org.junit.Before;
@@ -18,9 +16,9 @@ import org.junit.Test;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.*;
 import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuTimKey;
-import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
-import us.dot.its.jpo.geojsonconverter.pojos.tim.DeserializedRawTim;
+import us.dot.its.jpo.geojsonconverter.pojos.common.DeserializedRawMessageFrame;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
+import us.dot.its.jpo.geojsonconverter.validator.JsonValidatorResult;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedRegionType;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedDeploymentAgency;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedContentType;
@@ -51,10 +49,10 @@ public class TimProcessedJsonConverterTest {
     @Test
     public void testTransformWithValidTim() {
         // Test successful TIM processing with sample data
-        DeserializedRawTim deserializedRawTim = new DeserializedRawTim();
-        deserializedRawTim.setOdeTimMessageFrameData(timMF);
+        DeserializedRawMessageFrame deserializedRawTim = new DeserializedRawMessageFrame();
+        deserializedRawTim.setOdeMessageFrameData(timMF);
         deserializedRawTim.setValidationFailure(false);
-        deserializedRawTim.setValidatorResults(new ArrayList<>());
+        deserializedRawTim.setValidationResults(new JsonValidatorResult());
 
         KeyValue<RsuTimKey, ProcessedTim> result = timProcessedJsonConverter.transform(null, deserializedRawTim);
 
@@ -106,15 +104,14 @@ public class TimProcessedJsonConverterTest {
     @Test
     public void testTransformWithValidationMessages() {
         // Test TIM processing with validation messages (non-compliant)
-        List<ProcessedValidationMessage> validationMessages = new ArrayList<>();
-        ProcessedValidationMessage message = new ProcessedValidationMessage();
-        message.setMessage("Warning: Minor validation issue");
-        validationMessages.add(message);
+        JsonValidatorResult validatorResult = new JsonValidatorResult();
+        Exception testException = new Exception("Warning: Minor validation issue");
+        validatorResult.addException(testException);
 
-        DeserializedRawTim deserializedRawTim = new DeserializedRawTim();
-        deserializedRawTim.setOdeTimMessageFrameData(timMF);
+        DeserializedRawMessageFrame deserializedRawTim = new DeserializedRawMessageFrame();
+        deserializedRawTim.setOdeMessageFrameData(timMF);
         deserializedRawTim.setValidationFailure(false);
-        deserializedRawTim.setValidatorResults(validationMessages);
+        deserializedRawTim.setValidationResults(validatorResult);
 
         KeyValue<RsuTimKey, ProcessedTim> result = timProcessedJsonConverter.transform(null, deserializedRawTim);
 
@@ -127,21 +124,20 @@ public class TimProcessedJsonConverterTest {
         assertNotNull(processedTim.getCompliance());
         assertTrue(processedTim.getCompliance().size() > 0);
         assertTrue(!processedTim.getCompliance().get(0).isCompliant());
-        assertEquals(validationMessages, processedTim.getCompliance().get(0).getValidationMessages());
+        assertTrue(processedTim.getCompliance().get(0).getValidationMessages().size() > 0);
     }
 
     @Test
     public void testTransformWithInvalidTim() {
         // Test TIM processing with validation failure
-        List<ProcessedValidationMessage> validationMessages = new ArrayList<>();
-        ProcessedValidationMessage message = new ProcessedValidationMessage();
-        message.setMessage("Critical validation error");
-        validationMessages.add(message);
+        JsonValidatorResult validatorResult = new JsonValidatorResult();
+        Exception testException = new Exception("Critical validation error");
+        validatorResult.addException(testException);
 
-        DeserializedRawTim deserializedRawTim = new DeserializedRawTim();
-        deserializedRawTim.setOdeTimMessageFrameData(timMF);
+        DeserializedRawMessageFrame deserializedRawTim = new DeserializedRawMessageFrame();
+        deserializedRawTim.setOdeMessageFrameData(timMF);
         deserializedRawTim.setValidationFailure(true);
-        deserializedRawTim.setValidatorResults(validationMessages);
+        deserializedRawTim.setValidationResults(validatorResult);
         deserializedRawTim.setFailedMessage("Invalid TIM message");
 
         KeyValue<RsuTimKey, ProcessedTim> result = timProcessedJsonConverter.transform(null, deserializedRawTim);
@@ -156,7 +152,7 @@ public class TimProcessedJsonConverterTest {
         assertNotNull(processedTim.getCompliance());
         assertTrue(processedTim.getCompliance().size() > 0);
         assertTrue(!processedTim.getCompliance().get(0).isCompliant());
-        assertEquals(validationMessages, processedTim.getCompliance().get(0).getValidationMessages());
+        assertTrue(processedTim.getCompliance().get(0).getValidationMessages().size() > 0);
     }
 
     @Test

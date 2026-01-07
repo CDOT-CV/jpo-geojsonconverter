@@ -6,13 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformation;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformationMessageFrame;
-import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedContentType;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedRegionType;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
@@ -43,11 +40,8 @@ public class TimConverterTest {
         TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
         TravelerInformation travelerInfo = messageFrame.getValue();
 
-        List<ProcessedValidationMessage> validationMessages = new ArrayList<>();
-
         // Test successful TIM creation
-        ProcessedTim processedTim =
-                timConverter.createProcessedTim(travelerInfo, timMF.getMetadata(), validationMessages);
+        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, timMF.getMetadata());
 
         // Verify basic properties
         assertNotNull(processedTim);
@@ -94,14 +88,9 @@ public class TimConverterTest {
 
     @Test
     public void testCreateFailureProcessedTim() {
-        List<ProcessedValidationMessage> validationMessages = new ArrayList<>();
-        ProcessedValidationMessage message = new ProcessedValidationMessage();
-        message.setMessage("Test validation error");
-        validationMessages.add(message);
-
         String failureMessage = "Test failure message";
 
-        ProcessedTim processedTim = timConverter.createFailureProcessedTim(validationMessages, failureMessage);
+        ProcessedTim processedTim = timConverter.createFailureProcessedTim(failureMessage);
 
         // Verify failure processing
         assertNotNull(processedTim);
@@ -109,7 +98,6 @@ public class TimConverterTest {
         assertNotNull(processedTim.getCompliance());
         assertTrue(processedTim.getCompliance().size() > 0);
         assertTrue(!processedTim.getCompliance().get(0).isCompliant());
-        assertEquals(validationMessages, processedTim.getCompliance().get(0).getValidationMessages());
     }
 
     // Known ITIS codes for testing (these should be valid ITIS codes)
