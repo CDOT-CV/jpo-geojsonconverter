@@ -28,13 +28,13 @@ import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Slf4j
-public class ProcessedCompliance {
+public class ProcessedTimCompliance {
     private Standard standard;
     private boolean compliant;
     private List<ProcessedValidationMessage> validationMessages;
 
     // make the standard enum
     public enum Standard {
-        ITWG, CTW
+        ITWG, CTW, J2735
     }
 }

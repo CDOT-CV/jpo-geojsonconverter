@@ -59,7 +59,7 @@ public class ProcessedTim {
     private ZonedDateTime timeStamp;
     private String packetId;
     private Point location;
-    private List<ProcessedCompliance> compliance;
+    private List<ProcessedTimCompliance> compliance;
     private ProcessedTimFeatureCollection dataFrameFeatureCollection;
 
     @Override

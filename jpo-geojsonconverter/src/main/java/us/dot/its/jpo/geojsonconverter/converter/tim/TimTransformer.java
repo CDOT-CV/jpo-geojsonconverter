@@ -2,6 +2,7 @@ package us.dot.its.jpo.geojsonconverter.converter.tim;
 
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.*;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuTimKey;
+import us.dot.its.jpo.geojsonconverter.pojos.common.DeserializedRawMessageFrame;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.*;
 import us.dot.its.jpo.geojsonconverter.utils.ProcessedSchemaVersions;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
@@ -19,7 +20,8 @@ import org.apache.kafka.streams.processor.ProcessorContext;
  * TimConverter class.
  */
 @Slf4j
-public class TimTransformer implements Transformer<Void, DeserializedRawTim, KeyValue<RsuTimKey, ProcessedTim>> {
+public class TimTransformer
+        implements Transformer<Void, DeserializedRawMessageFrame, KeyValue<RsuTimKey, ProcessedTim>> {
 
     private static final String ERROR_RSU_ID = "ERROR";
 
@@ -43,7 +45,7 @@ public class TimTransformer implements Transformer<Void, DeserializedRawTim, Key
      *         count, and the value is the ProcessedTim POJO
      */
     @Override
-    public KeyValue<RsuTimKey, ProcessedTim> transform(Void rawKey, DeserializedRawTim rawTim) {
+    public KeyValue<RsuTimKey, ProcessedTim> transform(Void rawKey, DeserializedRawMessageFrame rawTim) {
         try {
             if (!rawTim.isValidationFailure()) {
                 return processValidTim(rawTim);
@@ -67,18 +69,18 @@ public class TimTransformer implements Transformer<Void, DeserializedRawTim, Key
      * @param rawTim The valid TIM data
      * @return Key-value pair with processed TIM
      */
-    private KeyValue<RsuTimKey, ProcessedTim> processValidTim(DeserializedRawTim rawTim) {
-        OdeMessageFrameData rawValue = new OdeMessageFrameData();
-        rawValue.setMetadata(rawTim.getOdeTimMessageFrameData().getMetadata());
+    private KeyValue<RsuTimKey, ProcessedTim> processValidTim(DeserializedRawMessageFrame rawTim) {
+        OdeMessageFrameData rawValue = rawTim.getOdeMessageFrameData();
         OdeMessageFrameMetadata timMetadata = rawValue.getMetadata();
 
-        rawValue.setPayload(rawTim.getOdeTimMessageFrameData().getPayload());
         TravelerInformationMessageFrame travelerInfoMessageFrame =
                 (TravelerInformationMessageFrame) rawValue.getPayload().getData();
 
-        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfoMessageFrame.getValue(), timMetadata,
-                rawTim.getValidatorResults());
+        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfoMessageFrame.getValue(), timMetadata);
         processedTim.setSchemaVersion(ProcessedSchemaVersions.PROCESSED_TIM_SCHEMA_VERSION);
+
+        // Apply validation results
+        timConverter.jsonValidation(processedTim, rawTim.getValidationResults());
 
         // Create key with TIM-specific data
         TravelerInformation travelerInfo = travelerInfoMessageFrame.getValue();
@@ -102,9 +104,12 @@ public class TimTransformer implements Transformer<Void, DeserializedRawTim, Key
      * @param rawTim The invalid TIM data
      * @return Key-value pair with failure information
      */
-    private KeyValue<RsuTimKey, ProcessedTim> processInvalidTim(DeserializedRawTim rawTim) {
-        ProcessedTim processedTim =
-                timConverter.createFailureProcessedTim(rawTim.getValidatorResults(), rawTim.getFailedMessage());
+    private KeyValue<RsuTimKey, ProcessedTim> processInvalidTim(DeserializedRawMessageFrame rawTim) {
+        ProcessedTim processedTim = timConverter.createFailureProcessedTim(rawTim.getFailedMessage());
+
+        // Apply validation results
+        timConverter.jsonValidation(processedTim, rawTim.getValidationResults());
+
         RsuTimKey key = createRsuTimKey(ERROR_RSU_ID);
         return KeyValue.pair(key, processedTim);
     }

@@ -12,16 +12,11 @@ import org.apache.kafka.streams.kstream.KStream;
 
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuTimKey;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuTimPartitioner;
-import us.dot.its.jpo.geojsonconverter.pojos.tim.DeserializedRawTim;
+import us.dot.its.jpo.geojsonconverter.pojos.common.DeserializedRawMessageFrame;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
-import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
 import us.dot.its.jpo.geojsonconverter.serialization.JsonSerdes;
 import us.dot.its.jpo.geojsonconverter.validator.JsonValidatorResult;
 import us.dot.its.jpo.geojsonconverter.validator.TimJsonValidator;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.networknt.schema.ValidationMessage;
 
 /**
  * Kafka Streams Topology builder for processing TIM messages from ODE TIM JSON -> TIM GeoJSON
@@ -41,44 +36,28 @@ public class TimTopology {
 
         // Validate the JSON and write validation errors to the log at warn level
         // Passes the raw JSON along unchanged, even if there are validation errors.
-        KStream<Void, DeserializedRawTim> validatedOdeTimStream = rawOdeTimStream.mapValues((Void key, Bytes value) -> {
-            DeserializedRawTim deserializedRawTim = new DeserializedRawTim();
-            try {
-                JsonValidatorResult validationResults = timJsonValidator.validate(value.get());
-                deserializedRawTim.setOdeTimMessageFrameData(
-                        JsonSerdes.OdeMessageFrame().deserializer().deserialize(timOdeJsonTopic, value.get()));
-                // Convert ValidationMessage to ProcessedValidationMessage
-                List<ProcessedValidationMessage> processedValidationMessages = new ArrayList<>();
-                for (ValidationMessage vm : validationResults.getValidationMessages()) {
-                    ProcessedValidationMessage pvm = new ProcessedValidationMessage();
-                    pvm.setMessage(vm.getMessage());
-                    pvm.setSchemaPath(vm.getSchemaPath());
-                    pvm.setJsonPath(vm.getPath());
-                    processedValidationMessages.add(pvm);
-                }
-                deserializedRawTim.setValidatorResults(processedValidationMessages);
-                logger.debug(validationResults.describeResults());
-            } catch (Exception e) {
-                JsonValidatorResult validatorResult = new JsonValidatorResult();
+        KStream<Void, DeserializedRawMessageFrame> validatedOdeTimStream =
+                rawOdeTimStream.mapValues((Void key, Bytes value) -> {
+                    DeserializedRawMessageFrame DeserializedRawMessageFrame = new DeserializedRawMessageFrame();
+                    try {
+                        JsonValidatorResult validationResults = timJsonValidator.validate(value.get());
+                        DeserializedRawMessageFrame.setOdeMessageFrameData(
+                                JsonSerdes.OdeMessageFrame().deserializer().deserialize(timOdeJsonTopic, value.get()));
 
-                validatorResult.addException(e);
-                deserializedRawTim.setValidationFailure(true);
-                // Convert ValidationMessage to ProcessedValidationMessage for exceptions
-                List<ProcessedValidationMessage> processedValidationMessages = new ArrayList<>();
-                for (ValidationMessage vm : validatorResult.getValidationMessages()) {
-                    ProcessedValidationMessage pvm = new ProcessedValidationMessage();
-                    pvm.setMessage(vm.getMessage());
-                    pvm.setSchemaPath(vm.getSchemaPath());
-                    pvm.setJsonPath(vm.getPath());
-                    processedValidationMessages.add(pvm);
-                }
-                deserializedRawTim.setValidatorResults(processedValidationMessages);
-                deserializedRawTim.setFailedMessage(e.getMessage());
+                        DeserializedRawMessageFrame.setValidationResults(validationResults);
+                        logger.debug(validationResults.describeResults());
+                    } catch (Exception e) {
+                        JsonValidatorResult validatorResult = new JsonValidatorResult();
 
-                logger.error("Error in timValidation:", e);
-            }
-            return deserializedRawTim;
-        });
+                        validatorResult.addException(e);
+                        DeserializedRawMessageFrame.setValidationFailure(true);
+                        DeserializedRawMessageFrame.setValidationResults(validatorResult);
+                        DeserializedRawMessageFrame.setFailedMessage(e.getMessage());
+
+                        logger.error("Error in timValidation:", e);
+                    }
+                    return DeserializedRawMessageFrame;
+                });
 
         // Convert ODE TIM to ProcessedTim which is not GeoJSON
         KStream<RsuTimKey, ProcessedTim> processedJsonTimStream = validatedOdeTimStream.transform(() -> {

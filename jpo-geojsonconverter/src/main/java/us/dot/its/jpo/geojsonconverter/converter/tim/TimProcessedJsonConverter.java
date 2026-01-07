@@ -1,6 +1,7 @@
 package us.dot.its.jpo.geojsonconverter.converter.tim;
 
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuTimKey;
+import us.dot.its.jpo.geojsonconverter.pojos.common.DeserializedRawMessageFrame;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.*;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +22,7 @@ import org.apache.kafka.streams.processor.ProcessorContext;
 @Slf4j
 @Deprecated
 public class TimProcessedJsonConverter
-        implements Transformer<Void, DeserializedRawTim, KeyValue<RsuTimKey, ProcessedTim>> {
+        implements Transformer<Void, DeserializedRawMessageFrame, KeyValue<RsuTimKey, ProcessedTim>> {
 
     private final TimTransformer timTransformer;
 
@@ -43,7 +44,7 @@ public class TimProcessedJsonConverter
      *         count, and the value is the ProcessedTim POJO
      */
     @Override
-    public KeyValue<RsuTimKey, ProcessedTim> transform(Void rawKey, DeserializedRawTim rawTim) {
+    public KeyValue<RsuTimKey, ProcessedTim> transform(Void rawKey, DeserializedRawMessageFrame rawTim) {
         return timTransformer.transform(rawKey, rawTim);
     }
 
