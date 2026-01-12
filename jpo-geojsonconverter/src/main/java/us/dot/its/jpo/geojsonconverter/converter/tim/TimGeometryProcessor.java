@@ -345,11 +345,13 @@ public class TimGeometryProcessor {
      * 
      * @param node The node to process
      * @param zoomFactor Zoom scaling factor
-     * @param currentCoords Current coordinates [lon, lat] to update
+     * @param currentCoords Current coordinates [lon, lat] to update. For LatLon nodes (absolute coordinates), this may
+     *        be uninitialized or contain default values.
      */
     private void processLLNode(NodeOffsetPointLL node, double zoomFactor, double[] currentCoords) {
-        double currentLon = currentCoords[0];
-        double currentLat = currentCoords[1];
+        // Initialize with current coordinates if available, otherwise use defaults
+        double currentLon = (currentCoords != null && currentCoords.length > 0) ? currentCoords[0] : 0.0;
+        double currentLat = (currentCoords != null && currentCoords.length > 1) ? currentCoords[1] : 0.0;
 
         // Process different LL node types
         if (node.getNode_LL1() != null) {
@@ -402,7 +404,7 @@ public class TimGeometryProcessor {
                 currentLat += latOffset;
         } else if (node.getNode_LatLon() != null) {
             var nodeLatLon = node.getNode_LatLon();
-            // node_LatLon contains absolute coordinates, not offsets
+            // node_LatLon contains absolute coordinates, not offsets - doesn't require anchor
             Double absLon = FieldConversions.convertLong(nodeLatLon.getLon().getValue());
             Double absLat = FieldConversions.convertLat(nodeLatLon.getLat().getValue());
             if (absLon != null)
@@ -411,19 +413,30 @@ public class TimGeometryProcessor {
                 currentLat = absLat;
         }
 
-        // Update coordinates array
+        // Update coordinates array (ensure it's initialized)
+        if (currentCoords == null || currentCoords.length < 2) {
+            // This shouldn't happen in normal flow, but handle defensively
+            return;
+        }
         currentCoords[0] = currentLon;
         currentCoords[1] = currentLat;
     }
 
     /**
-     * Process XY (Cartesian) node and update current coordinates.
+     * Process XY (Cartesian) node and update current coordinates. Note: XY nodes are always offsets and require a valid
+     * starting point (anchor).
      * 
      * @param node The node to process
      * @param zoomFactor Zoom scaling factor
-     * @param currentCoords Current coordinates [lon, lat] to update
+     * @param currentCoords Current coordinates [lon, lat] to update. Must be initialized with anchor coordinates.
      */
     private void processXYNode(NodeOffsetPointXY node, double zoomFactor, double[] currentCoords) {
+        // XY nodes require a starting point for offset calculations
+        if (currentCoords == null || currentCoords.length < 2) {
+            log.warn("Cannot process XY node: currentCoords is null or invalid");
+            return;
+        }
+
         double currentLon = currentCoords[0];
         double currentLat = currentCoords[1];
 
@@ -527,35 +540,54 @@ public class TimGeometryProcessor {
     }
 
     private List<List<Double>> processOffsetPath(GeographicalPath region, OffsetSystem path) {
-        if (path == null || region.getAnchor() == null) {
+        if (path == null) {
             return new ArrayList<>();
         }
 
-        Position3D anchor = region.getAnchor();
-        double anchorLat = FieldConversions.convertLat(anchor.getLat().getValue());
-        double anchorLon = FieldConversions.convertLong(anchor.getLong_().getValue());
-
         List<List<Double>> coordinates = new ArrayList<>();
 
+        // Initialize anchor coordinates if available
+        double anchorLat = 0.0;
+        double anchorLon = 0.0;
+        boolean hasAnchor = false;
+
+        if (region.getAnchor() != null) {
+            Position3D anchor = region.getAnchor();
+            anchorLat = FieldConversions.convertLat(anchor.getLat().getValue());
+            anchorLon = FieldConversions.convertLong(anchor.getLong_().getValue());
+            hasAnchor = true;
+        }
+
         if (path.getOffset() != null) {
-            double[] currentCoords = {anchorLon, anchorLat};
             double zoomFactor = calculateZoomFactor(path);
 
             // Handle LL (Latitude/Longitude) coordinates
             if (path.getOffset().getLl() != null && path.getOffset().getLl().getNodes() != null) {
+                // Initialize currentCoords with anchor if available, otherwise use default
+                double[] currentCoords = hasAnchor ? new double[] {anchorLon, anchorLat} : new double[] {0.0, 0.0};
+
                 for (var node : path.getOffset().getLl().getNodes()) {
                     if (node.getDelta() != null) {
-                        processLLNode(node.getDelta(), zoomFactor, currentCoords);
-                        coordinates.add(Arrays.asList(currentCoords[0], currentCoords[1]));
+                        // Check if this is a LatLon node (absolute coordinates) that doesn't need anchor
+                        boolean isLatLonNode = node.getDelta().getNode_LatLon() != null;
+
+                        // Process if we have anchor OR if it's a LatLon node (absolute coordinates)
+                        if (hasAnchor || isLatLonNode) {
+                            processLLNode(node.getDelta(), zoomFactor, currentCoords);
+                            coordinates.add(Arrays.asList(currentCoords[0], currentCoords[1]));
+                        }
                     }
                 }
             }
-            // Handle XY (Cartesian) coordinates
+            // Handle XY (Cartesian) coordinates - require anchor for offset calculations
             else if (path.getOffset().getXy() != null && path.getOffset().getXy().getNodes() != null) {
-                for (var node : path.getOffset().getXy().getNodes()) {
-                    if (node.getDelta() != null) {
-                        processXYNode(node.getDelta(), zoomFactor, currentCoords);
-                        coordinates.add(Arrays.asList(currentCoords[0], currentCoords[1]));
+                if (hasAnchor) {
+                    double[] currentCoords = {anchorLon, anchorLat};
+                    for (var node : path.getOffset().getXy().getNodes()) {
+                        if (node.getDelta() != null) {
+                            processXYNode(node.getDelta(), zoomFactor, currentCoords);
+                            coordinates.add(Arrays.asList(currentCoords[0], currentCoords[1]));
+                        }
                     }
                 }
             }
