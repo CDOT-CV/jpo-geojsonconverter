@@ -700,10 +700,14 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
    - Compliance status (true if no validation messages)
    - List of validation messages if any issues are found
 
-10. **Kafka Key Generation**: ProcessedTim messages are partitioned using an `RsuTimKey` containing:
+10. **Kafka Key Generation**: ProcessedTim messages have an `RsuTimKey` containing:
     - RSU IP address (originIp)
     - Packet ID (from the TIM message)
     - Message count (msgCnt)
+    and are partitioned using the `RsuTimParitioner` as follows:
+    - If the RSU ID/originIp is present, it is partitioned on
+    - If RSU ID is missing, Packet ID is partitioned on
+    - If both are missing, the default murmur2 hash partitioning is used
 
 [ProcessedTim schema can be found here.](<jpo-geojsonconverter/src/main/resources/schemas/processed-tim.schema.json>)
 

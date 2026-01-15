@@ -11,6 +11,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class PathNodeData {
     private final List<Double> coordinates;
-    private final Long dwithOffset;
+    private final Long dwidthOffset;
     private final Long delevationOffset;
 }

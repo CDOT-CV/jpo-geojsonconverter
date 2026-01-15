@@ -128,8 +128,8 @@ public class TimGeometryProcessor {
             if (nodeData.getDelevationOffset() != null) {
                 elevationOffsets.add(nodeData.getDelevationOffset());
             }
-            if (nodeData.getDwithOffset() != null) {
-                laneWidthOffsets.add(nodeData.getDwithOffset());
+            if (nodeData.getDwidthOffset() != null) {
+                laneWidthOffsets.add(nodeData.getDwidthOffset());
             }
         }
 
@@ -298,21 +298,21 @@ public class TimGeometryProcessor {
      * Extract dwith and delevation offsets from node attributes.
      * 
      * @param node The node to extract offsets from
-     * @return Array containing [dwithOffset, delevationOffset] or null if no attributes
+     * @return Array containing [dwidthOffset, delevationOffset] or null if no attributes
      */
     private long[] extractNodeOffsets(NodeLL node) {
         if (node.getAttributes() != null) {
-            long dwithOffset = 0;
+            long dwidthOffset = 0;
             long delevationOffset = 0;
 
             if (node.getAttributes().getDWidth() != null) {
-                dwithOffset = node.getAttributes().getDWidth().getValue();
+                dwidthOffset = node.getAttributes().getDWidth().getValue();
             }
             if (node.getAttributes().getDElevation() != null) {
                 delevationOffset = node.getAttributes().getDElevation().getValue();
             }
 
-            return new long[] {dwithOffset, delevationOffset};
+            return new long[] {dwidthOffset, delevationOffset};
         }
         return null;
     }
@@ -321,27 +321,28 @@ public class TimGeometryProcessor {
      * Extract dwith and delevation offsets from node attributes.
      * 
      * @param node The node to extract offsets from
-     * @return Array containing [dwithOffset, delevationOffset] or null if no attributes
+     * @return Array containing [dwidthOffset, delevationOffset] or null if no attributes
      */
     private long[] extractNodeOffsets(NodeXY node) {
         if (node.getAttributes() != null) {
-            long dwithOffset = 0;
+            long dwidthOffset = 0;
             long delevationOffset = 0;
 
             if (node.getAttributes().getDWidth() != null) {
-                dwithOffset = node.getAttributes().getDWidth().getValue();
+                dwidthOffset = node.getAttributes().getDWidth().getValue();
             }
             if (node.getAttributes().getDElevation() != null) {
                 delevationOffset = node.getAttributes().getDElevation().getValue();
             }
 
-            return new long[] {dwithOffset, delevationOffset};
+            return new long[] {dwidthOffset, delevationOffset};
         }
         return null;
     }
 
     /**
-     * Process LL (Latitude/Longitude) node and update current coordinates.
+     * Process J2735 NodeOffsetPointLL (Latitude/Longitude) node and update current coordinates with calculated latitude
+     * and longitude of the node.
      * 
      * @param node The node to process
      * @param zoomFactor Zoom scaling factor
@@ -514,9 +515,9 @@ public class TimGeometryProcessor {
                     if (node.getDelta() != null) {
                         processLLNode(node.getDelta(), zoomFactor, currentCoords);
                         long[] offsets = extractNodeOffsets(node);
-                        Long dwithOffset = offsets != null ? offsets[0] : null;
+                        Long dwidthOffset = offsets != null ? offsets[0] : null;
                         Long delevationOffset = offsets != null ? offsets[1] : null;
-                        pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwithOffset,
+                        pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,
                                 delevationOffset));
                     }
                 }
@@ -527,9 +528,9 @@ public class TimGeometryProcessor {
                     if (node.getDelta() != null) {
                         processXYNode(node.getDelta(), zoomFactor, currentCoords);
                         long[] offsets = extractNodeOffsets(node);
-                        Long dwithOffset = offsets != null ? offsets[0] : null;
+                        Long dwidthOffset = offsets != null ? offsets[0] : null;
                         Long delevationOffset = offsets != null ? offsets[1] : null;
-                        pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwithOffset,
+                        pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,
                                 delevationOffset));
                     }
                 }

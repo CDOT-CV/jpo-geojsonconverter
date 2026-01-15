@@ -547,7 +547,7 @@ public class FieldConversions {
      * Parse heading sectors directly from Asn1Bitstring. Each bit represents a 22.5-degree sector starting from North
      * (0°) and moving clockwise.
      *
-     * @param directionBitstring The Asn1Bitstring direction field
+     * @param directionBitstring The HeadingSlice containing the Asn1Bitstring direction field
      * @return List of active sector bit positions
      */
     public static List<Integer> parseHeadingSectorsFromBitstring(HeadingSlice directionBitstring) {
