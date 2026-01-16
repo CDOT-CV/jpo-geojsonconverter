@@ -13,9 +13,13 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Represents a lane width profile for a TIM region.
  * <p>
- * defaultWidth - The default lane width
+ * This object describes the default lane width set in a TIM along with the calculated actual lane widths (including any
+ * offset) for each node represented in the TIM.
  * <p>
- * segments - List of lane width segments with offsets
+ * defaultWidthMeters - The default lane width set in the TIM
+ * <p>
+ * nodeLaneWidthMeters - List of calculated actual lane widths (including any offset) for each node represented in the
+ * TIM
  */
 @Data
 @Generated
