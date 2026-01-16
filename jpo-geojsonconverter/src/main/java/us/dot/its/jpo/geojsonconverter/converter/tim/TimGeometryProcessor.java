@@ -295,7 +295,7 @@ public class TimGeometryProcessor {
     }
 
     /**
-     * Extract dwith and delevation offsets from node attributes.
+     * Extract dwidth and delevation offsets from node attributes.
      * 
      * @param node The node to extract offsets from
      * @return Array containing [dwidthOffset, delevationOffset] or null if no attributes
@@ -318,7 +318,7 @@ public class TimGeometryProcessor {
     }
 
     /**
-     * Extract dwith and delevation offsets from node attributes.
+     * Extract dwidth and delevation offsets from node attributes.
      * 
      * @param node The node to extract offsets from
      * @return Array containing [dwidthOffset, delevationOffset] or null if no attributes

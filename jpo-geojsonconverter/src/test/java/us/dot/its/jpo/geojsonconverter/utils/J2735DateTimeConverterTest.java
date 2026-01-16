@@ -115,7 +115,7 @@ public class J2735DateTimeConverterTest {
     }
 
     @Test
-    public void testGenerateUTCTimestampTwoParameterOverloadWithNullMoy() {
+    public void testGenerateUTCTimestampTwoParameterOverloadWidthNullMoy() {
         // Test the 2-parameter overload with null MOY
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(null, TEST_ODE_DATE);
 
@@ -290,7 +290,7 @@ public class J2735DateTimeConverterTest {
     }
 
     @Test
-    public void testGenerateUTCTimestampTwoParameterOverloadWithNullMoyAndNullYear() {
+    public void testGenerateUTCTimestampTwoParameterOverloadWidthNullMoyAndNullYear() {
         // Test the 2-parameter overload with null MOY and null year
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(null, TEST_ODE_DATE);
 
@@ -299,7 +299,7 @@ public class J2735DateTimeConverterTest {
     }
 
     @Test
-    public void testGenerateUTCTimestampThreeParameterOverloadWithNullMoy() {
+    public void testGenerateUTCTimestampThreeParameterOverloadWidthNullMoy() {
         // Test the 3-parameter overload with null MOY
         DSecond dSecond = new DSecond(1000);
 
