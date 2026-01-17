@@ -660,7 +660,7 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
    - Compliance information for validation tracking.
 
 2. **Data Frame to Feature Conversion**: Each `TravelerDataFrame` in the TIM message becomes a GeoJSON Feature in the `dataFrameFeatureCollection`:
-   - Each data frame is assigned a sequential feature ID (0, 1, 2, ...)
+   - Each data frame within a TIM is assigned a sequential feature ID (0, 1, 2, ...)
    - The geometry is derived from the regions defined in the data frame
    - Properties are extracted from the data frame metadata and content
 

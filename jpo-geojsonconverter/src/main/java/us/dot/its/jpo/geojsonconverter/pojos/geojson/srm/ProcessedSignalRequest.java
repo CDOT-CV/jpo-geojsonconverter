@@ -12,7 +12,7 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 
 /**
- * A SignalRuest within a ProcessedSrm. Includes information about the request, but does not include requestor
+ * A SignalRequest within a ProcessedSrm. Includes information about the request, but does not include requestor
  * information or location.
  */
 @Data

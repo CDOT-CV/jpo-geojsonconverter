@@ -138,7 +138,7 @@ public class TimGeometryProcessor {
     }
 
     /**
-     * Calculate the center location from all regions in the TIM message.
+     * Calculate the center location from all regions' anchor points in the TIM message.
      *
      * @param travelerInfo The ASN.1 TravelerInformation object
      * @return JTS Point representing the center location, or null if no regions found
@@ -221,8 +221,7 @@ public class TimGeometryProcessor {
 
         // If no description, try to use anchor point with lane width
         if (coordinates.isEmpty() && region.getAnchor() != null) {
-            Position3D anchor = region.getAnchor();
-            coordinates.addAll(createRectangleFromAnchor(anchor));
+            log.warn("No coordinates found for region: {}", region.getAnchor());
         }
 
         return coordinates;
@@ -694,18 +693,6 @@ public class TimGeometryProcessor {
         }
 
         return coordinates;
-    }
-
-    private List<List<Double>> createRectangleFromAnchor(Position3D anchor) {
-        if (anchor == null) {
-            return new ArrayList<>();
-        }
-
-        double lat = FieldConversions.convertLat(anchor.getLat().getValue());
-        double lon = FieldConversions.convertLong(anchor.getLong_().getValue());
-
-        // Create rectangle using GeodeticUtils for accurate coordinate calculations
-        return createRectanglePoints(lon, lat, DEFAULT_PADDING_DEGREES);
     }
 
     /**

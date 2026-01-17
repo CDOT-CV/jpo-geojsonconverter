@@ -7,8 +7,11 @@ import java.util.Objects;
 
 @Getter
 public enum ProcessedPersonalDeviceUserType {
-    UNAVAILABLE(0, "unavailable"), APEDESTRIAN(1, "aPEDESTRIAN"), APEDALCYCLIST(2,
-            "aPEDALCYCLIST"), APUBLICSAFETYWORKER(3, "aPUBLICSAFETYWORKER"), ANANIMAL(4, "anANIMAL");
+    UNAVAILABLE(0, "unavailable"),
+    APEDESTRIAN(1, "aPEDESTRIAN"),
+    APEDALCYCLIST(2, "aPEDALCYCLIST"),
+    APUBLICSAFETYWORKER(3, "aPUBLICSAFETYWORKER"),
+    ANANIMAL(4, "anANIMAL");
 
     private final int index;
     private final String name;
