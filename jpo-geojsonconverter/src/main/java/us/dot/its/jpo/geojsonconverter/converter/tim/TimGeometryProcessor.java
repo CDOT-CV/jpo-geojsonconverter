@@ -74,7 +74,7 @@ public class TimGeometryProcessor {
     public Geometry createGeometryFromRegion(GeographicalPath region) {
         try {
             ProcessedRegionType regionType = determineRegionType(region);
-            List<List<Double>> coordinates = processRegionCoordinates(region);
+            List<List<Double>> coordinates = extractCoordinatesFromRegion(region);
 
             if (coordinates.isEmpty()) {
                 return null;
@@ -204,18 +204,18 @@ public class TimGeometryProcessor {
     }
 
     /**
-     * Process region coordinates from ASN.1 data
+     * Extract coordinates from a TIM region
      */
-    private List<List<Double>> processRegionCoordinates(GeographicalPath region) {
+    private List<List<Double>> extractCoordinatesFromRegion(GeographicalPath region) {
         List<List<Double>> coordinates = new ArrayList<>();
 
         // Get coordinates from the description
         DescriptionChoice description = region.getDescription();
         if (description != null) {
             if (description.getPath() != null) {
-                coordinates.addAll(processOffsetPath(region, description.getPath()));
+                coordinates.addAll(extractCoordinatesFromOffsetPath(region, description.getPath()));
             } else if (description.getGeometry() != null) {
-                coordinates.addAll(processGeometry(region, description.getGeometry()));
+                coordinates.addAll(extractCoordinatesFromGeometry(region, description.getGeometry()));
             }
         }
 
@@ -251,7 +251,7 @@ public class TimGeometryProcessor {
 
         // Process each region and determine geometry types
         for (GeographicalPath region : regions) {
-            List<List<Double>> coordinates = processRegionCoordinates(region);
+            List<List<Double>> coordinates = extractCoordinatesFromRegion(region);
             if (!coordinates.isEmpty()) {
                 allCoordinates.add(coordinates);
 
@@ -539,7 +539,7 @@ public class TimGeometryProcessor {
         return pathData;
     }
 
-    private List<List<Double>> processOffsetPath(GeographicalPath region, OffsetSystem path) {
+    private List<List<Double>> extractCoordinatesFromOffsetPath(GeographicalPath region, OffsetSystem path) {
         if (path == null) {
             return new ArrayList<>();
         }
@@ -596,7 +596,7 @@ public class TimGeometryProcessor {
         return coordinates;
     }
 
-    private List<List<Double>> processGeometry(GeographicalPath region, GeometricProjection geometry) {
+    private List<List<Double>> extractCoordinatesFromGeometry(GeographicalPath region, GeometricProjection geometry) {
         if (geometry == null || region.getAnchor() == null) {
             return new ArrayList<>();
         }

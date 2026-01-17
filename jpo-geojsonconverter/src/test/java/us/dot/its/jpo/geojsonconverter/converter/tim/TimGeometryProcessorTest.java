@@ -371,6 +371,5 @@ public class TimGeometryProcessorTest {
                 }
             }
         }
-        // If no such region found, test passes (test data may not have this scenario)
     }
 }
