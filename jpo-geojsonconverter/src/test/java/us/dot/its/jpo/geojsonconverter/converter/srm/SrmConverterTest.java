@@ -6,9 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import us.dot.its.jpo.asn.j2735.r2024.SignalRequestMessage.SignalRequestMessageMessageFrame;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.srm.ProcessedSignalRequest;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.srm.ProcessedSrm;
@@ -16,6 +13,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.srm.SrmProperties;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -43,7 +41,7 @@ public class SrmConverterTest {
         SrmConverter srmConverter = new SrmConverter();
         SignalRequestMessageMessageFrame messageFrame =
                 mapper.readValue(srmJson, SignalRequestMessageMessageFrame.class);
-        ProcessedSrm processedSrm = srmConverter.processSrm(messageFrame);
+        ProcessedSrm processedSrm = srmConverter.processSrm(messageFrame, ZonedDateTime.now());
         assertThat(processedSrm, notNullValue());
         SrmProperties props = processedSrm.getProperties();
         assertThat(props, hasProperty("requests", notNullValue()));
@@ -56,11 +54,7 @@ public class SrmConverterTest {
         final String srm1Lane = loadResource("classpath:json/srm.message-frame.json");
         final String srm2Lanes = loadResource("classpath:json/srm.message-frame.2lanes.json");
         final String srm4Lanes = loadResource("classpath:json/srm.message-frame.4lanes.json");
-        return Arrays.asList(new Object[][] {
-                { srm1Lane, 1 },
-                { srm2Lanes, 2},
-                { srm4Lanes, 4}
-        });
+        return Arrays.asList(new Object[][] {{srm1Lane, 1}, {srm2Lanes, 2}, {srm4Lanes, 4}});
     }
 
 

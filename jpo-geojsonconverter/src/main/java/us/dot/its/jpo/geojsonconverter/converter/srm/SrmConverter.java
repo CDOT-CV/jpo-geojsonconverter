@@ -25,12 +25,6 @@ import static us.dot.its.jpo.geojsonconverter.converter.FieldConversions.*;
 @Slf4j
 public class SrmConverter {
 
-    public ProcessedSrm processSrm(final SignalRequestMessageMessageFrame ssmFrame) {
-        // We don't know what year it is; pass in the current time as a basis to guess the year.
-        var now = ZonedDateTime.now();
-        return processSrm(ssmFrame, now);
-    }
-
     public ProcessedSrm processSrm(final SignalRequestMessageMessageFrame srmFrame, final ZonedDateTime ingestTime) {
         var list = new ArrayList<ProcessedSrm>();
 
@@ -80,7 +74,9 @@ public class SrmConverter {
     }
 
     private void processRequestorDescription(final RequestorDescription requestor, SrmProperties props) {
-        if (requestor == null) { return; }
+        if (requestor == null) {
+            return;
+        }
         RequestorPositionVector vector = requestor.getPosition();
         processRequestorPositionVector(vector, props);
 
@@ -145,14 +141,18 @@ public class SrmConverter {
         }
     }
 
-    private void processSignalRequestPackage(final SignalRequestPackage pkg, final ProcessedSignalRequest processed, final int year) {
-        if (pkg == null) { return; }
+    private void processSignalRequestPackage(final SignalRequestPackage pkg, final ProcessedSignalRequest processed,
+            final int year) {
+        if (pkg == null) {
+            return;
+        }
         processSignalRequest(pkg.getRequest(), processed);
         processETA(pkg, processed, year);
     }
 
     private void processSignalRequest(final SignalRequest request, final ProcessedSignalRequest processed) {
-        if (request == null) return;
+        if (request == null)
+            return;
 
         RegionIntersectionId id = convertIntersectionReferenceID(request.getId());
         processed.setRegion(id.region());
@@ -160,7 +160,7 @@ public class SrmConverter {
 
         RequestID requestId = request.getRequestID();
         if (requestId != null) {
-            processed.setRequestID((int)requestId.getValue());
+            processed.setRequestID((int) requestId.getValue());
         }
 
         PriorityRequestType requestType = request.getRequestType();
@@ -180,7 +180,7 @@ public class SrmConverter {
     }
 
     private void processETA(final SignalRequestPackage pkg, final ProcessedSignalRequest processed, final int year) {
-        ZonedDateTime ts = convertMinuteOfYearAndDSecond( pkg.getMinute(), year, pkg.getSecond());
+        ZonedDateTime ts = convertMinuteOfYearAndDSecond(pkg.getMinute(), year, pkg.getSecond());
         processed.setEstimatedTimeOfArrival(ts);
         if (pkg.getDuration() != null) {
             Duration duration = Duration.ofMillis(pkg.getDuration().getValue());
@@ -189,19 +189,21 @@ public class SrmConverter {
     }
 
     private void processRequestorType(RequestorType requestorType, SrmProperties props) {
-        if (requestorType == null) return;
+        if (requestorType == null)
+            return;
         props.setRole(convertBasicVehicleRole(requestorType.getRole()));
         props.setSubrole(convertRequestSubRole(requestorType.getSubrole()));
         props.setHpmsType(convertVehicleType(requestorType.getHpmsType()));
         Iso3833VehicleType iso = requestorType.getIso3883();
         if (iso != null) {
-            props.setIso3833VehicleType((int)iso.getValue());
+            props.setIso3833VehicleType((int) iso.getValue());
         }
         props.setImportanceLevel(convertRequestImportanceLevel(requestorType.getRequest()));
     }
 
     /**
      * Add JSON schema validation results for J2735 and Metadata validation.
+     * 
      * @param properties The properties to add validation messages to
      * @param validatorResult the schema validator result
      */
