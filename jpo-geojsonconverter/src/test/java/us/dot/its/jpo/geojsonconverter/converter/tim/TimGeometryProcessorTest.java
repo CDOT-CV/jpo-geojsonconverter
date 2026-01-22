@@ -1,5 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.converter.tim;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -15,7 +16,9 @@ import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Geometry;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.MultiLineString;
+import us.dot.its.jpo.geojsonconverter.pojos.geojson.MultiPolygon;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Polygon;
+import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
 import us.dot.its.jpo.geojsonconverter.serialization.deserializers.JsonDeserializer;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
@@ -24,11 +27,13 @@ import org.locationtech.jts.geom.Point;
 
 public class TimGeometryProcessorTest {
     private TimGeometryProcessor geometryProcessor;
+    private TimConverter timConverter;
     private OdeMessageFrameData timMF;
 
     @Before
     public void setup() throws IOException {
         geometryProcessor = new TimGeometryProcessor();
+        timConverter = new TimConverter(geometryProcessor);
 
         // Load sample TIM JSON file
         String timJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/sample.ode-tim.json")));
@@ -65,6 +70,95 @@ public class TimGeometryProcessorTest {
             }
         }
 
+    }
+
+    @Test
+    public void testCreateGeometryFromDataFrameNoDataLoss() {
+        // Extract ASN.1 data from incoming TIM
+        TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
+        TravelerInformation travelerInfo = messageFrame.getValue();
+
+        // Count all regions across all dataframes in the incoming TIM
+        int totalIncomingRegions = 0;
+        for (TravelerDataFrame dataFrame : travelerInfo.getDataFrames()) {
+            if (dataFrame.getRegions() != null) {
+                totalIncomingRegions += dataFrame.getRegions().size();
+            }
+        }
+
+        assertTrue(totalIncomingRegions > 0, "Test requires at least one region in the incoming TIM");
+
+        // Create ProcessedTim from the incoming TIM
+        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, timMF.getMetadata());
+
+        // Verify ProcessedTim was created
+        assertNotNull(processedTim, "ProcessedTim should not be null");
+        assertNotNull(processedTim.getDataFrameFeatureCollection(), "DataFrameFeatureCollection should not be null");
+        assertNotNull(processedTim.getDataFrameFeatureCollection().getFeatures(), "Features list should not be null");
+
+        // Count all regions in the processed TIM (sum of regionInfoList sizes across all features)
+        int totalProcessedRegions = 0;
+        for (var feature : processedTim.getDataFrameFeatureCollection().getFeatures()) {
+            if (feature.getProperties() != null && feature.getProperties().getRegionInfoList() != null) {
+                totalProcessedRegions += feature.getProperties().getRegionInfoList().size();
+            }
+        }
+
+        // Verify that all regions from incoming TIM are represented in processed TIM
+        assertEquals(totalIncomingRegions, totalProcessedRegions, String.format(
+                "All regions from incoming TIM should be represented in processed TIM. Expected %d regions, found %d",
+                totalIncomingRegions, totalProcessedRegions));
+
+        // Verify that each feature has a valid geometry with coordinates
+        for (int i = 0; i < processedTim.getDataFrameFeatureCollection().getFeatures().size(); i++) {
+            var feature = processedTim.getDataFrameFeatureCollection().getFeatures().get(i);
+            Geometry geometry = feature.getGeometry();
+
+            assertNotNull(geometry, String.format("Feature %d should have a geometry", i));
+
+            // Verify geometry has coordinates based on type
+            if (geometry instanceof LineString) {
+                LineString lineString = (LineString) geometry;
+                assertNotNull(lineString.getCoordinates(),
+                        String.format("Feature %d LineString should have coordinates", i));
+                assertTrue(lineString.getCoordinates().length > 0,
+                        String.format("Feature %d LineString should have at least one coordinate", i));
+            } else if (geometry instanceof MultiLineString) {
+                MultiLineString multiLineString = (MultiLineString) geometry;
+                assertNotNull(multiLineString.getCoordinates(),
+                        String.format("Feature %d MultiLineString should have coordinates", i));
+                assertTrue(multiLineString.getCoordinates().length > 0,
+                        String.format("Feature %d MultiLineString should have at least one linestring", i));
+            } else if (geometry instanceof Polygon) {
+                Polygon polygon = (Polygon) geometry;
+                assertNotNull(polygon.getCoordinates(), String.format("Feature %d Polygon should have coordinates", i));
+                assertTrue(polygon.getCoordinates().length > 0,
+                        String.format("Feature %d Polygon should have at least one ring", i));
+            } else if (geometry instanceof MultiPolygon) {
+                MultiPolygon multiPolygon = (MultiPolygon) geometry;
+                assertNotNull(multiPolygon.getCoordinates(),
+                        String.format("Feature %d MultiPolygon should have coordinates", i));
+                assertTrue(multiPolygon.getCoordinates().length > 0,
+                        String.format("Feature %d MultiPolygon should have at least one polygon", i));
+            }
+
+            // Verify that the number of regions in regionInfoList matches the geometry structure
+            if (feature.getProperties() != null && feature.getProperties().getRegionInfoList() != null) {
+                int regionCount = feature.getProperties().getRegionInfoList().size();
+                if (regionCount > 1) {
+                    // Multiple regions should result in MultiLineString or MultiPolygon
+                    assertTrue(geometry instanceof MultiLineString || geometry instanceof MultiPolygon,
+                            String.format(
+                                    "Feature %d with %d regions should have MultiLineString or MultiPolygon geometry",
+                                    i, regionCount));
+                }
+            }
+        }
+
+        // Verify that the number of features matches the number of dataframes
+        assertEquals(travelerInfo.getDataFrames().size(),
+                processedTim.getDataFrameFeatureCollection().getFeatures().size(),
+                "Number of features should match number of dataframes");
     }
 
     @Test

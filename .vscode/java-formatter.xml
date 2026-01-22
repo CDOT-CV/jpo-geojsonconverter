@@ -453,7 +453,7 @@
         <setting
             id="org.eclipse.jdt.core.formatter.alignment_for_annotations_on_field.count_dependent"
             value="1585|-1|1585" />
-        <setting id="org.eclipse.jdt.core.formatter.keep_imple_if_on_one_line" value="false" />
+        <setting id="org.eclipse.jdt.core.formatter.keep_imple_if_on_one_line" value="true" />
         <setting
             id="org.eclipse.jdt.core.formatter.insert_space_before_comma_in_constructor_declaration_parameters"
             value="do not insert" />
