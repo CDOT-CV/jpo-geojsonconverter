@@ -24,15 +24,14 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Handles geometry processing for TIM regions. This class encapsulates all geometry-related conversions and
- * calculations.
+ * Handles geometry conversions for TIM regions to GeoJSON types. This class encapsulates all geometry-related
+ * conversions and calculations.
  */
 @Slf4j
 @Component
-public class TimGeometryProcessor {
+public class TimGeometryConverter {
 
     // Constants
-    private static final double DEFAULT_PADDING_DEGREES = 0.005;
     // Adaptive circle point calculation constants
     private static final int MIN_CIRCLE_POINTS = 12;
     private static final int MAX_CIRCLE_POINTS = 64;
@@ -675,33 +674,6 @@ public class TimGeometryProcessor {
 
         } catch (Exception e) {
             log.error("Error creating UTM-based circle: {}", e.getMessage(), e);
-        }
-
-        return coordinates;
-    }
-
-    /**
-     * Create rectangle points using JTS GeometricShapeFactory.
-     * 
-     * @param centerLon Center longitude in degrees
-     * @param centerLat Center latitude in degrees
-     * @param paddingDegrees Padding in degrees (half-width and half-height)
-     * @return List of coordinate points forming a rectangle
-     */
-    private List<List<Double>> createRectanglePoints(double centerLon, double centerLat, double paddingDegrees) {
-        List<List<Double>> coordinates = new ArrayList<>();
-
-        // Create rectangle using JTS GeometricShapeFactory
-        GeometricShapeFactory shapeFactory = new GeometricShapeFactory();
-        shapeFactory.setCentre(new Coordinate(centerLon, centerLat));
-        shapeFactory.setWidth(paddingDegrees * 2); // total width
-        shapeFactory.setHeight(paddingDegrees * 2); // total height
-
-        org.locationtech.jts.geom.Polygon rectangle = shapeFactory.createRectangle();
-        Coordinate[] rectCoords = rectangle.getExteriorRing().getCoordinates();
-
-        for (Coordinate coord : rectCoords) {
-            coordinates.add(Arrays.asList(coord.x, coord.y));
         }
 
         return coordinates;

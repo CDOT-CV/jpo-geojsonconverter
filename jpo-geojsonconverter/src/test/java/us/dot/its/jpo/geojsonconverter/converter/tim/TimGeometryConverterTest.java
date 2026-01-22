@@ -25,15 +25,15 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 import org.locationtech.jts.geom.Point;
 
-public class TimGeometryProcessorTest {
-    private TimGeometryProcessor geometryProcessor;
+public class TimGeometryConverterTest {
+    private TimGeometryConverter geometryConverter;
     private TimConverter timConverter;
     private OdeMessageFrameData timMF;
 
     @Before
     public void setup() throws IOException {
-        geometryProcessor = new TimGeometryProcessor();
-        timConverter = new TimConverter(geometryProcessor);
+        geometryConverter = new TimGeometryConverter();
+        timConverter = new TimConverter(geometryConverter);
 
         // Load sample TIM JSON file
         String timJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/sample.ode-tim.json")));
@@ -51,7 +51,7 @@ public class TimGeometryProcessorTest {
         TravelerDataFrame dataFrame = messageFrame.getValue().getDataFrames().get(0);
 
         // Test geometry creation
-        Geometry geometry = geometryProcessor.createGeometryFromDataFrame(dataFrame);
+        Geometry geometry = geometryConverter.createGeometryFromDataFrame(dataFrame);
 
         // Verify geometry creation
         assertNotNull(geometry);
@@ -168,7 +168,7 @@ public class TimGeometryProcessorTest {
         GeographicalPath region = messageFrame.getValue().getDataFrames().get(0).getRegions().get(0);
 
         // Test geometry creation from region
-        Geometry geometry = geometryProcessor.createGeometryFromRegion(region);
+        Geometry geometry = geometryConverter.createGeometryFromRegion(region);
 
         // Verify geometry creation
         assertNotNull(geometry);
@@ -186,7 +186,7 @@ public class TimGeometryProcessorTest {
         TravelerInformation travelerInfo = messageFrame.getValue();
 
         // Test center location calculation
-        Point centerPoint = geometryProcessor.calculateCenterLocationFromRegions(travelerInfo);
+        Point centerPoint = geometryConverter.calculateCenterLocationFromRegions(travelerInfo);
 
         // Verify center point calculation
         assertNotNull(centerPoint);
@@ -206,7 +206,7 @@ public class TimGeometryProcessorTest {
         GeographicalPath region = messageFrame.getValue().getDataFrames().get(0).getRegions().get(0);
 
         // Test region type determination by creating geometry
-        Geometry geometry = geometryProcessor.createGeometryFromRegion(region);
+        Geometry geometry = geometryConverter.createGeometryFromRegion(region);
 
         // Verify that PATH regions create LineString geometries
         assertNotNull(geometry);
@@ -221,7 +221,7 @@ public class TimGeometryProcessorTest {
         GeographicalPath region = dataFrame.getRegions().get(0);
 
         // Test geometry creation from closed path region
-        Geometry geometry = geometryProcessor.createGeometryFromRegion(region);
+        Geometry geometry = geometryConverter.createGeometryFromRegion(region);
 
         // Verify geometry creation
         assertNotNull(geometry);
@@ -265,7 +265,7 @@ public class TimGeometryProcessorTest {
         double radius = FieldConversions.convertDistanceToMeters(circle.getRadius().getValue(), circle.getUnits());
 
         // Test geometry creation from circle region
-        Geometry geometry = geometryProcessor.createGeometryFromRegion(region);
+        Geometry geometry = geometryConverter.createGeometryFromRegion(region);
 
         // Verify geometry creation
         assertNotNull(geometry);
@@ -358,7 +358,7 @@ public class TimGeometryProcessorTest {
         // If we found a region with null anchor and LatLon nodes, test it
         if (regionWithNullAnchor != null) {
             // Test geometry creation from region with null anchor
-            Geometry geometry = geometryProcessor.createGeometryFromRegion(regionWithNullAnchor);
+            Geometry geometry = geometryConverter.createGeometryFromRegion(regionWithNullAnchor);
 
             // Verify geometry creation succeeds even without anchor
             assertNotNull(geometry, "Geometry should be created even with null anchor when LatLon nodes are present");
@@ -443,7 +443,7 @@ public class TimGeometryProcessorTest {
 
                             // If we have only offset nodes (no LatLon), geometry should be empty/null
                             if (hasOnlyOffsetNodes && !hasLatLonNodes) {
-                                Geometry geometry = geometryProcessor.createGeometryFromRegion(region);
+                                Geometry geometry = geometryConverter.createGeometryFromRegion(region);
                                 // With null anchor and only offset nodes, we should get null or empty geometry
                                 // because offset nodes require a starting point
                                 // Note: Based on our implementation, it should return null or empty
