@@ -61,7 +61,7 @@ public class TimTopology {
 
         // Convert ODE TIM to ProcessedTim which is not GeoJSON
         KStream<RsuTimKey, ProcessedTim> processedJsonTimStream = validatedOdeTimStream.transform(() -> {
-            TimGeometryProcessor geometryProcessor = new TimGeometryProcessor();
+            TimGeometryConverter geometryProcessor = new TimGeometryConverter();
             TimConverter timConverter = new TimConverter(geometryProcessor);
             return new TimTransformer(timConverter);
         });

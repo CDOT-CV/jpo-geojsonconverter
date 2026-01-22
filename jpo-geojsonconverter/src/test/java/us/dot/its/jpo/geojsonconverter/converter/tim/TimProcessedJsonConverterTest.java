@@ -41,7 +41,7 @@ public class TimProcessedJsonConverterTest {
         }
 
         // Create TimConverter with TimGeometryProcessor dependency
-        TimGeometryProcessor geometryProcessor = new TimGeometryProcessor();
+        TimGeometryConverter geometryProcessor = new TimGeometryConverter();
         TimConverter timConverter = new TimConverter(geometryProcessor);
         timProcessedJsonConverter = new TimProcessedJsonConverter(timConverter);
     }

@@ -34,7 +34,7 @@ public class TimTransformerTest {
             timMF = odeTimDeserializer.deserialize("test-topic", timJsonString.getBytes());
         }
 
-        TimGeometryProcessor geometryProcessor = new TimGeometryProcessor();
+        TimGeometryConverter geometryProcessor = new TimGeometryConverter();
         TimConverter timConverter = new TimConverter(geometryProcessor);
         timTransformer = new TimTransformer(timConverter);
     }

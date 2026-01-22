@@ -48,9 +48,9 @@ public class TimConverter {
     private static final ZonedDateTime INFINITE_VALIDITY_PERIOD =
             ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 0, ZoneId.of(UTC_ZONE_ID));
 
-    private final TimGeometryProcessor geometryProcessor;
+    private final TimGeometryConverter geometryProcessor;
 
-    public TimConverter(TimGeometryProcessor geometryProcessor) {
+    public TimConverter(TimGeometryConverter geometryProcessor) {
         this.geometryProcessor = geometryProcessor;
     }
 
