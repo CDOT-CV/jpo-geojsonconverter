@@ -12,6 +12,8 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.srm.ProcessedSrm;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.srm.SrmProperties;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -39,7 +41,7 @@ public class SrmConverterTest {
         SrmConverter srmConverter = new SrmConverter();
         SignalRequestMessageMessageFrame messageFrame =
                 mapper.readValue(srmJson, SignalRequestMessageMessageFrame.class);
-        ProcessedSrm processedSrm = srmConverter.processSrm(messageFrame);
+        ProcessedSrm processedSrm = srmConverter.processSrm(messageFrame, ZonedDateTime.now());
         assertThat(processedSrm, notNullValue());
         SrmProperties props = processedSrm.getProperties();
         assertThat(props, hasProperty("requests", notNullValue()));

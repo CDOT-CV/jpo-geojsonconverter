@@ -3,8 +3,8 @@
   "geometry": {
     "type": "Point",
     "coordinates": [
-      -105.0851191,
-      39.5532496
+      -105.0850214,
+      39.5534788
     ]
   },
   "properties": {
@@ -14,24 +14,16 @@
     "originIp": "172.18.0.1",
     "asn1": "001D2F72DC028000050890BD481080201F1A62242F5205200408430AB02F236614C002D4D3841D02CA71A8851970D51C3060",
     "timeStamp": "2025-09-18T06:29:00Z",
-    "sequenceNumber": 5,
+    "sequenceNumber": 11,
     "vehicleID": "2031825062",
     "role": "PUBLICTRANSPORT",
-    "latitude": 39.5532496,
-    "longitude": -105.0851191,
-    "elevation": 1679.1000000000001,
-    "heading": 21.3,
+    "latitude": 39.5534788,
+    "longitude": -105.0850214,
+    "elevation": 1678.8000000000002,
+    "heading": 18.7,
     "transmission": "UNAVAILABLE",
-    "speedMetersPerSecond": 7.74,
+    "speedMetersPerSecond": 10.24,
     "requests": [
-      {
-        "intersectionId": 12114,
-        "requestID": 4,
-        "priorityRequestType": "PRIORITYREQUEST",
-        "inboundLaneID": 2,
-        "outboundLaneID": 15,
-        "estimatedTimeOfArrivalDurationSeconds": 36.145000000
-      },
       {
         "intersectionId": 12114,
         "requestID": 5,

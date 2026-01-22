@@ -22,12 +22,13 @@ public class SsmSerializationTest {
         final String referenceProcessedSsmJson = loadResource("classpath:json/sample.processed-ssm.json");
         SsmConverter ssmConverter = new SsmConverter();
         SignalStatusMessageMessageFrame messageFrame = mapper.readValue(ssmJson, SignalStatusMessageMessageFrame.class);
-        ProcessedSsm processedSsm = ssmConverter.processSsm(messageFrame);
+        ZonedDateTime ingestTime = ZonedDateTime.parse("2025-09-18T06:29:28Z");
+        ProcessedSsm processedSsm = ssmConverter.processSsm(messageFrame, ingestTime);
 
-        processedSsm.setOdeReceivedAt(ZonedDateTime.parse("2025-09-18T06:29:28Z"));
         processedSsm.setAsn1("001E1865B80579181E00F0BD480C95E46CC2981428200408430AA0");
         processedSsm.setSchemaVersion(ProcessedSchemaVersions.PROCESSED_SSM_SCHEMA_VERSION);
         processedSsm.setOriginIp("172.18.0.1");
+        processedSsm.setOdeReceivedAt(ingestTime);
 
         assertThatJson(referenceProcessedSsmJson).isEqualTo(processedSsm.toString());
     }
