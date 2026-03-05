@@ -7,7 +7,7 @@ import us.dot.its.jpo.geojsonconverter.DateJsonMapper;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public class JsonDeserializer<T> implements Deserializer<T> {
     private static Logger logger = LoggerFactory.getLogger(JsonDeserializer.class);
@@ -29,7 +29,7 @@ public class JsonDeserializer<T> implements Deserializer<T> {
             T returnData = mapper.readValue(data, destinationClass);
             return returnData;
         } catch (IOException e) {
-            String errMsg = String.format("Exception deserializing for topic %s: %s", topic, e.getMessage());
+            String errMsg = "Exception deserializing for topic %s: %s".formatted(topic, e.getMessage());
             logger.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         }

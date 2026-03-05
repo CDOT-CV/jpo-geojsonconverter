@@ -1,13 +1,13 @@
 package us.dot.its.jpo.geojsonconverter.converter.rtcm;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
+import tools.jackson.core.JacksonException;
 import us.dot.its.jpo.asn.j2735.r2024.RTCMcorrections.RTCMcorrectionsMessageFrame;
 import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.rtcm.ProcessedRTCM;
@@ -40,7 +40,7 @@ public class RTCMConverterTest {
     public Long expectUtcTime;
 
     @Test
-    public void testProcessRtcm() throws JsonProcessingException {
+    public void testProcessRtcm() throws JacksonException {
         RTCMDecoder decoder = new RTCMDecoder(false);
         RTCMConverter converter = new RTCMConverter(decoder);
         RTCMcorrectionsMessageFrame messageFrame = mapper.readValue(rtcmJson, RTCMcorrectionsMessageFrame.class);

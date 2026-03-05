@@ -1,14 +1,13 @@
 package us.dot.its.jpo.geojsonconverter.converter.rtcm;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
 import us.dot.its.jpo.geojsonconverter.DateJsonMapper;
 import us.dot.its.jpo.geojsonconverter.GeoJsonConverterProperties;
 
@@ -78,7 +77,7 @@ public class RTCMDecoder {
         // Preamble: 8 bits
         int preamble = unsigned(bytes[0]);
         if (preamble != 0xD3) {
-            log.error(String.format("Invalid RTCM preamble: %02X, should be %20X", preamble, 0xD3));
+            log.error("Invalid RTCM preamble: %02X, should be %20X".formatted(preamble, 0xD3));
             return node;
         }
         node.put("class", "RTCM3");
@@ -86,7 +85,7 @@ public class RTCMDecoder {
         // Next 6 bits should be zero
         int zeroBits = unsigned(bytes[1]) >>> 2;
         if (zeroBits != 0) {
-            log.error(String.format("Invalid zero bits: %X", zeroBits));
+            log.error("Invalid zero bits: %X".formatted(zeroBits));
             return node;
         }
 
@@ -142,7 +141,7 @@ public class RTCMDecoder {
         ObjectMapper mapper = DateJsonMapper.getInstance();
         try {
             return mapper.readValue(json, JsonNode.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.error("Decode RTCM json failed", e);
             var errNode = mapper.createObjectNode();
             errNode.put("error", e.getMessage());

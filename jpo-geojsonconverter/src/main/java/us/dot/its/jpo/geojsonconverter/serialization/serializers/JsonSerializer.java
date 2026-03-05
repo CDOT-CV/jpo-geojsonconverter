@@ -1,7 +1,7 @@
 package us.dot.its.jpo.geojsonconverter.serialization.serializers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
 import us.dot.its.jpo.geojsonconverter.DateJsonMapper;
 
 import org.apache.kafka.common.serialization.Serializer;
@@ -24,8 +24,8 @@ public class JsonSerializer<T> implements Serializer<T> {
     public byte[] serialize(String topic, T data) {
         try {
             return mapper.writeValueAsBytes(data);
-        } catch (JsonProcessingException e) {
-            String errMsg = String.format("Exception serializing %s to bytes: %s", data, e.getMessage());
+        } catch (JacksonException e) {
+            String errMsg = "Exception serializing %s to bytes: %s".formatted(data, e.getMessage());
             logger.error(errMsg);
             return null;
         }

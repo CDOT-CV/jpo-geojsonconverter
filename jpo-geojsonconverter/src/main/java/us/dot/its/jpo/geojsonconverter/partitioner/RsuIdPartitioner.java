@@ -14,9 +14,7 @@ public class RsuIdPartitioner<K, V> implements StreamPartitioner<K, V> {
         
         byte[] partitionBytes;
         
-        if (key instanceof RsuIdKey) {
-            // If the key is an object with an RSU ID, partition on it
-            var rsuIdKey = (RsuIdKey)key;
+        if (key instanceof RsuIdKey rsuIdKey) {
             String rsuId = rsuIdKey.getRsuId();
             try (var serializer = Serdes.String().serializer()) {
                 partitionBytes = serializer.serialize(topic, rsuId); 

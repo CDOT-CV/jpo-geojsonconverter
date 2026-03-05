@@ -1,13 +1,11 @@
 package us.dot.its.jpo.geojsonconverter.validator;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 
@@ -18,7 +16,6 @@ import static org.junit.Assert.assertFalse;
 @SpringBootTest({
         "valid.ssm.json=classpath:json/valid.ssm.json",
         "invalid.ssm.json=classpath:json/invalid.ssm.json"})
-@RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 public class SsmJsonValidatorTest extends AbstractJsonValidatorTest {
 

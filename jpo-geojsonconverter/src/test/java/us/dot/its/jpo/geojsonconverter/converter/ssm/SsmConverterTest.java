@@ -1,7 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.converter.ssm;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,6 +10,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+import tools.jackson.core.JacksonException;
 import us.dot.its.jpo.asn.j2735.r2024.SignalStatusMessage.SignalStatusMessageMessageFrame;
 import us.dot.its.jpo.geojsonconverter.pojos.ssm.ProcessedSsm;
 
@@ -38,7 +38,7 @@ public class SsmConverterTest {
     public int expectNumberOfRequests;
 
     @Test
-    public void testProcessSsm() throws JsonProcessingException {
+    public void testProcessSsm() throws JacksonException {
         SsmConverter ssmConverter = new SsmConverter();
         SignalStatusMessageMessageFrame messageFrame =
                 mapper.readValue(ssmJson, SignalStatusMessageMessageFrame.class);

@@ -11,17 +11,14 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.fail;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
-import org.junit.runner.RunWith;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
-
-import com.fasterxml.jackson.databind.JavaType;
+import tools.jackson.databind.JavaType;
 import us.dot.its.jpo.geojsonconverter.DateJsonMapper;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
@@ -34,7 +31,6 @@ import us.dot.its.jpo.geojsonconverter.pojos.spat.ProcessedSpat;
         "processed.map.json=classpath:json/sample.processed-map.json",
         "processed.map.wkt.json=classpath:json/sample.processed-map-wkt.json",
         "processed.bsm.json=classpath:json/sample.processed-bsm.json"})
-@RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 public class JsonSerializerTest {
     @Test
@@ -162,6 +158,6 @@ class TestClass {
     }
 
     public String toString() {
-        return String.format("{\"prop\":\"%s\"}", prop);
+        return "{\"prop\":\"%s\"}".formatted(prop);
     }
 }

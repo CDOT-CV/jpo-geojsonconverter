@@ -78,7 +78,7 @@ public class SpatProcessedJsonConverter
             }
         } catch (Exception e) {
             String errMsg =
-                    String.format("Exception converting ODE SPaT to Processed SPaT! Message: %s", e.getMessage());
+                    "Exception converting ODE SPaT to Processed SPaT! Message: %s".formatted(e.getMessage());
             logger.error(errMsg, e);
             // KafkaStreams knows to remove null responses before allowing further steps from occurring
             var key = new RsuIntersectionKey();
@@ -279,7 +279,7 @@ public class SpatProcessedJsonConverter
             String dateString;
             long milliseconds;
             if (moy != null && dSecond != null) {
-                dateString = String.format("%d-01-01T00:00:00.00Z", year);
+                dateString = "%d-01-01T00:00:00.00Z".formatted(year);
                 date = Instant.parse(dateString).atZone(ZoneId.of("UTC"));
                 date = date.plusMinutes(moy);
                 date = date.plus(dSecond, ChronoUnit.MILLIS);
@@ -295,7 +295,7 @@ public class SpatProcessedJsonConverter
 
 
         } catch (Exception e) {
-            String errMsg = String.format("Failed to generateUTCTimestamp - SpatProcessedJsonConverter. Message: %s",
+            String errMsg = "Failed to generateUTCTimestamp - SpatProcessedJsonConverter. Message: %s".formatted(
                     e.getMessage());
             logger.error(errMsg, e);
         }
@@ -336,8 +336,7 @@ public class SpatProcessedJsonConverter
                 return null;
             }
         } catch (Exception e) {
-            String errMsg = String.format(
-                    "Failed to generateOffsetUTCTimestamp - SpatProcessedJsonConverter. Message: %s", e.getMessage());
+            String errMsg = "Failed to generateOffsetUTCTimestamp - SpatProcessedJsonConverter. Message: %s".formatted(e.getMessage());
             logger.error(errMsg, e);
             return null;
         }

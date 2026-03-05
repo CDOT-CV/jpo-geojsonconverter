@@ -1,7 +1,7 @@
 package us.dot.its.jpo.geojsonconverter.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.bsm.ProcessedBsm;
@@ -15,7 +15,6 @@ import us.dot.its.jpo.geojsonconverter.pojos.ssm.ProcessedSsm;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 public class SchemaGeneratorUtility {
     public static void main(String[] args) throws IOException {
@@ -40,7 +39,7 @@ public class SchemaGeneratorUtility {
             SchemaGenerator generator = new SchemaGenerator(configBuilder.build());
 
             // Find the project root directory
-            Path currentPath = Paths.get("").toAbsolutePath();
+            Path currentPath = Path.of("").toAbsolutePath();
 
             File resourcesDir = null;
 

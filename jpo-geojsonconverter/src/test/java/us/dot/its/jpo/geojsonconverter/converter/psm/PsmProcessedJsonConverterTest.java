@@ -7,7 +7,7 @@ import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +32,7 @@ public class PsmProcessedJsonConverterTest {
 
     @Before
     public void setup() throws IOException {
-        String odePsmJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/valid.psm.json")));
+        String odePsmJsonString = new String(Files.readAllBytes(Path.of("src/test/resources/json/valid.psm.json")));
         try (JsonDeserializer<OdeMessageFrameData> odePsmDeserializer =
                 new JsonDeserializer<>(OdeMessageFrameData.class)) {
             odePsmPojo = odePsmDeserializer.deserialize("test-topic", odePsmJsonString.getBytes());

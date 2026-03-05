@@ -23,8 +23,7 @@ public class IntersectionIdPartitioner<K, V> implements StreamPartitioner<K, V> 
     public Integer partition(String topic, K key, V value, int numPartitions) {
 
 
-        if (key instanceof IntersectionKey) {
-            var intersectionKey = (IntersectionKey) key;
+        if (key instanceof IntersectionKey intersectionKey) {
             int intersectionId = intersectionKey.getIntersectionId();
             int intKey = intersectionId % numPartitions;
 

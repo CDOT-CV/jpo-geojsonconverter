@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -33,7 +33,7 @@ public class SpatProcessedJsonConverterTest {
 
     @Before
     public void setup() throws IOException {
-        String odeSpatJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/valid.spat.json")));
+        String odeSpatJsonString = new String(Files.readAllBytes(Path.of("src/test/resources/json/valid.spat.json")));
         try (JsonDeserializer<OdeMessageFrameData> odeSpatDeserializer =
                 new JsonDeserializer<>(OdeMessageFrameData.class)) {
             spatMF = odeSpatDeserializer.deserialize("test-topic", odeSpatJsonString.getBytes());

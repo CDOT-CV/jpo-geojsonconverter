@@ -1,11 +1,11 @@
 package us.dot.its.jpo.geojsonconverter.converter.srm;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import tools.jackson.core.JacksonException;
 import us.dot.its.jpo.asn.j2735.r2024.SignalRequestMessage.SignalRequestMessageMessageFrame;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.srm.ProcessedSignalRequest;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.srm.ProcessedSrm;
@@ -37,7 +37,7 @@ public class SrmConverterTest {
     public int expectNumberOfRequests;
 
     @Test
-    public void testProcessSrm() throws JsonProcessingException {
+    public void testProcessSrm() throws JacksonException {
         SrmConverter srmConverter = new SrmConverter();
         SignalRequestMessageMessageFrame messageFrame =
                 mapper.readValue(srmJson, SignalRequestMessageMessageFrame.class);

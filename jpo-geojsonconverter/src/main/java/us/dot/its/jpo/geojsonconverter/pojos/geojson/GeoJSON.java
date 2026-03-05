@@ -3,7 +3,7 @@ package us.dot.its.jpo.geojsonconverter.pojos.geojson;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 
 public abstract class GeoJSON {
     private static final ObjectMapper mapper = new ObjectMapper();

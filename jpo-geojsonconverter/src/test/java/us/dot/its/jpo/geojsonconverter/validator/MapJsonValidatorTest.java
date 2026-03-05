@@ -7,19 +7,16 @@ import static org.junit.Assert.assertFalse;
 import java.io.IOException;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.beans.factory.annotation.Value;
 
 
 @SpringBootTest( { 
     "valid.map.json=classpath:json/valid.map.json",
-    "invalid.map.json=classpath:json/invalid.map.json" })
-@RunWith(SpringRunner.class)    
+    "invalid.map.json=classpath:json/invalid.map.json" })    
 @ActiveProfiles("test")
 public class MapJsonValidatorTest extends AbstractJsonValidatorTest  {
 

@@ -3,7 +3,7 @@ package us.dot.its.jpo.geojsonconverter.converter.ssm;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import org.junit.Test;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.asn.j2735.r2024.SignalStatusMessage.SignalStatusMessageMessageFrame;
 import us.dot.its.jpo.geojsonconverter.pojos.ssm.ProcessedSsm;

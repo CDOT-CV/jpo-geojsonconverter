@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -37,7 +37,7 @@ public class MapProcessedJsonConverterTest {
 
     @Before
     public void setup() throws IOException {
-        String odeMapJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/valid.map.json")));
+        String odeMapJsonString = new String(Files.readAllBytes(Path.of("src/test/resources/json/valid.map.json")));
 
         try (JsonDeserializer<OdeMessageFrameData> odeMapDeserializer =
                 new JsonDeserializer<>(OdeMessageFrameData.class)) {

@@ -4,7 +4,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.kafka.common.serialization.Serdes;
@@ -15,9 +15,7 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -27,7 +25,6 @@ import us.dot.its.jpo.geojsonconverter.serialization.JsonSerdes;
 import us.dot.its.jpo.geojsonconverter.validator.SpatJsonValidator;
 
 @SpringBootTest
-@RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 public class SpatTopologyTest {
     private String kafkaTopicOdeSpatJson = "topic.OdeSpatJson";
@@ -39,7 +36,7 @@ public class SpatTopologyTest {
 
     @Before
     public void setup() throws IOException {
-        odeSpatJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/valid.spat.json")));
+        odeSpatJsonString = new String(Files.readAllBytes(Path.of("src/test/resources/json/valid.spat.json")));
     }
 
     @Test

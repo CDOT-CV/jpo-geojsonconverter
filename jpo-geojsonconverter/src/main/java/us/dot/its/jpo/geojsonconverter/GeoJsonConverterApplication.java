@@ -30,9 +30,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.json.JsonMapper;
 
 
 @SpringBootApplication
@@ -60,8 +58,6 @@ public class GeoJsonConverterApplication {
    @Bean
    public JsonMapper jsonMapper() {
       return JsonMapper.builder()
-         .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
-         .addModule(new JavaTimeModule())
          .build();
    }
 

@@ -2,12 +2,12 @@ package us.dot.its.jpo.geojsonconverter.serialization.deserializers;
 
 import java.io.IOException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.JavaType;
+import tools.jackson.databind.JavaType;
 import us.dot.its.jpo.geojsonconverter.DateJsonMapper;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.map.ProcessedMap;
 
@@ -32,7 +32,7 @@ public class ProcessedMapDeserializer<T> implements Deserializer<ProcessedMap<T>
             JavaType javaType = mapper.getTypeFactory().constructParametricType(ProcessedMap.class, geometryClass);
             return (ProcessedMap<T>) mapper.readValue(data, javaType);
         } catch (IOException e) {
-            String errMsg = String.format("Exception deserializing for topic %s: %s", topic, e.getMessage());
+            String errMsg = "Exception deserializing for topic %s: %s".formatted(topic, e.getMessage());
             logger.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         }

@@ -1,7 +1,7 @@
 package us.dot.its.jpo.geojsonconverter.pojos.geojson.rtcm;
 
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import lombok.Data;
 
 /**

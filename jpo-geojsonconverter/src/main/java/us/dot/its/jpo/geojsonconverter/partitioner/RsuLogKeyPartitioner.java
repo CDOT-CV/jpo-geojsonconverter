@@ -11,9 +11,7 @@ public class RsuLogKeyPartitioner<K, V> implements StreamPartitioner<K, V> {
     public Integer partition(String topic, K key, V value, int numPartitions) {
         byte[] partitionBytes;
 
-        if (key instanceof RsuLogKey) {
-            // If the key is an object with an RSU ID, partition on it
-            var rsuIdKey = (RsuLogKey)key;
+        if (key instanceof RsuLogKey rsuIdKey) {
             if (rsuIdKey.getRsuId() != null && !rsuIdKey.getRsuId().isEmpty())
                 partitionBytes = serializeString(topic, rsuIdKey.getRsuId());
             else if (rsuIdKey.getLogId() != null && !rsuIdKey.getLogId().isEmpty())

@@ -89,7 +89,7 @@ public class MapProcessedJsonConverter
                 return KeyValue.pair(key, processedMapObject);
             }
         } catch (Exception e) {
-            String errMsg = String.format("Exception converting ODE MAP to GeoJSON! Message: %s", e.getMessage());
+            String errMsg = "Exception converting ODE MAP to GeoJSON! Message: %s".formatted(e.getMessage());
             logger.error(errMsg, e);
             // KafkaStreams knows to remove null responses before allowing further steps from occurring
             var key = new RsuIntersectionKey();
@@ -332,7 +332,7 @@ public class MapProcessedJsonConverter
                     double[][] coordinates = new double[][] {laneCoordinates, connectionCoordinates};
                     LineString geometry = new LineString(coordinates);
 
-                    String id = String.format("%s-%s", laneProps.getIngressLaneId(), laneProps.getEgressLaneId());
+                    String id = "%s-%s".formatted(laneProps.getIngressLaneId(), laneProps.getEgressLaneId());
                     lanesFeatures.add(new ConnectingLanesFeature<LineString>(id, geometry, laneProps));
                 }
             }
@@ -452,7 +452,7 @@ public class MapProcessedJsonConverter
             long minutes;
             if (moy != null) {
                 minutes = moy.getValue(); // minutes from beginning of year
-                dateString = String.format("%d-01-01T00:00:00.00Z", year);
+                dateString = "%d-01-01T00:00:00.00Z".formatted(year);
                 date = Instant.parse(dateString).atZone(ZoneId.of("UTC"));
                 date = date.plusMinutes(minutes);
             } else {
@@ -460,7 +460,7 @@ public class MapProcessedJsonConverter
             }
 
         } catch (Exception e) {
-            String errMsg = String.format("Failed to generateUTCTimestamp - SpatProcessedJsonConverter. Message: %s",
+            String errMsg = "Failed to generateUTCTimestamp - SpatProcessedJsonConverter. Message: %s".formatted(
                     e.getMessage());
             logger.error(errMsg, e);
         }
@@ -515,7 +515,7 @@ public class MapProcessedJsonConverter
                 mapNodes.add(mapNode);
             }
         } catch (Exception e) {
-            String errMsg = String.format("Failed to nodeConversionList - SpatProcessedJsonConverter. Message: %s",
+            String errMsg = "Failed to nodeConversionList - SpatProcessedJsonConverter. Message: %s".formatted(
                     e.getMessage());
             logger.error(errMsg, e);
         }
