@@ -1,6 +1,7 @@
 package us.dot.its.jpo.geojsonconverter.converter.ssm;
 
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import us.dot.its.jpo.asn.j2735.r2024.Common.*;
@@ -12,7 +13,6 @@ import us.dot.its.jpo.geojsonconverter.pojos.ssm.ProcessedSsm;
 import us.dot.its.jpo.geojsonconverter.validator.JsonValidatorResult;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -192,11 +192,11 @@ public class SsmConverter {
             msg.setException(Arrays.toString(exception.getStackTrace()));
             messages.add(msg);
         }
-        for (ValidationMessage vm : validatorResult.getValidationMessages()) {
+        for (Error error : validatorResult.getValidationMessages()) {
             var msg = new ProcessedValidationMessage();
-            msg.setMessage(vm.getMessage());
-            msg.setSchemaPath(vm.getSchemaPath());
-            msg.setJsonPath(vm.getPath());
+            msg.setMessage(error.getMessage());
+            msg.setSchemaPath(error.getSchemaLocation().toString());
+            msg.setJsonPath(error.getInstanceLocation().toString());
             messages.add(msg);
         }
         properties.addValidationMessages(messages);

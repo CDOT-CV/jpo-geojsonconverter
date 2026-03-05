@@ -7,12 +7,12 @@ import static org.mockito.Mockito.mock;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.networknt.schema.Error;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.networknt.schema.ValidationMessage;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuLogKey;
 import us.dot.its.jpo.geojsonconverter.pojos.common.*;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
@@ -129,7 +129,7 @@ public class BsmProcessedJsonConverterTest {
         JsonValidatorResult validatorResults = new JsonValidatorResult();
         Exception exception = new Exception("test_exception");
         validatorResults.addException(exception);
-        List<ValidationMessage> validationMessages = new ArrayList<>();
+        List<Error> validationMessages = new ArrayList<>();
         validatorResults.addValidationMessages(validationMessages);
 
         DeserializedRawBsm deserializedRawBsm = new DeserializedRawBsm();

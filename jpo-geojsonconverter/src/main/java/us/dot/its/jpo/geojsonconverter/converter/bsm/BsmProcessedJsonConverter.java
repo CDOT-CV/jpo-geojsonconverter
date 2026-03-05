@@ -8,14 +8,14 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.networknt.schema.Error;
+
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.Transformer;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.networknt.schema.ValidationMessage;
 
 import us.dot.its.jpo.asn.j2735.r2024.Common.*;
 import us.dot.its.jpo.geojsonconverter.pojos.common.*;
@@ -114,11 +114,11 @@ public class BsmProcessedJsonConverter
             object.setException(exception.getStackTrace().toString());
             processedBsmValidationMessages.add(object);
         }
-        for (ValidationMessage vm : validationMessages.getValidationMessages()) {
+        for (Error error : validationMessages.getValidationMessages()) {
             ProcessedValidationMessage object = new ProcessedValidationMessage();
-            object.setMessage(vm.getMessage());
-            object.setSchemaPath(vm.getSchemaPath());
-            object.setJsonPath(vm.getPath());
+            object.setMessage(error.getMessage());
+            object.setSchemaPath(error.getSchemaLocation().toString());
+            object.setJsonPath(error.getInstanceLocation().toString());
 
             processedBsmValidationMessages.add(object);
         }

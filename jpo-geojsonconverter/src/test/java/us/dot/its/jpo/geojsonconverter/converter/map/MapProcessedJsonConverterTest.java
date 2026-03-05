@@ -19,7 +19,8 @@ import org.apache.kafka.streams.processor.ProcessorContext;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
+
 import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuIntersectionKey;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
@@ -47,7 +48,7 @@ public class MapProcessedJsonConverterTest {
         JsonValidatorResult validatorResults = new JsonValidatorResult();
         Exception exception = new Exception("test_exception");
         validatorResults.addException(exception);
-        List<ValidationMessage> validationMessages = new ArrayList<>();
+        List<Error> validationMessages = new ArrayList<>();
         validatorResults.addValidationMessages(validationMessages);
 
         rawMap = new DeserializedRawMap();

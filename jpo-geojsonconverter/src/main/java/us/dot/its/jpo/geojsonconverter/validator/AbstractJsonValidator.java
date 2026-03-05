@@ -1,7 +1,12 @@
 package us.dot.its.jpo.geojsonconverter.validator;
 
 import java.io.IOException;
-import java.util.Set;
+import java.util.List;
+
+import com.networknt.schema.Error;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.dialect.Dialects;
 
 import lombok.Getter;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -9,10 +14,7 @@ import org.springframework.core.io.Resource;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.ValidationMessage;
-import com.networknt.schema.SpecVersion;
+
 import org.springframework.core.io.ResourceLoader;
 
 /**
@@ -32,16 +34,16 @@ public abstract class AbstractJsonValidator {
     private final ObjectMapper mapper = new ObjectMapper();
     @Getter
     private final Resource jsonSchemaResource;
-    private JsonSchema jsonSchema;
+    private Schema jsonSchema;
 
 
-    public JsonSchema getJsonSchema() throws IOException {
+    public Schema getJsonSchema() throws IOException {
         if (jsonSchema == null) {
             try (var inputStream = jsonSchemaResource.getInputStream()) {
                 JsonNode schemaNode = mapper.readTree(inputStream);
 
                 // Use Json schema version 2019-09 because the 2020-12 implementation in networknt seems buggy as of now.
-                JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909);
+                SchemaRegistry factory = SchemaRegistry.withDialect(Dialects.getDraft201909());
 
                 jsonSchema = factory.getSchema(schemaNode);
             } 
@@ -53,7 +55,7 @@ public abstract class AbstractJsonValidator {
         var result = new JsonValidatorResult();
         try {
             JsonNode node = mapper.readTree(json);
-            Set<ValidationMessage> validationMessages = getJsonSchema().validate(node);
+            var validationMessages = getJsonSchema().validate(node);
             result.addValidationMessages(validationMessages);
         } catch (Exception e) {
             result.addException(e);
@@ -65,7 +67,7 @@ public abstract class AbstractJsonValidator {
         var result = new JsonValidatorResult();
         try { 
             JsonNode node = mapper.readTree(jsonBytes);
-            Set<ValidationMessage> validationMessages = getJsonSchema().validate(node);
+            List<Error> validationMessages = getJsonSchema().validate(node);
             result.addValidationMessages(validationMessages);
         } catch (Exception e) {
             result.addException(e);

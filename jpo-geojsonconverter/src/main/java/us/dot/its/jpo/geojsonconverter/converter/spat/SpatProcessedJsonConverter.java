@@ -1,5 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.converter.spat;
 
+import com.networknt.schema.Error;
 import us.dot.its.jpo.asn.j2735.r2024.Common.IntersectionReferenceID;
 import us.dot.its.jpo.asn.j2735.r2024.Common.SpeedConfidence;
 import us.dot.its.jpo.asn.j2735.r2024.SPAT.*;
@@ -30,7 +31,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.networknt.schema.ValidationMessage;
 
 public class SpatProcessedJsonConverter
         implements Transformer<Void, DeserializedRawSpat, KeyValue<RsuIntersectionKey, ProcessedSpat>> {
@@ -120,11 +120,11 @@ public class SpatProcessedJsonConverter
             object.setException(exception.getStackTrace().toString());
             processedSpatValidationMessages.add(object);
         }
-        for (ValidationMessage vm : validationMessages.getValidationMessages()) {
+        for (Error error : validationMessages.getValidationMessages()) {
             ProcessedValidationMessage object = new ProcessedValidationMessage();
-            object.setMessage(vm.getMessage());
-            object.setSchemaPath(vm.getSchemaPath());
-            object.setJsonPath(vm.getPath());
+            object.setMessage(error.getMessage());
+            object.setSchemaPath(error.getSchemaLocation().toString());
+            object.setJsonPath(error.getInstanceLocation().toString());
 
             processedSpatValidationMessages.add(object);
         }

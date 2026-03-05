@@ -1,8 +1,9 @@
 package us.dot.its.jpo.geojsonconverter.converter.rtcm;
 
 
+import com.networknt.schema.Error;
 import tools.jackson.databind.JsonNode;
-import com.networknt.schema.ValidationMessage;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import us.dot.its.jpo.asn.j2735.r2024.Common.*;
@@ -336,11 +337,11 @@ public class RTCMConverter {
             msg.setException(Arrays.toString(exception.getStackTrace()));
             messages.add(msg);
         }
-        for (ValidationMessage vm : validatorResult.getValidationMessages()) {
+        for (Error error : validatorResult.getValidationMessages()) {
             var msg = new ProcessedValidationMessage();
-            msg.setMessage(vm.getMessage());
-            msg.setSchemaPath(vm.getSchemaPath());
-            msg.setJsonPath(vm.getPath());
+            msg.setMessage(error.getMessage());
+            msg.setSchemaPath(error.getSchemaLocation().toString());
+            msg.setJsonPath(error.getInstanceLocation().toString());
             messages.add(msg);
         }
         properties.addValidationMessages(messages);
