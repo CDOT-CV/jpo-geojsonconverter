@@ -33,7 +33,7 @@ public abstract class AbstractJsonValidatorTest {
         JsonValidatorResult result = validator.validate(json);
         assertThat(result, notNullValue());
         
-        assertThat(String.format("Validation result:%n%s", result.describeResults()), result.isValid(), equalTo(expectValid));
+        assertThat("Validation result:%n%s".formatted(result.describeResults()), result.isValid(), equalTo(expectValid));
         System.out.println(result.describeResults());
         
     }
@@ -44,7 +44,7 @@ public abstract class AbstractJsonValidatorTest {
         JsonValidatorResult result = validator.validate(jsonBytes);
         assertThat(result, notNullValue());
         
-        assertThat(String.format("Validation result:%n%s", result.describeResults()), result.isValid(), equalTo(expectValid));
+        assertThat("Validation result:%n%s".formatted(result.describeResults()), result.isValid(), equalTo(expectValid));
         System.out.println(result.describeResults());
     }
 

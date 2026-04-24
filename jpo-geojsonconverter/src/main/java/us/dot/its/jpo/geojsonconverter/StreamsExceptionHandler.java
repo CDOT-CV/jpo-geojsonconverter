@@ -25,7 +25,7 @@ public class StreamsExceptionHandler implements StreamsUncaughtExceptionHandler 
     @Override
     public StreamThreadExceptionResponse handle(Throwable exception) {
 
-        logger.error(String.format("Uncaught exception in stream topology %s", topology), exception);
+        logger.error("Uncaught exception in stream topology %s".formatted(topology), exception);
         // SHUTDOWN_CLIENT option shuts down quickly.
         return StreamThreadExceptionResponse.SHUTDOWN_CLIENT;
         

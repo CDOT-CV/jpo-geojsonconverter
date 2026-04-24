@@ -29,7 +29,7 @@ public class JsonDeserializer<T> implements Deserializer<T> {
             T returnData = mapper.readValue(data, destinationClass);
             return returnData;
         } catch (IOException e) {
-            String errMsg = String.format("Exception deserializing for topic %s: %s", topic, e.getMessage());
+            String errMsg = "Exception deserializing for topic %s: %s".formatted(topic, e.getMessage());
             logger.error(errMsg, e);
             throw new RuntimeException(errMsg, e);
         }

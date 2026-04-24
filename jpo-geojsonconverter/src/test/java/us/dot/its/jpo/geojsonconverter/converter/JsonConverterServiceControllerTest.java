@@ -4,10 +4,8 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import us.dot.its.jpo.geojsonconverter.GeoJsonConverterProperties;
@@ -17,7 +15,6 @@ import us.dot.its.jpo.geojsonconverter.converter.ssm.SsmConverter;
 import us.dot.its.jpo.geojsonconverter.validator.*;
 
 @SpringBootTest
-@RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 public class JsonConverterServiceControllerTest {
     JsonConverterServiceController geoJsonConverterServiceController;

@@ -25,7 +25,7 @@ public class JsonSerializer<T> implements Serializer<T> {
         try {
             return mapper.writeValueAsBytes(data);
         } catch (JsonProcessingException e) {
-            String errMsg = String.format("Exception serializing %s to bytes: %s", data, e.getMessage());
+            String errMsg = "Exception serializing %s to bytes: %s".formatted(data, e.getMessage());
             logger.error(errMsg);
             return null;
         }

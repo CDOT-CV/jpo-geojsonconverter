@@ -344,7 +344,7 @@ public class FieldConversions {
         if (minuteOfTheYear == null) return null;
         final long moy = minuteOfTheYear.getValue();
         if (moy == 527040L) return null;
-        final String dateString = String.format("%d-01-01T00:00:00.00Z", year);
+        final String dateString = "%d-01-01T00:00:00.00Z".formatted(year);
         final ZonedDateTime yearDate = Instant.parse(dateString).atZone(ZoneId.of("UTC"));
         return yearDate.plusMinutes(moy);
     }

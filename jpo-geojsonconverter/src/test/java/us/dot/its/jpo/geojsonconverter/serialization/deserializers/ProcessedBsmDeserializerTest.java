@@ -6,9 +6,7 @@ import org.springframework.core.io.Resource;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import us.dot.its.jpo.asn.j2735.r2024.Common.AntiLockBrakeStatus;
 import us.dot.its.jpo.asn.j2735.r2024.Common.AuxiliaryBrakeStatus;
 import us.dot.its.jpo.asn.j2735.r2024.Common.BrakeAppliedStatus;
@@ -24,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 
 @SpringBootTest({"processed.bsm.json=classpath:json/sample.processed-bsm.json"})
-@RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 public class ProcessedBsmDeserializerTest {
     @Test
