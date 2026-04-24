@@ -2,6 +2,9 @@ package us.dot.its.jpo.geojsonconverter.partitioner;
 
 import org.junit.Test;
 
+import java.util.Optional;
+import java.util.Set;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
@@ -36,15 +39,15 @@ public class IntersectionIdPartitionerTest {
 
         var partitioner = new IntersectionIdPartitioner<RsuIntersectionKey, Object>();
 
-        int partition111 = partitioner.partition(topic, key111, value, numPartitions);
-        int partition111_same = partitioner.partition(topic, key111_same, value, numPartitions);
-        int partition112 = partitioner.partition(topic, key112, value, numPartitions);
-        int partition121 = partitioner.partition(topic, key121, value, numPartitions);
-        int partition122 = partitioner.partition(topic, key122, value, numPartitions);
-        int partition211 = partitioner.partition(topic, key211, value, numPartitions);
-        int partition212 = partitioner.partition(topic, key212, value, numPartitions);
-        int partition221 = partitioner.partition(topic, key221, value, numPartitions);
-        int partition222 = partitioner.partition(topic, key222, value, numPartitions);
+        Optional<Set<Integer>> partition111 = partitioner.partitions(topic, key111, value, numPartitions);
+        Optional<Set<Integer>> partition111_same = partitioner.partitions(topic, key111_same, value, numPartitions);
+        Optional<Set<Integer>> partition112 = partitioner.partitions(topic, key112, value, numPartitions);
+        Optional<Set<Integer>> partition121 = partitioner.partitions(topic, key121, value, numPartitions);
+        Optional<Set<Integer>> partition122 = partitioner.partitions(topic, key122, value, numPartitions);
+        Optional<Set<Integer>> partition211 = partitioner.partitions(topic, key211, value, numPartitions);
+        Optional<Set<Integer>> partition212 = partitioner.partitions(topic, key212, value, numPartitions);
+        Optional<Set<Integer>> partition221 = partitioner.partitions(topic, key221, value, numPartitions);
+        Optional<Set<Integer>> partition222 = partitioner.partitions(topic, key222, value, numPartitions);
 
         final String equalMsg = "Keys with the same intersectionID should have the same partition, regardless of rsuIP and region.";
         assertEquals(equalMsg, partition111, partition111_same);
@@ -74,9 +77,9 @@ public class IntersectionIdPartitionerTest {
 
         var partitioner = new IntersectionIdPartitioner<String, Object>();
 
-        int partitionKey = partitioner.partition(topic, key, obj, numPartitions);
-        int partitionSame = partitioner.partition(topic, sameKey, obj, numPartitions);
-        int partitionDifferent = partitioner.partition(topic, differentKey, obj, numPartitions);
+        Optional<Set<Integer>> partitionKey = partitioner.partitions(topic, key, obj, numPartitions);
+        Optional<Set<Integer>> partitionSame = partitioner.partitions(topic, sameKey, obj, numPartitions);
+        Optional<Set<Integer>> partitionDifferent = partitioner.partitions(topic, differentKey, obj, numPartitions);
 
         assertEquals("Same keys", partitionKey, partitionSame);
         assertNotEquals("Different keys", partitionKey, partitionDifferent);

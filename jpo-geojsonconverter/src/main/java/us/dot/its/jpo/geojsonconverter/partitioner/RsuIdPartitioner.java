@@ -6,11 +6,14 @@ import org.apache.kafka.streams.processor.StreamPartitioner;
 
 import us.dot.its.jpo.geojsonconverter.serialization.serializers.JsonSerializer;
 
+import java.util.Optional;
+import java.util.Set;
+
 public class RsuIdPartitioner<K, V> implements StreamPartitioner<K, V> {
 
 
     @Override
-    public Integer partition(String topic, K key, V value, int numPartitions) {
+    public Optional<Set<Integer>> partitions(String topic, K key, V value, int numPartitions) {
         
         byte[] partitionBytes;
         
@@ -28,7 +31,7 @@ public class RsuIdPartitioner<K, V> implements StreamPartitioner<K, V> {
             }
         }
 
-        return Utils.toPositive(Utils.murmur2(partitionBytes)) % numPartitions;
+        return Optional.of(Set.of(Utils.toPositive(Utils.murmur2(partitionBytes)) % numPartitions));
     }
 
 
