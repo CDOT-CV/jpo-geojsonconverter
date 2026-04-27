@@ -9,9 +9,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest({
         "valid.ssm.json=classpath:json/valid.ssm.json",
@@ -24,7 +23,7 @@ public class SsmJsonValidatorTest extends AbstractJsonValidatorTest {
 
     @Test
     public void jsonValidatorLoaded() {
-        assertThat(jsonValidator, notNullValue());
+        assertNotNull(jsonValidator);
     }
 
     @Test

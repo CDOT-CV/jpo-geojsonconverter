@@ -3,8 +3,6 @@ package us.dot.its.jpo.geojsonconverter.partitioner;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 
 
 import org.junit.Test;
@@ -58,7 +56,7 @@ public class RsuIntersectionKeyTest {
         key.setIntersectionId(intersectionId);
 
         String str = key.toString();
-        assertThat(str, containsString(ipAddress));
-        assertThat(str, containsString(Integer.toString(intersectionId)));
+        assertTrue(str.contains(ipAddress));
+        assertTrue(str.contains(Integer.toString(intersectionId)));
     }
 }

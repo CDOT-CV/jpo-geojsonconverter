@@ -27,6 +27,8 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Slf4j
 @RunWith(Parameterized.class)
@@ -66,17 +68,17 @@ public class SsmTopologyTest {
 
             List<KeyValue<RsuVehicleIdKey, ProcessedSsm>> results = outputTopic.readKeyValuesToList();
 
-            assertThat(results, hasSize(1));
+            assertEquals(1, results.size());
 
             KeyValue<RsuVehicleIdKey, ProcessedSsm> result = results.getFirst();
             RsuVehicleIdKey key = result.key;
-            assertThat(key, notNullValue());
-            assertThat(key.getRsuId(), equalTo("172.18.0.1"));
+            assertNotNull(key);
+            assertEquals("172.18.0.1", key.getRsuId());
             ProcessedSsm processedSsm = result.value;
-            assertThat(processedSsm, notNullValue());
-            assertThat(processedSsm.getAsn1(), notNullValue());
-            assertThat(processedSsm.getOdeReceivedAt(), notNullValue());
-            assertThat(processedSsm.getMessageType(), equalTo("SSM"));
+            assertNotNull(processedSsm);
+            assertNotNull(processedSsm.getAsn1());
+            assertNotNull(processedSsm.getOdeReceivedAt());
+            assertEquals("SSM", processedSsm.getMessageType());
             assertThat(processedSsm.getStatusList(), hasSize(greaterThan(0)));
             if (expectValid) {
                 assertThat("expected valid message but has validation messages",

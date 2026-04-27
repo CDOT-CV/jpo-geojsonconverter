@@ -1,8 +1,7 @@
 package us.dot.its.jpo.geojsonconverter.pojos.geojson;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.Test;
 
@@ -60,14 +59,14 @@ public class PointTest {
         Point otherObject = new Point(otherCoordinates);
 
         boolean equals = object.equals(object);
-        assertEquals(true, equals);
+        assertTrue(equals);
 
         boolean otherEquals = object.equals(otherObject);
-        assertEquals(false, otherEquals);
+        assertFalse(otherEquals);
 
         String string = "string";
         boolean notEquals = otherObject.equals(string);
-        assertEquals(false, notEquals);
+        assertFalse(notEquals);
     }
 
     @Test

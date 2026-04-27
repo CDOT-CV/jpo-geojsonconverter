@@ -56,7 +56,7 @@ public class PsmTopologyTest {
 
             List<KeyValue<RsuPsmIdKey, ProcessedPsm<Point>>> processedPsmJsonResults =
                     outputTopic.readKeyValuesToList();
-            assertEquals(processedPsmJsonResults.size(), 1);
+            assertEquals(1, processedPsmJsonResults.size());
 
             KeyValue<RsuPsmIdKey, ProcessedPsm<Point>> processedPsmJson = processedPsmJsonResults.get(0);
             assertNotNull(processedPsmJson.key);
@@ -84,7 +84,7 @@ public class PsmTopologyTest {
 
             List<KeyValue<RsuPsmIdKey, ProcessedPsm<Point>>> processedPsmJsonResults =
                     outputTopic.readKeyValuesToList();
-            assertEquals(processedPsmJsonResults.size(), 1);
+            assertEquals(1, processedPsmJsonResults.size());
 
             KeyValue<RsuPsmIdKey, ProcessedPsm<Point>> processedPsmJson = processedPsmJsonResults.get(0);
             assertNotNull(processedPsmJson.key);

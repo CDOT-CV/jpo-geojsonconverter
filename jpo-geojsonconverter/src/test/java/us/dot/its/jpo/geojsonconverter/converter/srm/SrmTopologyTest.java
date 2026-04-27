@@ -29,6 +29,8 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 @Slf4j
@@ -69,19 +71,19 @@ public class SrmTopologyTest {
 
             List<KeyValue<RsuVehicleIdKey, ProcessedSrm>> results = outputTopic.readKeyValuesToList();
 
-            assertThat(results, hasSize(1));
+            assertEquals(1, results.size());
 
             KeyValue<RsuVehicleIdKey, ProcessedSrm> result = results.getFirst();
             RsuVehicleIdKey key = result.key;
-            assertThat(key, notNullValue());
-            assertThat(key.getRsuId(), equalTo("172.18.0.1"));
+            assertNotNull(key);
+            assertEquals("172.18.0.1", key.getRsuId());
             ProcessedSrm processedSrm = result.value;
-            assertThat(processedSrm, notNullValue());
+            assertNotNull(processedSrm);
             SrmProperties properties = processedSrm.getProperties();
-            assertThat(properties, notNullValue());
-            assertThat(properties.getAsn1(), notNullValue());
-            assertThat(properties.getOdeReceivedAt(), notNullValue());
-            assertThat(properties.getMessageType(), equalTo("SRM"));
+            assertNotNull(properties);
+            assertNotNull(properties.getAsn1());
+            assertNotNull(properties.getOdeReceivedAt());
+            assertEquals("SRM", properties.getMessageType());
             assertThat(properties.getRequests(), hasSize(equalTo(expectNumberOfRequests)));
             if (expectValid) {
                 assertThat("expected valid message but has validation messages",
@@ -93,7 +95,7 @@ public class SrmTopologyTest {
 
 
             Point geometry = processedSrm.getGeometry();
-            assertThat(geometry, notNullValue());
+            assertNotNull(geometry);
         }
     }
 

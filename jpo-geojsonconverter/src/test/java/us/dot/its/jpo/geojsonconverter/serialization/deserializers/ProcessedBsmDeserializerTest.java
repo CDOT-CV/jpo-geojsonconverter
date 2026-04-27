@@ -70,7 +70,7 @@ public class ProcessedBsmDeserializerTest {
             assertNotNull(accuracy);
             assertEquals(9.3D, accuracy.getSemiMajor());
             assertEquals(12.05D, accuracy.getSemiMinor());
-            assertEquals(null, accuracy.getOrientation());
+            assertNull(accuracy.getOrientation());
             var brakes = props.getBrakes();
             assertNotNull(brakes);
             assertEquals(ProcessedTractionControlStatus.UNAVAILABLE, brakes.getTraction());

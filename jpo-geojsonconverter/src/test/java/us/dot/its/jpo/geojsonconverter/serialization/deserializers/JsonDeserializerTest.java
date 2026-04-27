@@ -1,8 +1,7 @@
 package us.dot.its.jpo.geojsonconverter.serialization.deserializers;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
@@ -63,7 +62,7 @@ public class JsonDeserializerTest {
 
             ProcessedSpat spat = serializer.deserialize("the_topic", spatBytes);
             assertNotNull(spat);
-            assertEquals(false, spat.isCti4501Conformant());
+            assertFalse(spat.isCti4501Conformant());
             assertEquals("2025-07-16T22:55:58.423Z", spat.getUtcTimeStamp().toString());
 
         } catch (Exception e) {

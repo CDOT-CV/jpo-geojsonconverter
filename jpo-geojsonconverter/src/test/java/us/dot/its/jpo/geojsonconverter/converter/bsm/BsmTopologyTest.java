@@ -48,7 +48,7 @@ public class BsmTopologyTest {
 
             // Check ProcessedBsm topic for properly converted message data
             List<KeyValue<RsuLogKey, ProcessedBsm<Point>>> processedBsmJsonResults = outputTopic.readKeyValuesToList();
-            assertEquals(processedBsmJsonResults.size(), 1);
+            assertEquals(1, processedBsmJsonResults.size());
 
             KeyValue<RsuLogKey, ProcessedBsm<Point>> processedBsmJson = processedBsmJsonResults.get(0);
             assertNotNull(processedBsmJson.key);
@@ -74,7 +74,7 @@ public class BsmTopologyTest {
 
             // Check ProcessedBsm topic for properly converted message data
             List<KeyValue<RsuLogKey, ProcessedBsm<Point>>> processedBsmJsonResults = outputTopic.readKeyValuesToList();
-            assertEquals(processedBsmJsonResults.size(), 1);
+            assertEquals(1, processedBsmJsonResults.size());
 
             KeyValue<RsuLogKey, ProcessedBsm<Point>> processedBsmJson = processedBsmJsonResults.get(0);
             assertNotNull(processedBsmJson.key);

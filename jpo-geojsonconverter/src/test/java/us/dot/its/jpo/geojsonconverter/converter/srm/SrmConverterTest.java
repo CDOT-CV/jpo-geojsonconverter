@@ -19,7 +19,10 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.runners.Parameterized.Parameters;
 import static org.junit.runners.Parameterized.Parameter;
 import static us.dot.its.jpo.geojsonconverter.TestResourceUtil.loadResource;
@@ -42,11 +45,11 @@ public class SrmConverterTest {
         SignalRequestMessageMessageFrame messageFrame =
                 mapper.readValue(srmJson, SignalRequestMessageMessageFrame.class);
         ProcessedSrm processedSrm = srmConverter.processSrm(messageFrame, ZonedDateTime.now());
-        assertThat(processedSrm, notNullValue());
+        assertNotNull(processedSrm);
         SrmProperties props = processedSrm.getProperties();
         assertThat(props, hasProperty("requests", notNullValue()));
         List<ProcessedSignalRequest> requests = props.getRequests();
-        assertThat(requests, hasSize(expectNumberOfRequests));
+        assertEquals(requests.size(), expectNumberOfRequests);
     }
 
     @Parameters

@@ -2,7 +2,6 @@ package us.dot.its.jpo.geojsonconverter.converter.bsm;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +75,7 @@ public class BsmProcessedJsonConverterTest {
         assertNotNull(accuracy);
         assertEquals(9.3, accuracy.getSemiMajor());
         assertEquals(12.05, accuracy.getSemiMinor());
-        assertEquals(null, accuracy.getOrientation());
+        org.junit.jupiter.api.Assertions.assertNull(accuracy.getOrientation());
         var brakes = props.getBrakes();
         assertNotNull(brakes);
         assertEquals(ProcessedTractionControlStatus.UNAVAILABLE, brakes.getTraction());
@@ -86,11 +85,11 @@ public class BsmProcessedJsonConverterTest {
         assertEquals(ProcessedAuxiliaryBrakeStatus.UNAVAILABLE, brakes.getAuxBrakes());
         ProcessedBrakeAppliedStatus wheelBrakes = brakes.getWheelBrakes();
         assertNotNull(wheelBrakes);
-        assertEquals(true, wheelBrakes.get(0));
-        assertEquals(false, wheelBrakes.get(1));
-        assertEquals(false, wheelBrakes.get(2));
-        assertEquals(false, wheelBrakes.get(3));
-        assertEquals(false, wheelBrakes.get(4));
+        assertTrue(wheelBrakes.get(0));
+        assertFalse(wheelBrakes.get(1));
+        assertFalse(wheelBrakes.get(2));
+        assertFalse(wheelBrakes.get(3));
+        assertFalse(wheelBrakes.get(4));
         var geometry = value.getGeometry();
         assertNotNull(geometry);
         assertEquals("Point", geometry.getType());

@@ -1,9 +1,8 @@
 package us.dot.its.jpo.geojsonconverter.validator;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -18,33 +17,33 @@ public abstract class AbstractJsonValidatorTest {
 
     protected void testJsonSchemaResourceLoaded(AbstractJsonValidator validator) {
         var resource = validator.getJsonSchemaResource();
-        assertThat(resource, notNullValue());
+        assertNotNull(resource);
         assertTrue("Resource does not exist", resource.exists());
     }
 
     protected void testJsonSchemaLoaded(AbstractJsonValidator validator) throws IOException {
         var jsonSchema = validator.getJsonSchema();
-        assertThat(jsonSchema, notNullValue());
+        assertNotNull(jsonSchema);
     }
 
     protected void testJson(AbstractJsonValidator validator, Resource resource, boolean expectValid) {
-        assertThat("Couldn't get test json resource", resource, notNullValue());
+        assertNotNull(resource, "Couldn't get test json resource");
         var json = getTestJson(resource);
         JsonValidatorResult result = validator.validate(json);
-        assertThat(result, notNullValue());
-        
-        assertThat("Validation result:%n%s".formatted(result.describeResults()), result.isValid(), equalTo(expectValid));
+        assertNotNull(result);
+
+        assertEquals(result.isValid(), expectValid, "Validation result:%n%s".formatted(result.describeResults()));
         System.out.println(result.describeResults());
         
     }
 
     protected void testJson_ByteArray(AbstractJsonValidator validator, Resource resource, boolean expectValid) {
-        assertThat("Couldn't get test json resource", resource, notNullValue());
+        assertNotNull(resource, "Couldn't get test json resource");
         byte[] jsonBytes = getTestJson_ByteArray(resource);
         JsonValidatorResult result = validator.validate(jsonBytes);
-        assertThat(result, notNullValue());
-        
-        assertThat("Validation result:%n%s".formatted(result.describeResults()), result.isValid(), equalTo(expectValid));
+        assertNotNull(result);
+
+        assertEquals(result.isValid(), expectValid, "Validation result:%n%s".formatted(result.describeResults()));
         System.out.println(result.describeResults());
     }
 

@@ -1,8 +1,7 @@
 package us.dot.its.jpo.geojsonconverter.validator;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 
@@ -27,7 +26,7 @@ public class MapJsonValidatorTest extends AbstractJsonValidatorTest  {
     
     @Test
     public void mapJsonValidatorLoaded() {
-        assertThat(mapJsonValidator, notNullValue());
+        assertNotNull(mapJsonValidator);
     }
 
     @Test

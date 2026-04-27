@@ -2,6 +2,8 @@ package us.dot.its.jpo.geojsonconverter.converter.spat;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -55,14 +57,14 @@ public class SpatTopologyTest {
             // Check SpatGeoJson topic for properly converted message data
             List<KeyValue<RsuIntersectionKey, ProcessedSpat>> processedSpatJsonResults =
                     outputTopic.readKeyValuesToList();
-            assertEquals(processedSpatJsonResults.size(), 1);
+            assertEquals(1, processedSpatJsonResults.size());
 
             KeyValue<RsuIntersectionKey, ProcessedSpat> processedSpatJson = processedSpatJsonResults.get(0);
             assertNotNull(processedSpatJson.key);
             assertEquals("172.18.0.1", processedSpatJson.key.getRsuId());
             assertEquals(8804, processedSpatJson.key.getIntersectionId());
             assertNotNull(processedSpatJson.value);
-            assertEquals(false, processedSpatJson.value.isCti4501Conformant());
+            assertFalse(processedSpatJson.value.isCti4501Conformant());
             assertEquals(4, processedSpatJson.value.getValidationMessages().size());
             assertEquals(8, processedSpatJson.value.getStates().size());
         }
@@ -84,7 +86,7 @@ public class SpatTopologyTest {
             // Check SpatGeoJson topic for properly converted message data
             List<KeyValue<RsuIntersectionKey, ProcessedSpat>> processedSpatJsonResults =
                     outputTopic.readKeyValuesToList();
-            assertEquals(processedSpatJsonResults.size(), 1);
+            assertEquals(1, processedSpatJsonResults.size());
 
             KeyValue<RsuIntersectionKey, ProcessedSpat> processedSpatJson = processedSpatJsonResults.get(0);
             assertNotNull(processedSpatJson.key);

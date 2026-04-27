@@ -60,7 +60,7 @@ public class MapTopologyTest {
             // Check MapGeoJson topic for properly converted message data
             List<KeyValue<RsuIntersectionKey, ProcessedMap<LineString>>> mapGeoJsonResults =
                     outputTopic.readKeyValuesToList();
-            assertEquals(mapGeoJsonResults.size(), 1);
+            assertEquals(1, mapGeoJsonResults.size());
 
             KeyValue<RsuIntersectionKey, ProcessedMap<LineString>> mapGeoJson = mapGeoJsonResults.get(0);
             assertNotNull(mapGeoJson.key);
@@ -92,7 +92,7 @@ public class MapTopologyTest {
 
             // Check MapWKT topic for properly converted message data
             List<KeyValue<RsuIntersectionKey, ProcessedMap<String>>> mapWKTResults = outputTopic.readKeyValuesToList();
-            assertEquals(mapWKTResults.size(), 1);
+            assertEquals(1, mapWKTResults.size());
 
             KeyValue<RsuIntersectionKey, ProcessedMap<String>> mapWKT = mapWKTResults.get(0);
             assertNotNull(mapWKT.key);
@@ -123,7 +123,7 @@ public class MapTopologyTest {
             // Check MapGeoJson topic for properly converted message data
             List<KeyValue<RsuIntersectionKey, ProcessedMap<LineString>>> mapGeoJsonResults =
                     outputTopic.readKeyValuesToList();
-            assertEquals(mapGeoJsonResults.size(), 1);
+            assertEquals(1, mapGeoJsonResults.size());
 
             KeyValue<RsuIntersectionKey, ProcessedMap<LineString>> mapGeoJson = mapGeoJsonResults.get(0);
             assertNotNull(mapGeoJson.key);

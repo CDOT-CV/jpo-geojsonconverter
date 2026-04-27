@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Slf4j
 @RunWith(Parameterized.class)
@@ -47,24 +49,24 @@ public class RTCMConverterTest {
         String str = mapper.writeValueAsString(messageFrame);
         log.info(str);
         ProcessedRTCM processedRtcm = converter.processRTCM(messageFrame);
-        assertThat(processedRtcm, notNullValue());
+        assertNotNull(processedRtcm);
         RTCMProperties properties = processedRtcm.getProperties();
-        assertThat(properties, notNullValue());
-        assertThat(properties.getMsgCnt(), equalTo(82));
+        assertNotNull(properties);
+        assertEquals(82, properties.getMsgCnt());
 
         log.info(mapper.writeValueAsString(processedRtcm));
         if (expectCti4501Conformant) {
-            assertThat(properties.getRev(), equalTo("rtcmRev3"));
+            assertEquals("rtcmRev3", properties.getRev());
             assertThat(properties.getValidationMessages(), hasSize(equalTo(0)));
-            assertThat(properties.isCti4501Conformant(), equalTo(true));
+            assertEquals(true, properties.isCti4501Conformant());
         } else {
             assertThat(properties.getValidationMessages(), hasSize(greaterThanOrEqualTo(1)));
             Set<String> messages = properties.getValidationMessages().stream().map(ProcessedValidationMessage::getMessage).collect(Collectors.toSet());
             assertThat(messages, hasItems(containsString(expectValidationMessageIncludes)));
-            assertThat(properties.isCti4501Conformant(), equalTo(false));
+            assertEquals(false, properties.isCti4501Conformant());
         }
         if (expectUtcTime != null) {
-            assertThat(properties.getUtcTime(), equalTo(expectUtcTime));
+            assertEquals(properties.getUtcTime(), expectUtcTime);
         }
     }
 

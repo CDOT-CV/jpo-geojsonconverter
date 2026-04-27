@@ -21,6 +21,7 @@ import java.util.Collection;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.runners.Parameterized.Parameters;
 import static org.junit.runners.Parameterized.Parameter;
 import static us.dot.its.jpo.geojsonconverter.TestResourceUtil.loadResource;
@@ -43,7 +44,7 @@ public class SsmConverterTest {
         SignalStatusMessageMessageFrame messageFrame =
                 mapper.readValue(ssmJson, SignalStatusMessageMessageFrame.class);
         ProcessedSsm processedSsm = ssmConverter.processSsm(messageFrame);
-        assertThat(processedSsm, notNullValue());
+        assertNotNull(processedSsm);
         assertThat(processedSsm, hasProperty("statusList", notNullValue()));
         assertThat(processedSsm.getStatusList(), hasSize(equalTo(expectNumberOfRequests)));
     }
