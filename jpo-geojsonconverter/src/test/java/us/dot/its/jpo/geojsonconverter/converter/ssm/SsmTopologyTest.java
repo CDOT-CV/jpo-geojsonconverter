@@ -6,7 +6,7 @@ import org.apache.kafka.common.serialization.VoidSerializer;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;

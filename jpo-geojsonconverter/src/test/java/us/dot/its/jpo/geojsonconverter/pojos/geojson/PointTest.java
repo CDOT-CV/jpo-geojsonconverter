@@ -3,7 +3,7 @@ package us.dot.its.jpo.geojsonconverter.pojos.geojson;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 
 public class PointTest {

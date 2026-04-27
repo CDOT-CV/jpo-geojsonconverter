@@ -14,8 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.kafka.streams.KeyValue;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.networknt.schema.ValidationMessage;
 
@@ -30,8 +30,8 @@ public class SpatProcessedJsonConverterTest {
     SpatProcessedJsonConverter spatProcessedJsonConverter;
     OdeMessageFrameData spatMF;
 
-    @Before
-    public void setup() throws IOException {
+    @BeforeEach
+    void setup() throws IOException {
         String odeSpatJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/valid.spat.json")));
         try (JsonDeserializer<OdeMessageFrameData> odeSpatDeserializer =
                 new JsonDeserializer<>(OdeMessageFrameData.class)) {

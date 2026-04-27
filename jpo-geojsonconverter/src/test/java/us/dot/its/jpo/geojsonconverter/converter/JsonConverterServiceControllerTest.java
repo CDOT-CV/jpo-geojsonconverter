@@ -2,8 +2,8 @@ package us.dot.its.jpo.geojsonconverter.converter;
 
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,8 +50,8 @@ public class JsonConverterServiceControllerTest {
     @Autowired
     SsmConverter ssmConverter;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         props = new GeoJsonConverterProperties();
         props.initialize();
     }

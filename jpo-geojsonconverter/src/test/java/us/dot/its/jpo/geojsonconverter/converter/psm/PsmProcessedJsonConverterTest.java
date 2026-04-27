@@ -12,8 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.kafka.streams.KeyValue;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.networknt.schema.ValidationMessage;
 
@@ -29,8 +29,8 @@ public class PsmProcessedJsonConverterTest {
     PsmProcessedJsonConverter psmProcessedJsonConverter;
     OdeMessageFrameData odePsmPojo;
 
-    @Before
-    public void setup() throws IOException {
+    @BeforeEach
+    void setup() throws IOException {
         String odePsmJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/valid.psm.json")));
         try (JsonDeserializer<OdeMessageFrameData> odePsmDeserializer =
                 new JsonDeserializer<>(OdeMessageFrameData.class)) {

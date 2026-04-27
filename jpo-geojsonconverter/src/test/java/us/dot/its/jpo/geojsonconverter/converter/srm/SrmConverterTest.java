@@ -3,7 +3,7 @@ package us.dot.its.jpo.geojsonconverter.converter.srm;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import us.dot.its.jpo.asn.j2735.r2024.SignalRequestMessage.SignalRequestMessageMessageFrame;
@@ -12,7 +12,6 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.srm.ProcessedSrm;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.srm.SrmProperties;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collection;

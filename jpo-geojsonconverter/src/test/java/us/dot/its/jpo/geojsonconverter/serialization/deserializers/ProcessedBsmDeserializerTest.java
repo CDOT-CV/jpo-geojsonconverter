@@ -5,7 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
 import us.dot.its.jpo.asn.j2735.r2024.Common.AntiLockBrakeStatus;
 import us.dot.its.jpo.asn.j2735.r2024.Common.AuxiliaryBrakeStatus;

@@ -1,6 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.partitioner;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 import java.util.Set;

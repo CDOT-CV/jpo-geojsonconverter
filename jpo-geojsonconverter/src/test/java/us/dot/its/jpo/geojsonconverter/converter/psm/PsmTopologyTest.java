@@ -14,8 +14,8 @@ import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.test.context.ActiveProfiles;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuPsmIdKey;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
@@ -36,8 +36,8 @@ public class PsmTopologyTest {
     @Autowired
     PsmJsonValidator psmJsonValidator;
 
-    @Before
-    public void setup() throws IOException {
+    @BeforeEach
+    void setup() throws IOException {
         odePsmJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/valid.psm.json")));
     }
 

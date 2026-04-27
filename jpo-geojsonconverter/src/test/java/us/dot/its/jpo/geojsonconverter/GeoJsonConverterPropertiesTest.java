@@ -7,8 +7,8 @@ import static org.junit.Assert.fail;
 
 import java.util.Properties;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.info.BuildProperties;
 
 
@@ -19,8 +19,8 @@ public class GeoJsonConverterPropertiesTest {
     GeoJsonConverterProperties testGeoJsonConverterProperties;
     BuildProperties mockBuildProperties;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         testGeoJsonConverterProperties = new GeoJsonConverterProperties();
         testGeoJsonConverterProperties.initialize();
     }

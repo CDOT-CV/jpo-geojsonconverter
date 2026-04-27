@@ -15,8 +15,8 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.networknt.schema.ValidationMessage;
 import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
@@ -34,8 +34,8 @@ public class MapProcessedJsonConverterTest {
     OdeMessageFrameData mapMF;
     DeserializedRawMap rawMap;
 
-    @Before
-    public void setup() throws IOException {
+    @BeforeEach
+    void setup() throws IOException {
         String odeMapJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/valid.map.json")));
 
         try (JsonDeserializer<OdeMessageFrameData> odeMapDeserializer =

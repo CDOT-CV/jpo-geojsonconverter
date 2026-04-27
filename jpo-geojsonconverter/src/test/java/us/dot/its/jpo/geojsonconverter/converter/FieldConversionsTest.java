@@ -2,7 +2,7 @@ package us.dot.its.jpo.geojsonconverter.converter;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
 
 import java.time.ZoneId;
