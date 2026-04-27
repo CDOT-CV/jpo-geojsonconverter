@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.processor.ProcessorContext;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,15 +45,9 @@ public class SpatProcessedJsonConverterTest {
         assertNotNull(spatProcessedJsonConverter);
     }
 
-    @Test
-    public void testInit() {
-        ProcessorContext mockContext = mock(ProcessorContext.class);
-        spatProcessedJsonConverter.init(mockContext);
-        assertNotNull(spatProcessedJsonConverter);
-    }
 
     @Test
-    public void testTransformValidation() {
+    public void testApplyValidation() {
         JsonValidatorResult validatorResults = new JsonValidatorResult();
         Exception exception = new Exception("test_exception");
         validatorResults.addException(exception);
@@ -63,14 +56,14 @@ public class SpatProcessedJsonConverterTest {
         deserializedRawSpat.setOdeSpatMessageFrameData(spatMF);
         deserializedRawSpat.setValidatorResults(validatorResults);
 
-        KeyValue<RsuIntersectionKey, ProcessedSpat> processedSpat = spatProcessedJsonConverter.transform(null, null);
+        KeyValue<RsuIntersectionKey, ProcessedSpat> processedSpat = spatProcessedJsonConverter.apply(null, null);
         assertNotNull(processedSpat.key);
         assertEquals("ERROR", processedSpat.key.getRsuId());
         assertNull(processedSpat.value);
     }
 
     @Test
-    public void testTransformFailure() {
+    public void testApplyFailure() {
         JsonValidatorResult validatorResults = new JsonValidatorResult();
         Exception exception = new Exception("test_exception");
         validatorResults.addException(exception);
@@ -83,15 +76,15 @@ public class SpatProcessedJsonConverterTest {
         deserializedRawSpat.setFailedMessage("{");
 
         KeyValue<RsuIntersectionKey, ProcessedSpat> processedSpat =
-                spatProcessedJsonConverter.transform(null, deserializedRawSpat);
+                spatProcessedJsonConverter.apply(null, deserializedRawSpat);
         assertNotNull(processedSpat.key);
         assertNotNull(processedSpat.value);
         assertEquals("{", processedSpat.value.getValidationMessages().get(0).getMessage());
     }
 
     @Test
-    public void testTransformException() {
-        KeyValue<RsuIntersectionKey, ProcessedSpat> processedSpat = spatProcessedJsonConverter.transform(null, null);
+    public void testApplyException() {
+        KeyValue<RsuIntersectionKey, ProcessedSpat> processedSpat = spatProcessedJsonConverter.apply(null, null);
         assertNotNull(processedSpat.key);
         assertEquals("ERROR", processedSpat.key.getRsuId());
         assertNull(processedSpat.value);
@@ -125,12 +118,6 @@ public class SpatProcessedJsonConverterTest {
         assertEquals(testTime, spatTime);
     }
 
-    @Test
-    public void testClose() {
-        // Should do nothing, but required override
-        spatProcessedJsonConverter.close();
-        assertNotNull(spatProcessedJsonConverter);
-    }
 
 
 }

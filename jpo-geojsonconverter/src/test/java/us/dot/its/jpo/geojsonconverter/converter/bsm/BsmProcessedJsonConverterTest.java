@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.processor.ProcessorContext;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -43,22 +42,16 @@ public class BsmProcessedJsonConverterTest {
         assertNotNull(bsmProcessedJsonConverter);
     }
 
-    @Test
-    public void testInit() {
-        ProcessorContext mockContext = mock(ProcessorContext.class);
-        bsmProcessedJsonConverter.init(mockContext);
-        assertNotNull(bsmProcessedJsonConverter);
-    }
 
     @Test
-    public void testTransform() {
+    public void testApply() {
         JsonValidatorResult validatorResults = new JsonValidatorResult();
         DeserializedRawBsm deserializedRawBsm = new DeserializedRawBsm();
         deserializedRawBsm.setOdeBsmMessageFrameData(odeBsmPojo);
         deserializedRawBsm.setValidatorResults(validatorResults);
 
         KeyValue<RsuLogKey, ProcessedBsm<Point>> processedBsm =
-                bsmProcessedJsonConverter.transform(null, deserializedRawBsm);
+                bsmProcessedJsonConverter.apply(null, deserializedRawBsm);
         assertNotNull(processedBsm.key);
         assertEquals(new RsuLogKey("172.18.0.1", "", "31325433"), processedBsm.key);
         assertNotNull(processedBsm.value);
@@ -109,7 +102,7 @@ public class BsmProcessedJsonConverterTest {
     }
 
     @Test
-    public void testTransformException() {
+    public void testApplyException() {
         JsonValidatorResult validatorResults = new JsonValidatorResult();
         Exception exception = new Exception("test_exception");
         validatorResults.addException(exception);
@@ -118,14 +111,14 @@ public class BsmProcessedJsonConverterTest {
         deserializedRawBsm.setOdeBsmMessageFrameData(odeBsmPojo);
         deserializedRawBsm.setValidatorResults(validatorResults);
 
-        KeyValue<RsuLogKey, ProcessedBsm<Point>> processedBsm = bsmProcessedJsonConverter.transform(null, null);
+        KeyValue<RsuLogKey, ProcessedBsm<Point>> processedBsm = bsmProcessedJsonConverter.apply(null, null);
         assertNotNull(processedBsm.key);
         assertEquals(new RsuLogKey(null, null, "ERROR"), processedBsm.key);
         assertNull(processedBsm.value);
     }
 
     @Test
-    public void testTransformFailure() {
+    public void testApplyFailure() {
         JsonValidatorResult validatorResults = new JsonValidatorResult();
         Exception exception = new Exception("test_exception");
         validatorResults.addException(exception);
@@ -138,16 +131,10 @@ public class BsmProcessedJsonConverterTest {
         deserializedRawBsm.setFailedMessage("{");
 
         KeyValue<RsuLogKey, ProcessedBsm<Point>> processedBsm =
-                bsmProcessedJsonConverter.transform(null, deserializedRawBsm);
+                bsmProcessedJsonConverter.apply(null, deserializedRawBsm);
         assertNotNull(processedBsm.key);
         assertNotNull(processedBsm.value);
         assertEquals("{", processedBsm.value.getProperties().getValidationMessages().get(0).getMessage());
     }
 
-    @Test
-    public void testClose() {
-        // Should do nothing, but required override
-        bsmProcessedJsonConverter.close();
-        assertNotNull(bsmProcessedJsonConverter);
-    }
 }
