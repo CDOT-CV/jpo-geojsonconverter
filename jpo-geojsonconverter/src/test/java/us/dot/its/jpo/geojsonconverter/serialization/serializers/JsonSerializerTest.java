@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import com.fasterxml.jackson.databind.JavaType;
 import us.dot.its.jpo.geojsonconverter.DateJsonMapper;
@@ -32,6 +33,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.spat.ProcessedSpat;
         "processed.map.wkt.json=classpath:json/sample.processed-map-wkt.json",
         "processed.bsm.json=classpath:json/sample.processed-bsm.json"})
 @ActiveProfiles("test")
+@EmbeddedKafka
 public class JsonSerializerTest {
     @Test
     public void testSerialize() {

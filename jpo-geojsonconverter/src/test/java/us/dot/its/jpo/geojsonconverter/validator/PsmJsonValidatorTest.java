@@ -9,11 +9,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.beans.factory.annotation.Value;
 
 @SpringBootTest({"valid.psm.json=classpath:json/valid.psm.json", "invalid.psm.json=classpath:json/invalid.psm.json"})
 @ActiveProfiles("test")
+@EmbeddedKafka
 public class PsmJsonValidatorTest extends AbstractJsonValidatorTest {
 
     @Autowired

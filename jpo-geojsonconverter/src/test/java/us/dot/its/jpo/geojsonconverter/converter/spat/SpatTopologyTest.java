@@ -17,6 +17,7 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,6 +29,7 @@ import us.dot.its.jpo.geojsonconverter.validator.SpatJsonValidator;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@EmbeddedKafka
 public class SpatTopologyTest {
     private String kafkaTopicOdeSpatJson = "topic.OdeSpatJson";
     private String kafkaTopicProcessedSpat = "topic.ProcessedSpat";

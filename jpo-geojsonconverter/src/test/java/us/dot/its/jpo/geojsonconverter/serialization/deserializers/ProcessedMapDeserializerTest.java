@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.map.ProcessedMap;
@@ -18,6 +19,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.map.ProcessedMap;
 @SpringBootTest({"processed.map.json=classpath:json/sample.processed-map.json",
         "processed.map.wkt.json=classpath:json/sample.processed-map-wkt.json"})
 @ActiveProfiles("test")
+@EmbeddedKafka
 public class ProcessedMapDeserializerTest {
 
     @Test

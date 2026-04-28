@@ -16,6 +16,7 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuPsmIdKey;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
@@ -27,6 +28,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 @ActiveProfiles("test")
+@EmbeddedKafka
 public class PsmTopologyTest {
     String kafkaTopicOdePsmJson = "topic.OdePsmJson";
     String kafkaTopicProcessedPsm = "topic.ProcessedPsm";

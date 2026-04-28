@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
     "valid.bsm.json=classpath:json/valid.bsm.json",
     "invalid.bsm.json=classpath:json/invalid.bsm.json" })
 @ActiveProfiles("test")
+@EmbeddedKafka
 public class BsmJsonValidatorTest extends AbstractJsonValidatorTest {
 
     @Autowired

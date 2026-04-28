@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
     "valid.spat.json=classpath:json/valid.spat.json",
     "invalid.spat.json=classpath:json/invalid.spat.json" })
 @ActiveProfiles("test")
+@EmbeddedKafka
 public class SpatJsonValidatorTest extends AbstractJsonValidatorTest {
     
     @Autowired
