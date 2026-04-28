@@ -7,10 +7,10 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import java.util.stream.Stream;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -28,39 +28,17 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.rtcm.RTCMProperties;
 import us.dot.its.jpo.geojsonconverter.serialization.deserializers.JsonDeserializer;
 import us.dot.its.jpo.geojsonconverter.validator.RTCMJsonValidator;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
-@RunWith(Parameterized.class)
 public class RTCMTopologyTest {
 
     final String inputTopicName = "topic.OdeRtcmJson";
     final String outputTopicName = "topic.ProcessedRtcm";
 
-    @Parameter(0)
-    public String inputJson;
-
-    @Parameter(1)
-    public boolean expectCti4501Conformant;
-
-    @Parameter(2)
-    public int expectStationId;
-
-    @Parameter(3)
-    public boolean expectRev3;
-
-
-    @Parameters
-    public static Collection<Object[]> params() throws IOException {
-        return Arrays.asList(new Object[][] {
-                { loadResource("json/valid.rtcm.json"), true, 2432, true },
-                { loadResource("json/invalid.rtcm.json"), false, 2432, true },
-                { loadResource("json/invalid2.rtcm.json"), false, 48, false }
-        });
-    }
-
-    @Test
-    public void topologyTest() {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void topologyTest(String inputJson, boolean expectCti4501Conformant, int expectStationId, boolean expectRev3) {
         RTCMJsonValidator validator = new RTCMJsonValidator("classpath:schemas/rtcm.schema.json");
         RTCMDecoder decoder = new RTCMDecoder(false);
         RTCMConverter converter = new RTCMConverter(decoder);
@@ -115,6 +93,14 @@ public class RTCMTopologyTest {
 
             assertEquals(expectCti4501Conformant, properties.isCti4501Conformant());
         }
+    }
+
+    public static Stream<Arguments> params() throws IOException {
+        return Stream.of(
+                Arguments.of( loadResource("json/valid.rtcm.json"), true, 2432, true ),
+                Arguments.of( loadResource("json/invalid.rtcm.json"), false, 2432, true ),
+                Arguments.of( loadResource("json/invalid2.rtcm.json"), false, 48, false )
+        );
     }
 
     private static String loadResource(String path) throws IOException {

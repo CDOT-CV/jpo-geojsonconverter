@@ -7,10 +7,10 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import java.util.stream.Stream;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -31,31 +31,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Slf4j
-@RunWith(Parameterized.class)
 public class SsmTopologyTest {
     final String inputTopicName = "topic.OdeSsmJson";
     final String outputTopicName = "topic.ProcessedSsm";
 
-    @Parameter(0)
-    public String inputJson;
-
-    @Parameter(1)
-    public int expectNumberOfRequests;
-
-    @Parameter(2)
-    public boolean expectValid;
-
-    @Parameters
-    public static Collection<Object[]> params() throws IOException {
-        return Arrays.asList(new Object[][] {
-                { loadResource("json/valid.ssm.json"), 1, true },
-                { loadResource("json/valid.ssm-multi.json"), 2, true },
-                { loadResource("json/invalid.ssm.json"), 1, false },
-        });
-    }
-
-    @Test
-    public void topologyTest() {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void topologyTest(String inputJson, int expectNumberOfRequests, boolean expectValid) {
         SsmJsonValidator validator = new SsmJsonValidator("classpath:schemas/ssm.schema.json");
         SsmConverter converter = new SsmConverter();
         Topology topology = SsmTopology.build(inputTopicName, outputTopicName, validator, converter);
@@ -88,6 +70,14 @@ public class SsmTopologyTest {
                         processedSsm.getValidationMessages(), hasSize(greaterThan(0)));
             }
         }
+    }
+
+    public static Stream<Arguments> params() throws IOException {
+        return Stream.of(
+                Arguments.of( loadResource("json/valid.ssm.json"), 1, true ),
+                Arguments.of( loadResource("json/valid.ssm-multi.json"), 2, true ),
+                Arguments.of( loadResource("json/invalid.ssm.json"), 1, false )
+        );
     }
 
     private static String loadResource(String path) throws IOException {

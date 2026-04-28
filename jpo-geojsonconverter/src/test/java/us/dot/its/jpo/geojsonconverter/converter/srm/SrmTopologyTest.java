@@ -7,10 +7,10 @@ import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import java.util.stream.Stream;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -34,31 +34,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 @Slf4j
-@RunWith(Parameterized.class)
 public class SrmTopologyTest {
     final String inputTopicName = "topic.OdeSrmJson";
     final String outputTopicName = "topic.ProcessedSrm";
 
-    @Parameter(0)
-    public String inputJson;
-
-    @Parameter(1)
-    public int expectNumberOfRequests;
-
-    @Parameter(2)
-    public boolean expectValid;
-
-    @Parameters
-    public static Collection<Object[]> params() throws IOException {
-        return Arrays.asList(new Object[][] {
-                { loadResource("json/valid.srm.json"), 1, true },
-                { loadResource("json/valid.srm-multi.json"), 2, true },
-                { loadResource("json/invalid.srm.json"), 1, false}
-        });
-    }
-
-    @Test
-    public void topologyTest() {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void topologyTest(String inputJson, int expectNumberOfRequests, boolean expectValid) {
         SrmJsonValidator validator = new SrmJsonValidator("classpath:schemas/srm.schema.json");
         SrmConverter converter = new SrmConverter();
         Topology topology = SrmTopology.build(inputTopicName, outputTopicName, validator, converter);
@@ -97,6 +79,14 @@ public class SrmTopologyTest {
             Point geometry = processedSrm.getGeometry();
             assertNotNull(geometry);
         }
+    }
+
+    public static Stream<Arguments> params() throws IOException {
+        return Stream.of(
+                Arguments.of( loadResource("json/valid.srm.json"), 1, true ),
+                Arguments.of( loadResource("json/valid.srm-multi.json"), 2, true ),
+                Arguments.of( loadResource("json/invalid.srm.json"), 1, false)
+        );
     }
 
     private static String loadResource(String path) throws IOException {

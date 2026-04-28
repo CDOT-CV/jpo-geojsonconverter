@@ -4,8 +4,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import java.util.stream.Stream;
 import us.dot.its.jpo.asn.j2735.r2024.SignalRequestMessage.SignalRequestMessageMessageFrame;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.srm.ProcessedSignalRequest;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.srm.ProcessedSrm;
@@ -22,24 +24,16 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.hamcrest.Matchers.hasProperty;
-import static org.junit.runners.Parameterized.Parameters;
-import static org.junit.runners.Parameterized.Parameter;
 import static us.dot.its.jpo.geojsonconverter.TestResourceUtil.loadResource;
 
 @Slf4j
-@RunWith(Parameterized.class)
 public class SrmConverterTest {
 
     private final static ObjectMapper mapper = new ObjectMapper();
 
-    @Parameter(0)
-    public String srmJson;
-
-    @Parameter(1)
-    public int expectNumberOfRequests;
-
-    @Test
-    public void testProcessSrm() throws JsonProcessingException {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testProcessSrm(String srmJson, int expectNumberOfRequests) throws JsonProcessingException {
         SrmConverter srmConverter = new SrmConverter();
         SignalRequestMessageMessageFrame messageFrame =
                 mapper.readValue(srmJson, SignalRequestMessageMessageFrame.class);
@@ -51,12 +45,15 @@ public class SrmConverterTest {
         assertEquals(requests.size(), expectNumberOfRequests);
     }
 
-    @Parameters
-    public static Collection<Object[]> params() throws IOException {
+    public static Stream<Arguments> params() throws IOException {
         final String srm1Lane = loadResource("classpath:json/srm.message-frame.json");
         final String srm2Lanes = loadResource("classpath:json/srm.message-frame.2lanes.json");
         final String srm4Lanes = loadResource("classpath:json/srm.message-frame.4lanes.json");
-        return Arrays.asList(new Object[][] {{srm1Lane, 1}, {srm2Lanes, 2}, {srm4Lanes, 4}});
+        return Stream.of(
+                Arguments.of(srm1Lane, 1),
+                Arguments.of(srm2Lanes, 2),
+                Arguments.of(srm4Lanes, 4)
+        );
     }
 
 
