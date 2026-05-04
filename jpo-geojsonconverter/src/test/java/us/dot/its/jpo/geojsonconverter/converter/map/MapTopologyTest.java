@@ -18,7 +18,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuIntersectionKey;
 import us.dot.its.jpo.geojsonconverter.pojos.GeometryOutputMode;
@@ -27,9 +26,8 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.map.ProcessedMap;
 import us.dot.its.jpo.geojsonconverter.serialization.JsonSerdes;
 import us.dot.its.jpo.geojsonconverter.validator.MapJsonValidator;
 
-@SpringBootTest
+@SpringBootTest(properties = "spring.kafka.streams.auto-startup=false")
 @ActiveProfiles("test")
-@EmbeddedKafka
 public class MapTopologyTest {
     String kafkaTopicOdeMapJson = "topic.OdeMapJson";
     String kafkaTopicMapGeoJson = "topic.ProcessedMap";

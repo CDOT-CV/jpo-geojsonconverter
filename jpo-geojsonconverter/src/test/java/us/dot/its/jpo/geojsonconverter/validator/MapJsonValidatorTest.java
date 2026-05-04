@@ -9,16 +9,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.beans.factory.annotation.Value;
 
 
 @SpringBootTest( { 
     "valid.map.json=classpath:json/valid.map.json",
-    "invalid.map.json=classpath:json/invalid.map.json" })    
+    "invalid.map.json=classpath:json/invalid.map.json",
+    "spring.kafka.streams.auto-startup=false"})
 @ActiveProfiles("test")
-@EmbeddedKafka
 public class MapJsonValidatorTest extends AbstractJsonValidatorTest  {
 
 

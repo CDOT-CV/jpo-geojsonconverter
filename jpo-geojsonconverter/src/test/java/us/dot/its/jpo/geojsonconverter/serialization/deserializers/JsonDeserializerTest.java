@@ -12,13 +12,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import us.dot.its.jpo.geojsonconverter.pojos.spat.ProcessedSpat;
 
-@SpringBootTest({"processed.spat.json=classpath:json/sample.processed-spat.json"})
+@SpringBootTest({
+    "processed.spat.json=classpath:json/sample.processed-spat.json",
+    "spring.kafka.streams.auto-startup=false"})
 @ActiveProfiles("test")
-@EmbeddedKafka
 public class JsonDeserializerTest {
     @Test
     public void deserializeTest() {

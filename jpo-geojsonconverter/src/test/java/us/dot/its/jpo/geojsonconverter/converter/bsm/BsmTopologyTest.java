@@ -12,7 +12,6 @@ import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.Test;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuLogKey;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
@@ -23,9 +22,8 @@ import us.dot.its.jpo.geojsonconverter.validator.BsmJsonValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
+@SpringBootTest(properties = "spring.kafka.streams.auto-startup=false")
 @ActiveProfiles("test")
-@EmbeddedKafka
 public class BsmTopologyTest {
     String kafkaTopicOdeBsmJson = "topic.OdeBsmJson";
     String kafkaTopicProcessedBsm = "topic.ProcessedBsm";

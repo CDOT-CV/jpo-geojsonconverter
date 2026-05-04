@@ -6,7 +6,6 @@ import org.springframework.core.io.Resource;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import us.dot.its.jpo.asn.j2735.r2024.Common.AntiLockBrakeStatus;
 import us.dot.its.jpo.asn.j2735.r2024.Common.AuxiliaryBrakeStatus;
@@ -22,9 +21,10 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.bsm.ProcessedBsm;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-@SpringBootTest({"processed.bsm.json=classpath:json/sample.processed-bsm.json"})
+@SpringBootTest({
+    "processed.bsm.json=classpath:json/sample.processed-bsm.json",
+    "spring.kafka.streams.auto-startup=false"})
 @ActiveProfiles("test")
-@EmbeddedKafka
 public class ProcessedBsmDeserializerTest {
     @Test
     public void deserializeExceptionTest() {

@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
@@ -15,9 +14,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest({
         "valid.srm.json=classpath:json/valid.srm.json",
-        "invalid.srm.json=classpath:json/invalid.srm.json"})
+        "invalid.srm.json=classpath:json/invalid.srm.json",
+        "spring.kafka.streams.auto-startup=false"})
 @ActiveProfiles("test")
-@EmbeddedKafka
 public class SrmJsonValidatorTest extends AbstractJsonValidatorTest {
 
     @Autowired

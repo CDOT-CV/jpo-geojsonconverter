@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -15,9 +14,8 @@ import us.dot.its.jpo.geojsonconverter.converter.srm.SrmConverter;
 import us.dot.its.jpo.geojsonconverter.converter.ssm.SsmConverter;
 import us.dot.its.jpo.geojsonconverter.validator.*;
 
-@SpringBootTest
+@SpringBootTest(properties = "spring.kafka.streams.auto-startup=false")
 @ActiveProfiles("test")
-@EmbeddedKafka
 public class JsonConverterServiceControllerTest {
     JsonConverterServiceController geoJsonConverterServiceController;
     GeoJsonConverterProperties props;
