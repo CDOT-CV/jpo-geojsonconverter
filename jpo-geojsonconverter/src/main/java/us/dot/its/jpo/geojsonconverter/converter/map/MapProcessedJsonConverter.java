@@ -142,7 +142,7 @@ public class MapProcessedJsonConverter
         sharedProps.setTimeStamp(generateUTCTimestamp(mapData.getTimeStamp(), odeDate));
         // Setting validation fields
         sharedProps.setValidationMessages(processedSpatValidationMessages);
-        sharedProps.setCti4501Conformant(sharedProps.getValidationMessages().size() == 0);
+        sharedProps.setCti4501Conformant(sharedProps.getValidationMessages().isEmpty());
 
         return sharedProps;
     }
@@ -304,7 +304,7 @@ public class MapProcessedJsonConverter
 
         List<ConnectingLanesFeature<LineString>> lanesFeatures = new ArrayList<>();
         for (GenericLane lane : intersection.getLaneSet()) {
-            if (lane.getLaneAttributes().getDirectionalUse().isIngressPath() == true) {
+            if (lane.getLaneAttributes().getDirectionalUse().isIngressPath()) {
                 double[] laneCoordinates = lanePoints.get((int) lane.getLaneID().getValue()); // first point
                 if (lane.getConnectsTo() == null)
                     continue;
