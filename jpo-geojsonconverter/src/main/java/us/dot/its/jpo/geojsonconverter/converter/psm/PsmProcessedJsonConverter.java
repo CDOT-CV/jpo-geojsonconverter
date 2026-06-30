@@ -1,6 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.converter.psm;
 
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -8,6 +8,8 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
@@ -29,6 +31,7 @@ import us.dot.its.jpo.geojsonconverter.validator.JsonValidatorResult;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 
+@Slf4j
 public class PsmProcessedJsonConverter
         implements KeyValueMapper<Void, DeserializedRawPsm, KeyValue<RsuPsmIdKey, ProcessedPsm<Point>>> {
     private static final Logger logger = LoggerFactory.getLogger(PsmProcessedJsonConverter.class);
@@ -98,11 +101,19 @@ public class PsmProcessedJsonConverter
             object.setException(exception.getStackTrace().toString());
             processedPsmValidationMessages.add(object);
         }
-        for (ValidationMessage vm : validationMessages.getValidationMessages()) {
+        for (Error vm : validationMessages.getValidationMessages()) {
             ProcessedValidationMessage object = new ProcessedValidationMessage();
             object.setMessage(vm.getMessage());
-            object.setSchemaPath(vm.getSchemaPath());
-            object.setJsonPath(vm.getPath());
+            final var schemaLocation = vm.getSchemaLocation();
+            if (schemaLocation != null) {
+                object.setSchemaPath(schemaLocation.toString());
+            } else {
+                log.warn("validationMessage.schemaLocation is null");
+            }
+            final var evaluationPath = vm.getEvaluationPath();
+            if (evaluationPath != null) {
+                object.setJsonPath(vm.getEvaluationPath().toString());
+            }
 
             processedPsmValidationMessages.add(object);
         }

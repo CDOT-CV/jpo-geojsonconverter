@@ -26,6 +26,11 @@ services:
       CONFLUENT_SECRET: ${CONFLUENT_SECRET}
       geometry.output.mode: ${GEOMETRY_OUTPUT_MODE}
       spring.kafka.bootstrap-servers: ${DOCKER_HOST_IP:?error}:9092
+      streams-config-replication-factor: ${GJC_STREAMS_CONFIG_REPLICATION_FACTOR}
+      streams-config-acks: ${GJC_STREAMS_CONFIG_ACKS}
+      streams-config-num-stream-threads: ${GJC_STREAMS_CONFIG_NUM_STREAM_THREADS}
+      streams-config-cache-max-bytes-buffering: ${GJC_STREAMS_CONFIG_CACHE_MAX_BYTES_BUFFERING}
+      streams-config-commit-interval-ms: ${GJC_COMMIT_INTERVAL_MS}
     logging:
       options:
         max-size: "10m"
@@ -58,6 +63,11 @@ services:
       CONFLUENT_SECRET: ${CONFLUENT_SECRET}
       geometry.output.mode: ${GEOMETRY_OUTPUT_MODE}
       spring.kafka.bootstrap-servers: ${DOCKER_HOST_IP:?error}:9092
+      streams-config-replication-factor: ${GJC_STREAMS_CONFIG_REPLICATION_FACTOR}
+      streams-config-acks: ${GJC_STREAMS_CONFIG_ACKS}
+      streams-config-num-stream-threads: ${GJC_STREAMS_CONFIG_NUM_STREAM_THREADS}
+      streams-config-cache-max-bytes-buffering: ${GJC_STREAMS_CONFIG_CACHE_MAX_BYTES_BUFFERING}
+      streams-config-commit-interval-ms: ${GJC_STREAMS_CONFIG_COMMIT_INTERVAL_MS}
     logging:
       options:
         max-size: "10m"

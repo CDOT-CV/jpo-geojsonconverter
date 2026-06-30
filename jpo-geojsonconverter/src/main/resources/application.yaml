@@ -57,3 +57,16 @@ geojsonconverter:
   kafka-topic-processed-srm: topic.ProcessedSrm
   kafka-topic-ode-ssm-json: topic.OdeSsmJson
   kafka-topic-processed-ssm: topic.ProcessedSsm
+  # Replication factor
+  # https://kafka.apache.org/11/streams/developer-guide/config-streams/#replicationfactor
+  # -1 = broker default, 1 is default, 3 recommended for prod
+  streams-config-replication-factor: ${GJC_STREAMS_CONFIG_REPLICATION_FACTOR:1}
+  # Acks
+  # https://kafka.apache.org/11/streams/developer-guide/config-streams/#recommended-configuration-parameters-for-resiliency
+  # 1 default, all recommended for robustness in prod
+  # May use 0 or 1 for dev
+  streams-config-acks: ${GJC_STREAMS_CONFIG_ACKS:1}
+  # Default 10 threads to match Connect default
+  streams-config-num-stream-threads: ${GJC_STREAMS_CONFIG_NUM_STREAM_THREADS:10}
+  streams-config-cache-max-bytes-buffering: ${GJC_STREAMS_CONFIG_CACHE_MAX_BYTES_BUFFERING:1048576}
+  streams-config-commit-interval-ms: ${GJC_STREAMS_CONFIG_COMMIT_INTERVAL_MS:100}

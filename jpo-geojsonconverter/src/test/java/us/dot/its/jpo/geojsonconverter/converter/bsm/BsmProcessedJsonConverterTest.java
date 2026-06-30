@@ -8,7 +8,7 @@ import java.util.List;
 
 import org.apache.kafka.streams.KeyValue;
 
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuLogKey;
@@ -75,7 +75,7 @@ public class BsmProcessedJsonConverterTest {
         assertNotNull(accuracy);
         assertEquals(9.3, accuracy.getSemiMajor());
         assertEquals(12.05, accuracy.getSemiMinor());
-        org.junit.jupiter.api.Assertions.assertNull(accuracy.getOrientation());
+        assertNull(accuracy.getOrientation());
         var brakes = props.getBrakes();
         assertNotNull(brakes);
         assertEquals(ProcessedTractionControlStatus.UNAVAILABLE, brakes.getTraction());
@@ -121,7 +121,7 @@ public class BsmProcessedJsonConverterTest {
         JsonValidatorResult validatorResults = new JsonValidatorResult();
         Exception exception = new Exception("test_exception");
         validatorResults.addException(exception);
-        List<ValidationMessage> validationMessages = new ArrayList<>();
+        List<Error> validationMessages = new ArrayList<>();
         validatorResults.addValidationMessages(validationMessages);
 
         DeserializedRawBsm deserializedRawBsm = new DeserializedRawBsm();

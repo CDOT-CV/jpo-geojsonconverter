@@ -23,6 +23,11 @@ public class GeoJsonConverterPropertiesTest {
     void setup() {
         testGeoJsonConverterProperties = new GeoJsonConverterProperties();
         testGeoJsonConverterProperties.initialize();
+        testGeoJsonConverterProperties.setStreamsConfigReplicationFactor(1);
+        testGeoJsonConverterProperties.setStreamsConfigAcks("1");
+        testGeoJsonConverterProperties.setStreamsConfigNumStreamThreads(10);
+        testGeoJsonConverterProperties.setStreamsConfigCacheMaxBytesBuffering(1048576);
+        testGeoJsonConverterProperties.setStreamsConfigCommitIntervalMs(100);
     }
 
     @Test

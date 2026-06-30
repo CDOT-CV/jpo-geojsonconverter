@@ -1,6 +1,7 @@
 package us.dot.its.jpo.geojsonconverter.validator;
 
 import org.junit.jupiter.api.Test;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
         "invalid.ssm.json=classpath:json/invalid.ssm.json",
         "spring.kafka.streams.auto-startup=false"})
 @ActiveProfiles("test")
+@Slf4j
 public class SsmJsonValidatorTest extends AbstractJsonValidatorTest {
 
     @Autowired
@@ -60,6 +62,9 @@ public class SsmJsonValidatorTest extends AbstractJsonValidatorTest {
     @Test
     public void testException() {
         SsmJsonValidator badValidator = new SsmJsonValidator(null);
+
+        log.debug("Class Path: {}", System.getProperty("java.class.path"));
+
         var result = badValidator.validate("invalid");
         assertFalse("An exception should have happened", result.isValid());
     }

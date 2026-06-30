@@ -5,13 +5,13 @@ import java.util.Collection;
 import java.util.Formatter;
 import java.util.List;
 
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
 
 public class JsonValidatorResult {
 
       
     private final List<Exception> exceptions = new ArrayList<>();
-    private final List<ValidationMessage> validationMessages = new ArrayList<>();
+    private final List<Error> validationMessages = new ArrayList<>();
 
     public boolean isValid() {
         return exceptions.isEmpty() && validationMessages.isEmpty();
@@ -32,11 +32,11 @@ public class JsonValidatorResult {
     /**
      * @return ValidationMessages returned by the schema validator.
      */
-    public List<ValidationMessage> getValidationMessages() {
+    public List<Error> getValidationMessages() {
         return validationMessages;
     }
 
-    public void addValidationMessages(Collection<ValidationMessage> messages) {
+    public void addValidationMessages(Collection<Error> messages) {
         validationMessages.addAll(messages);
         
     }
@@ -54,8 +54,8 @@ public class JsonValidatorResult {
                     fmt.format("JsonProcessingException: %s%n", exception.getMessage());
                 }
 
-                for (ValidationMessage vm : getValidationMessages()) {
-                    fmt.format("At path %s (Schema: %s)%n", vm.getMessage(), vm.getSchemaPath());
+                for (Error vm : getValidationMessages()) {
+                    fmt.format("At path %s (Schema: %s)%n", vm.getMessage(), vm.getSchemaLocation());
                 }
             }
             fmt.format("%n");

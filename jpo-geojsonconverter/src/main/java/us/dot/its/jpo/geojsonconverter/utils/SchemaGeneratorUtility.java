@@ -2,6 +2,7 @@ package us.dot.its.jpo.geojsonconverter.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.bsm.ProcessedBsm;
@@ -18,7 +19,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class SchemaGeneratorUtility {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
+        System.exit(run(args));
+    }
+
+    static int run(String[] args) {
         try {
             // Define the classes for which to generate schemas
             Class<?>[] targetClasses =
@@ -28,14 +33,19 @@ public class SchemaGeneratorUtility {
             ObjectMapper objectMapper = new ObjectMapper();
 
             SchemaGeneratorConfigBuilder configBuilder =
-                    new SchemaGeneratorConfigBuilder(SchemaVersion.DRAFT_2020_12, OptionPreset.PLAIN_JSON);
+                    new SchemaGeneratorConfigBuilder(objectMapper, SchemaVersion.DRAFT_2020_12,
+                            OptionPreset.PLAIN_JSON);
 
-            // Add Jackson module for better handling of Jackson annotations
             configBuilder.with(new JacksonModule());
 
-            // Configure additional options
-            configBuilder.with(Option.EXTRA_OPEN_API_FORMAT_VALUES).without(Option.FLATTENED_ENUMS_FROM_TOSTRING)
-                    .with(Option.DEFINITIONS_FOR_ALL_OBJECTS);
+            configBuilder.with(Option.EXTRA_OPEN_API_FORMAT_VALUES)
+                    .with(Option.DEFINITIONS_FOR_ALL_OBJECTS)
+                    .without(Option.GETTER_METHODS)
+                    .without(Option.FLATTENED_ENUMS_FROM_TOSTRING)
+                    .without(Option.NONSTATIC_NONVOID_NONGETTER_METHODS)
+                    .without(Option.PUBLIC_NONSTATIC_FIELDS)
+                    .with(Option.NONPUBLIC_NONSTATIC_FIELDS_WITH_GETTERS)
+                    .without(Option.NONPUBLIC_NONSTATIC_FIELDS_WITHOUT_GETTERS);
 
             SchemaGenerator generator = new SchemaGenerator(configBuilder.build());
 
@@ -57,6 +67,11 @@ public class SchemaGeneratorUtility {
             for (Class<?> targetClass : targetClasses) {
                 JsonNode schema = generator.generateSchema(targetClass);
 
+                // Explicitly include virtual SPaT timestamp computed property.
+                if (ProcessedSpat.class.equals(targetClass)) {
+                    schema = ensureUtcTimeStampTsProperty(schema);
+                }
+
                 // Create the schema file in the resources/schemas directory
                 // Add hyphen after "Processed"
                 String fileName = targetClass.getSimpleName().replaceAll("(?<=Processed)(?=\\w)", "-").toLowerCase()
@@ -69,13 +84,30 @@ public class SchemaGeneratorUtility {
             }
 
             System.out.println("Schema generation completed successfully.");
+            return 0;
         } catch (Exception e) {
             System.err.println("Error generating schemas: " + e.getMessage());
             e.printStackTrace();
-            System.exit(1);
+            return 1;
+        }
+    }
+
+    private static JsonNode ensureUtcTimeStampTsProperty(JsonNode schema) {
+        if (!(schema instanceof ObjectNode schemaObject)) {
+            return schema;
         }
 
-        // Exit successfully
-        System.exit(0);
+        JsonNode propertiesNode = schemaObject.get("properties");
+        if (!(propertiesNode instanceof ObjectNode propertiesObject)) {
+            return schema;
+        }
+
+        if (!propertiesObject.has("utcTimeStampTS")) {
+            ObjectNode utcTimeStampTs = propertiesObject.putObject("utcTimeStampTS");
+            utcTimeStampTs.put("type", "string");
+            utcTimeStampTs.put("format", "date-time");
+        }
+
+        return schemaObject;
     }
 }

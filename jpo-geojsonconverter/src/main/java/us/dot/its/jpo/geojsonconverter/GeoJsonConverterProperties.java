@@ -113,6 +113,22 @@ public class GeoJsonConverterProperties implements EnvironmentAware {
         }
     }
 
+    // Streams configurations
+    @Getter @Setter
+    private int streamsConfigReplicationFactor;
+
+    @Getter @Setter
+    private String streamsConfigAcks;
+
+    @Getter @Setter
+    private int streamsConfigNumStreamThreads;
+
+    @Getter @Setter
+    private long streamsConfigCacheMaxBytesBuffering;
+
+    @Getter @Setter
+    private int streamsConfigCommitIntervalMs;
+
     public Properties createStreamProperties(String name) {
         Properties streamProps = new Properties();
         streamProps.put(StreamsConfig.APPLICATION_ID_CONFIG, name);
@@ -124,16 +140,17 @@ public class GeoJsonConverterProperties implements EnvironmentAware {
         streamProps.put(StreamsConfig.DEFAULT_TIMESTAMP_EXTRACTOR_CLASS_CONFIG,
                 LogAndSkipOnInvalidTimestamp.class.getName());
 
-        streamProps.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, 2);
+        streamProps.put(StreamsConfig.NUM_STREAM_THREADS_CONFIG, streamsConfigNumStreamThreads);
 
-        streamProps.put(StreamsConfig.producerPrefix(ProducerConfig.ACKS_CONFIG), "all");
+        streamProps.put(StreamsConfig.REPLICATION_FACTOR_CONFIG, streamsConfigReplicationFactor);
+        streamProps.put(StreamsConfig.producerPrefix(ProducerConfig.ACKS_CONFIG), streamsConfigAcks);
 
         // Reduce cache buffering per topology to 1MB
-        streamProps.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, 1 * 1024 * 1024L);
+        streamProps.put(StreamsConfig.CACHE_MAX_BYTES_BUFFERING_CONFIG, streamsConfigCacheMaxBytesBuffering);
 
         // Decrease default commit interval. Default for 'at least once' mode of 30000ms
         // is too slow.
-        streamProps.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, 100);
+        streamProps.put(StreamsConfig.COMMIT_INTERVAL_MS_CONFIG, streamsConfigCommitIntervalMs);
 
         // All the keys are Strings in this app
         streamProps.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass().getName());

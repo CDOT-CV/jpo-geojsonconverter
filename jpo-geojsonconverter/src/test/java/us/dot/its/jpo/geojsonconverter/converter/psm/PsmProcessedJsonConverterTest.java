@@ -15,7 +15,7 @@ import org.apache.kafka.streams.KeyValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
 
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuPsmIdKey;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
@@ -81,7 +81,7 @@ public class PsmProcessedJsonConverterTest {
         JsonValidatorResult validatorResults = new JsonValidatorResult();
         Exception exception = new Exception("test_exception");
         validatorResults.addException(exception);
-        List<ValidationMessage> validationMessages = new ArrayList<>();
+        List<Error> validationMessages = new ArrayList<>();
         validatorResults.addValidationMessages(validationMessages);
 
         DeserializedRawPsm deserializedRawPsm = new DeserializedRawPsm();
