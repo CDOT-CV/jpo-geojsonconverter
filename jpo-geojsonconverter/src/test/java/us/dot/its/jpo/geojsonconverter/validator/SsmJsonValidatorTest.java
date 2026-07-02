@@ -10,8 +10,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.util.AssertionErrors.assertFalse;
 
 @SpringBootTest({
         "valid.ssm.json=classpath:json/valid.ssm.json",
