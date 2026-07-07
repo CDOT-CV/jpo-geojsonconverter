@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.SystemUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import us.dot.its.jpo.geojsonconverter.DateJsonMapper;
@@ -77,7 +78,7 @@ public class RTCMDecoder {
         // Preamble: 8 bits
         int preamble = unsigned(bytes[0]);
         if (preamble != 0xD3) {
-            log.error("Invalid RTCM preamble: %02X, should be %20X".formatted(preamble, 0xD3));
+            log.error(String.format("Invalid RTCM preamble: %02X, should be %20X", preamble, 0xD3));
             return node;
         }
         node.put("class", "RTCM3");
@@ -85,7 +86,7 @@ public class RTCMDecoder {
         // Next 6 bits should be zero
         int zeroBits = unsigned(bytes[1]) >>> 2;
         if (zeroBits != 0) {
-            log.error("Invalid zero bits: %X".formatted(zeroBits));
+            log.error(String.format("Invalid zero bits: %X", zeroBits));
             return node;
         }
 
