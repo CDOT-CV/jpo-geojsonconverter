@@ -4,6 +4,7 @@ package us.dot.its.jpo.geojsonconverter.converter.rtcm;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.networknt.schema.Error;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import us.dot.its.jpo.asn.j2735.r2024.Common.*;
 import us.dot.its.jpo.asn.j2735.r2024.RTCMcorrections.RTCM_Revision;
@@ -30,6 +31,7 @@ public class RTCMConverter {
 
     private final RTCMDecoder decoder;
 
+    @Autowired
     public RTCMConverter(RTCMDecoder decoder) {
         this.decoder = decoder;
     }

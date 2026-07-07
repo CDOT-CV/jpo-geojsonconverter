@@ -73,7 +73,7 @@ public class PsmProcessedJsonConverter
                 return KeyValue.pair(key, processedPsm);
             }
         } catch (Exception e) {
-            String errMsg = "Exception converting ODE PSM to Processed PSM! Message: %s".formatted(e.getMessage());
+            String errMsg = String.format("Exception converting ODE PSM to Processed PSM! Message: %s", e.getMessage());
             logger.error(errMsg, e);
             // KafkaStreams knows to remove null responses before allowing further steps from occurring
             RsuPsmIdKey key = new RsuPsmIdKey();
@@ -203,7 +203,8 @@ public class PsmProcessedJsonConverter
                 return null;
             }
         } catch (Exception e) {
-            String errMsg = "Failed to generateOffsetUTCTimestamp - PSMProcessedJsonConverter. Message: %s".formatted(e.getMessage());
+            String errMsg = String.format(
+                    "Failed to generateOffsetUTCTimestamp - PSMProcessedJsonConverter. Message: %s", e.getMessage());
             logger.error(errMsg, e);
             return null;
         }

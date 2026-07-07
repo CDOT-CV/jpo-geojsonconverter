@@ -82,7 +82,7 @@ public class RTCMTransformer
                 return KeyValue.pair(key, processed);
             }
         } catch (Exception e) {
-            String errMsg = "Exception converting ODE BSM to Processed BSM! Message: %s".formatted(e.getMessage());
+            String errMsg = String.format("Exception converting ODE BSM to Processed BSM! Message: %s", e.getMessage());
             log.error(errMsg, e);
             RsuStationIdKey key = new RsuStationIdKey();
             key.setRsuId("ERROR");

@@ -5,6 +5,7 @@ import org.apache.kafka.streams.Topology;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import us.dot.its.jpo.geojsonconverter.GeoJsonConverterProperties;
@@ -30,6 +31,7 @@ public class JsonConverterServiceController {
     private static final Logger logger = LoggerFactory.getLogger(JsonConverterServiceController.class);
     org.apache.kafka.common.serialization.Serdes bas;
 
+    @Autowired
     public JsonConverterServiceController(GeoJsonConverterProperties geojsonProps, MapJsonValidator mapJsonValidator,
                                           SpatJsonValidator spatJsonValidator, BsmJsonValidator bsmJsonValidator, PsmJsonValidator psmJsonValidator,
                                           RTCMJsonValidator rtcmJsonValidator, RTCMConverter rtcmConverter,

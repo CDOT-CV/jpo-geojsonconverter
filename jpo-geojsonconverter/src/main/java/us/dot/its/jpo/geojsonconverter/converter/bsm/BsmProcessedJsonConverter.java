@@ -79,7 +79,7 @@ public class BsmProcessedJsonConverter
                 return KeyValue.pair(key, processedBsm);
             }
         } catch (Exception e) {
-            String errMsg = "Exception converting ODE BSM to Processed BSM! Message: %s".formatted(e.getMessage());
+            String errMsg = String.format("Exception converting ODE BSM to Processed BSM! Message: %s", e.getMessage());
             logger.error(errMsg, e);
             // KafkaStreams knows to remove null responses before allowing further steps from occurring
             RsuLogKey key = new RsuLogKey();
@@ -270,7 +270,8 @@ public class BsmProcessedJsonConverter
                 return null;
             }
         } catch (Exception e) {
-            String errMsg = "Failed to generateOffsetUTCTimestamp - BSMProcessedJsonConverter. Message: %s".formatted(e.getMessage());
+            String errMsg = String.format(
+                    "Failed to generateOffsetUTCTimestamp - BSMProcessedJsonConverter. Message: %s", e.getMessage());
             logger.error(errMsg, e);
             return null;
         }

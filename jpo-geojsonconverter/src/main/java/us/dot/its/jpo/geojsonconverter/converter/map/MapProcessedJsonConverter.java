@@ -88,7 +88,7 @@ public class MapProcessedJsonConverter
                 return KeyValue.pair(key, processedMapObject);
             }
         } catch (Exception e) {
-            String errMsg = "Exception converting ODE MAP to GeoJSON! Message: %s".formatted(e.getMessage());
+            String errMsg = String.format("Exception converting ODE MAP to GeoJSON! Message: %s", e.getMessage());
             logger.error(errMsg, e);
             // KafkaStreams knows to remove null responses before allowing further steps from occurring
             var key = new RsuIntersectionKey();
@@ -153,7 +153,7 @@ public class MapProcessedJsonConverter
         sharedProps.setTimeStamp(generateUTCTimestamp(mapData.getTimeStamp(), odeDate));
         // Setting validation fields
         sharedProps.setValidationMessages(processedSpatValidationMessages);
-        sharedProps.setCti4501Conformant(sharedProps.getValidationMessages().isEmpty());
+        sharedProps.setCti4501Conformant(sharedProps.getValidationMessages().size() == 0);
 
         return sharedProps;
     }
@@ -315,7 +315,7 @@ public class MapProcessedJsonConverter
 
         List<ConnectingLanesFeature<LineString>> lanesFeatures = new ArrayList<>();
         for (GenericLane lane : intersection.getLaneSet()) {
-            if (lane.getLaneAttributes().getDirectionalUse().isIngressPath()) {
+            if (lane.getLaneAttributes().getDirectionalUse().isIngressPath() == true) {
                 double[] laneCoordinates = lanePoints.get((int) lane.getLaneID().getValue()); // first point
                 if (lane.getConnectsTo() == null)
                     continue;
@@ -335,7 +335,7 @@ public class MapProcessedJsonConverter
                     double[][] coordinates = new double[][] {laneCoordinates, connectionCoordinates};
                     LineString geometry = new LineString(coordinates);
 
-                    String id = "%s-%s".formatted(laneProps.getIngressLaneId(), laneProps.getEgressLaneId());
+                    String id = String.format("%s-%s", laneProps.getIngressLaneId(), laneProps.getEgressLaneId());
                     lanesFeatures.add(new ConnectingLanesFeature<LineString>(id, geometry, laneProps));
                 }
             }
@@ -455,7 +455,7 @@ public class MapProcessedJsonConverter
             long minutes;
             if (moy != null) {
                 minutes = moy.getValue(); // minutes from beginning of year
-                dateString = "%d-01-01T00:00:00.00Z".formatted(year);
+                dateString = String.format("%d-01-01T00:00:00.00Z", year);
                 date = Instant.parse(dateString).atZone(ZoneId.of("UTC"));
                 date = date.plusMinutes(minutes);
             } else {
@@ -463,7 +463,7 @@ public class MapProcessedJsonConverter
             }
 
         } catch (Exception e) {
-            String errMsg = "Failed to generateUTCTimestamp - SpatProcessedJsonConverter. Message: %s".formatted(
+            String errMsg = String.format("Failed to generateUTCTimestamp - SpatProcessedJsonConverter. Message: %s",
                     e.getMessage());
             logger.error(errMsg, e);
         }
@@ -518,7 +518,7 @@ public class MapProcessedJsonConverter
                 mapNodes.add(mapNode);
             }
         } catch (Exception e) {
-            String errMsg = "Failed to nodeConversionList - SpatProcessedJsonConverter. Message: %s".formatted(
+            String errMsg = String.format("Failed to nodeConversionList - SpatProcessedJsonConverter. Message: %s",
                     e.getMessage());
             logger.error(errMsg, e);
         }
