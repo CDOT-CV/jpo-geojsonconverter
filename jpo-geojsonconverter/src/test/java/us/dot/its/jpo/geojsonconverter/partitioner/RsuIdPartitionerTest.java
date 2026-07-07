@@ -5,9 +5,6 @@ import static org.junit.Assert.assertNotEquals;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
-import java.util.Set;
-
 public class RsuIdPartitionerTest {
 
     
@@ -34,11 +31,11 @@ public class RsuIdPartitionerTest {
         final int numPartitions = Integer.MAX_VALUE;
 
         var partitioner = new RsuIdPartitioner<RsuIntersectionKey, Object>();
-
-        Optional<Set<Integer>> partition11 = partitioner.partitions(topic, key11, obj, numPartitions);
-        Optional<Set<Integer>> partition12 = partitioner.partitions(topic, key12, obj, numPartitions);
-        Optional<Set<Integer>> partition21 = partitioner.partitions(topic, key21, obj, numPartitions);
-        Optional<Set<Integer>> partition22 = partitioner.partitions(topic, key22, obj, numPartitions);
+        
+        int partition11 = partitioner.partition(topic, key11, obj, numPartitions);
+        int partition12 = partitioner.partition(topic, key12, obj, numPartitions);
+        int partition21 = partitioner.partition(topic, key21, obj, numPartitions);
+        int partition22 = partitioner.partition(topic, key22, obj, numPartitions);
 
         String equalMsg =  "Keys with the same RSU ID should have the same partition number";
         assertEquals(equalMsg, partition11, partition12);
@@ -65,9 +62,9 @@ public class RsuIdPartitionerTest {
 
         var partitioner = new RsuIdPartitioner<String, Object>();
 
-        Optional<Set<Integer>> partitionKey = partitioner.partitions(topic, key, obj, numPartitions);
-        Optional<Set<Integer>> partitionSame = partitioner.partitions(topic, sameKey, obj, numPartitions);
-        Optional<Set<Integer>> partitionDifferent = partitioner.partitions(topic, differentKey, obj, numPartitions);
+        int partitionKey = partitioner.partition(topic, key, obj, numPartitions);
+        int partitionSame = partitioner.partition(topic, sameKey, obj, numPartitions);
+        int partitionDifferent = partitioner.partition(topic, differentKey, obj, numPartitions);
 
         assertEquals("Same keys", partitionKey, partitionSame);
         assertNotEquals("Different keys", partitionKey, partitionDifferent);
