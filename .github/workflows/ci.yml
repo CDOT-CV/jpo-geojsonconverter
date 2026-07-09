@@ -21,9 +21,13 @@ jobs:
           java-version: "21"
           distribution: "temurin"
       - name: Build and test
+        env:
+          MAVEN_GITHUB_TOKEN_NAME: ${{ vars.MAVEN_GITHUB_TOKEN_NAME }}
+          MAVEN_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MAVEN_GITHUB_ORG: ${{ github.repository_owner }}
         run: |
           cd jpo-geojsonconverter
-          mvn clean verify
+          mvn -s settings.xml clean verify
 
   sonar:
     runs-on: ubuntu-latest
