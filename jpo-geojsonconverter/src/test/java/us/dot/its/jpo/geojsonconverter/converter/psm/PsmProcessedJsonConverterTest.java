@@ -12,9 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.processor.ProcessorContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.networknt.schema.Error;
 
@@ -30,8 +29,8 @@ public class PsmProcessedJsonConverterTest {
     PsmProcessedJsonConverter psmProcessedJsonConverter;
     OdeMessageFrameData odePsmPojo;
 
-    @Before
-    public void setup() throws IOException {
+    @BeforeEach
+    void setup() throws IOException {
         String odePsmJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/valid.psm.json")));
         try (JsonDeserializer<OdeMessageFrameData> odePsmDeserializer =
                 new JsonDeserializer<>(OdeMessageFrameData.class)) {
@@ -45,22 +44,16 @@ public class PsmProcessedJsonConverterTest {
         assertNotNull(psmProcessedJsonConverter);
     }
 
-    @Test
-    public void testInit() {
-        ProcessorContext mockContext = mock(ProcessorContext.class);
-        psmProcessedJsonConverter.init(mockContext);
-        assertNotNull(psmProcessedJsonConverter);
-    }
 
     @Test
-    public void testTransform() {
+    public void testApply() {
         JsonValidatorResult validatorResults = new JsonValidatorResult();
         DeserializedRawPsm deserializedRawPsm = new DeserializedRawPsm();
         deserializedRawPsm.setOdePsmMessageFrameData(odePsmPojo);
         deserializedRawPsm.setValidatorResults(validatorResults);
 
         KeyValue<RsuPsmIdKey, ProcessedPsm<Point>> processedPsm =
-                psmProcessedJsonConverter.transform(null, deserializedRawPsm);
+                psmProcessedJsonConverter.apply(null, deserializedRawPsm);
         assertNotNull(processedPsm.key);
         assertEquals(RsuPsmIdKey.builder().rsuId("172.18.0.1").psmId("24779D7E").build(), processedPsm.key);
         assertNotNull(processedPsm.value);
@@ -68,7 +61,7 @@ public class PsmProcessedJsonConverterTest {
     }
 
     @Test
-    public void testTransformException() {
+    public void testApplyException() {
         JsonValidatorResult validatorResults = new JsonValidatorResult();
         Exception exception = new Exception("test_exception");
         validatorResults.addException(exception);
@@ -77,14 +70,14 @@ public class PsmProcessedJsonConverterTest {
         deserializedRawPsm.setOdePsmMessageFrameData(odePsmPojo);
         deserializedRawPsm.setValidatorResults(validatorResults);
 
-        KeyValue<RsuPsmIdKey, ProcessedPsm<Point>> processedPsm = psmProcessedJsonConverter.transform(null, null);
+        KeyValue<RsuPsmIdKey, ProcessedPsm<Point>> processedPsm = psmProcessedJsonConverter.apply(null, null);
         assertNotNull(processedPsm.key);
         assertEquals(new RsuPsmIdKey(null, "ERROR"), processedPsm.key);
         assertNull(processedPsm.value);
     }
 
     @Test
-    public void testTransformFailure() {
+    public void testApplyFailure() {
         JsonValidatorResult validatorResults = new JsonValidatorResult();
         Exception exception = new Exception("test_exception");
         validatorResults.addException(exception);
@@ -97,16 +90,10 @@ public class PsmProcessedJsonConverterTest {
         deserializedRawPsm.setFailedMessage("{");
 
         KeyValue<RsuPsmIdKey, ProcessedPsm<Point>> processedPsm =
-                psmProcessedJsonConverter.transform(null, deserializedRawPsm);
+                psmProcessedJsonConverter.apply(null, deserializedRawPsm);
         assertNotNull(processedPsm.key);
         assertNotNull(processedPsm.value);
         assertEquals("{", processedPsm.value.getProperties().getValidationMessages().get(0).getMessage());
     }
 
-    @Test
-    public void testClose() {
-        // Should do nothing, but required override
-        psmProcessedJsonConverter.close();
-        assertNotNull(psmProcessedJsonConverter);
-    }
 }

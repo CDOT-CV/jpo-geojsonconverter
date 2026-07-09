@@ -2,8 +2,6 @@ package us.dot.its.jpo.geojsonconverter.validator;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
 
 import com.networknt.schema.*;
 import com.networknt.schema.Error;

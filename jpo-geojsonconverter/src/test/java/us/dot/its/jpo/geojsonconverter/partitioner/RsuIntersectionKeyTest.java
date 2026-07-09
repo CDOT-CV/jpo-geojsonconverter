@@ -3,11 +3,9 @@ package us.dot.its.jpo.geojsonconverter.partitioner;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.asn.j2735.r2024.Common.IntersectionID;
 import us.dot.its.jpo.asn.j2735.r2024.Common.IntersectionReferenceID;
 import us.dot.its.jpo.asn.j2735.r2024.Common.RoadRegulatorID;
@@ -58,7 +56,7 @@ public class RsuIntersectionKeyTest {
         key.setIntersectionId(intersectionId);
 
         String str = key.toString();
-        assertThat(str, containsString(ipAddress));
-        assertThat(str, containsString(Integer.toString(intersectionId)));
+        assertTrue(str.contains(ipAddress));
+        assertTrue(str.contains(Integer.toString(intersectionId)));
     }
 }

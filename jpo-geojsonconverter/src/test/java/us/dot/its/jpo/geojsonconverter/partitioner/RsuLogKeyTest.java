@@ -3,10 +3,8 @@ package us.dot.its.jpo.geojsonconverter.partitioner;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class RsuLogKeyTest {
     final static String ipAddress = "127.0.0.1";
@@ -50,8 +48,8 @@ public class RsuLogKeyTest {
         key.setBsmId(bsmId);
 
         String str = key.toString();
-        assertThat(str, containsString(ipAddress));
-        assertThat(str, containsString(logFileName));
-        assertThat(str, containsString(bsmId));
+        assertTrue(str.contains(ipAddress));
+        assertTrue(str.contains(logFileName));
+        assertTrue(str.contains(bsmId));
     }
 }

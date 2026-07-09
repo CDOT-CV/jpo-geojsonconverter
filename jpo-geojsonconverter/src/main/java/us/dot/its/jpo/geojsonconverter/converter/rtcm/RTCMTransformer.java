@@ -3,8 +3,7 @@ package us.dot.its.jpo.geojsonconverter.converter.rtcm;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.kstream.Transformer;
-import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
 import us.dot.its.jpo.asn.j2735.r2024.RTCMcorrections.RTCMcorrectionsMessageFrame;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuStationIdKey;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.rtcm.DeserializedRawRTCM;
@@ -22,11 +21,11 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 
 /**
- * Streams transformer. Converts {@link DeserializedRawRTCM}s to {@link ProcessedRTCM}s
+ * {@link KeyValueMapper}. Converts {@link DeserializedRawRTCM}s to {@link ProcessedRTCM}s
  */
 @Slf4j
 public class RTCMTransformer
-    implements Transformer<Void, DeserializedRawRTCM, KeyValue<RsuStationIdKey, ProcessedRTCM>> {
+    implements KeyValueMapper<Void, DeserializedRawRTCM, KeyValue<RsuStationIdKey, ProcessedRTCM>> {
 
     private final RTCMConverter rtcmConverter;
 
@@ -35,12 +34,7 @@ public class RTCMTransformer
     }
 
     @Override
-    public void init(ProcessorContext context) {
-        // Nothing to initialize
-    }
-
-    @Override
-    public KeyValue<RsuStationIdKey, ProcessedRTCM> transform(Void rawKey, DeserializedRawRTCM rawRtcm) {
+    public KeyValue<RsuStationIdKey, ProcessedRTCM> apply(Void rawKey, DeserializedRawRTCM rawRtcm) {
         try {
             if (!rawRtcm.isValidationFailure()) {
                 // Extract ODE stuff
@@ -96,8 +90,4 @@ public class RTCMTransformer
         }
     }
 
-    @Override
-    public void close() {
-        // Nothing to close
-    }
 }

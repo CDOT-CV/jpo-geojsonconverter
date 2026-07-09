@@ -6,11 +6,11 @@ import org.apache.kafka.common.serialization.VoidSerializer;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import java.util.stream.Stream;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -27,33 +27,17 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Slf4j
-@RunWith(Parameterized.class)
 public class SsmTopologyTest {
     final String inputTopicName = "topic.OdeSsmJson";
     final String outputTopicName = "topic.ProcessedSsm";
 
-    @Parameter(0)
-    public String inputJson;
-
-    @Parameter(1)
-    public int expectNumberOfRequests;
-
-    @Parameter(2)
-    public boolean expectValid;
-
-    @Parameters
-    public static Collection<Object[]> params() throws IOException {
-        return Arrays.asList(new Object[][] {
-                { loadResource("json/valid.ssm.json"), 1, true },
-                { loadResource("json/valid.ssm-multi.json"), 2, true },
-                { loadResource("json/invalid.ssm.json"), 1, false },
-        });
-    }
-
-    @Test
-    public void topologyTest() {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void topologyTest(String inputJson, int expectNumberOfRequests, boolean expectValid) {
         SsmJsonValidator validator = new SsmJsonValidator("classpath:schemas/ssm.schema.json");
         SsmConverter converter = new SsmConverter();
         Topology topology = SsmTopology.build(inputTopicName, outputTopicName, validator, converter);
@@ -66,17 +50,17 @@ public class SsmTopologyTest {
 
             List<KeyValue<RsuVehicleIdKey, ProcessedSsm>> results = outputTopic.readKeyValuesToList();
 
-            assertThat(results, hasSize(1));
+            assertEquals(1, results.size());
 
             KeyValue<RsuVehicleIdKey, ProcessedSsm> result = results.getFirst();
             RsuVehicleIdKey key = result.key;
-            assertThat(key, notNullValue());
-            assertThat(key.getRsuId(), equalTo("172.18.0.1"));
+            assertNotNull(key);
+            assertEquals("172.18.0.1", key.getRsuId());
             ProcessedSsm processedSsm = result.value;
-            assertThat(processedSsm, notNullValue());
-            assertThat(processedSsm.getAsn1(), notNullValue());
-            assertThat(processedSsm.getOdeReceivedAt(), notNullValue());
-            assertThat(processedSsm.getMessageType(), equalTo("SSM"));
+            assertNotNull(processedSsm);
+            assertNotNull(processedSsm.getAsn1());
+            assertNotNull(processedSsm.getOdeReceivedAt());
+            assertEquals("SSM", processedSsm.getMessageType());
             assertThat(processedSsm.getStatusList(), hasSize(greaterThan(0)));
             if (expectValid) {
                 assertThat("expected valid message but has validation messages",
@@ -86,6 +70,14 @@ public class SsmTopologyTest {
                         processedSsm.getValidationMessages(), hasSize(greaterThan(0)));
             }
         }
+    }
+
+    public static Stream<Arguments> params() throws IOException {
+        return Stream.of(
+                Arguments.of( loadResource("json/valid.ssm.json"), 1, true ),
+                Arguments.of( loadResource("json/valid.ssm-multi.json"), 2, true ),
+                Arguments.of( loadResource("json/invalid.ssm.json"), 1, false )
+        );
     }
 
     private static String loadResource(String path) throws IOException {

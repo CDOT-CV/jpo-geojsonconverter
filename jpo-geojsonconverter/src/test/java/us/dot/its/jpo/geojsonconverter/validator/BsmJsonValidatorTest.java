@@ -1,24 +1,22 @@
 package us.dot.its.jpo.geojsonconverter.validator;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.beans.factory.annotation.Value;
 
 @SpringBootTest({
     "valid.bsm.json=classpath:json/valid.bsm.json",
-    "invalid.bsm.json=classpath:json/invalid.bsm.json" })
-@RunWith(SpringRunner.class)
+    "invalid.bsm.json=classpath:json/invalid.bsm.json",
+    "spring.kafka.streams.auto-startup=false"
+})
 @ActiveProfiles("test")
 public class BsmJsonValidatorTest extends AbstractJsonValidatorTest {
 
@@ -27,7 +25,7 @@ public class BsmJsonValidatorTest extends AbstractJsonValidatorTest {
 
     @Test
     public void bsmJsonValidatorLoaded() {
-        assertThat(bsmJsonValidator, notNullValue());
+        assertNotNull(bsmJsonValidator);
     }
 
     @Test

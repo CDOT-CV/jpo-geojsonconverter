@@ -7,20 +7,19 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
-import org.junit.runner.RunWith;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
-
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.map.ProcessedMap;
 
-@SpringBootTest({"processed.map.json=classpath:json/sample.processed-map.json",
-        "processed.map.wkt.json=classpath:json/sample.processed-map-wkt.json"})
-@RunWith(SpringRunner.class)
+@SpringBootTest({
+        "processed.map.json=classpath:json/sample.processed-map.json",
+        "processed.map.wkt.json=classpath:json/sample.processed-map-wkt.json",
+        "spring.kafka.streams.auto-startup=false"
+})
 @ActiveProfiles("test")
 public class ProcessedMapDeserializerTest {
 

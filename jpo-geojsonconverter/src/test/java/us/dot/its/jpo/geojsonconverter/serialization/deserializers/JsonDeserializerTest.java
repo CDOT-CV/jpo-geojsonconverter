@@ -1,26 +1,23 @@
 package us.dot.its.jpo.geojsonconverter.serialization.deserializers;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
 import java.io.UnsupportedEncodingException;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
-import org.junit.runner.RunWith;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
-
 import us.dot.its.jpo.geojsonconverter.pojos.spat.ProcessedSpat;
 
-@SpringBootTest({"processed.spat.json=classpath:json/sample.processed-spat.json"})
-@RunWith(SpringRunner.class)
+@SpringBootTest({
+    "processed.spat.json=classpath:json/sample.processed-spat.json",
+    "spring.kafka.streams.auto-startup=false"})
 @ActiveProfiles("test")
 public class JsonDeserializerTest {
     @Test
@@ -67,7 +64,7 @@ public class JsonDeserializerTest {
 
             ProcessedSpat spat = serializer.deserialize("the_topic", spatBytes);
             assertNotNull(spat);
-            assertEquals(false, spat.isCti4501Conformant());
+            assertFalse(spat.isCti4501Conformant());
             assertEquals("2025-07-16T22:55:58.423Z", spat.getUtcTimeStamp().toString());
 
         } catch (Exception e) {
@@ -98,6 +95,6 @@ class TestClass {
     }
 
     public String toString() {
-        return String.format("{\"prop\":\"%s\"}", prop);
+        return "{\"prop\":\"%s\"}".formatted(prop);
     }
 }

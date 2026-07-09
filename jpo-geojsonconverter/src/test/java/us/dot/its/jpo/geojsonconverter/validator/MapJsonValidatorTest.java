@@ -1,25 +1,22 @@
 package us.dot.its.jpo.geojsonconverter.validator;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.beans.factory.annotation.Value;
 
 
 @SpringBootTest( { 
     "valid.map.json=classpath:json/valid.map.json",
-    "invalid.map.json=classpath:json/invalid.map.json" })
-@RunWith(SpringRunner.class)    
+    "invalid.map.json=classpath:json/invalid.map.json",
+    "spring.kafka.streams.auto-startup=false"})
 @ActiveProfiles("test")
 public class MapJsonValidatorTest extends AbstractJsonValidatorTest  {
 
@@ -30,7 +27,7 @@ public class MapJsonValidatorTest extends AbstractJsonValidatorTest  {
     
     @Test
     public void mapJsonValidatorLoaded() {
-        assertThat(mapJsonValidator, notNullValue());
+        assertNotNull(mapJsonValidator);
     }
 
     @Test

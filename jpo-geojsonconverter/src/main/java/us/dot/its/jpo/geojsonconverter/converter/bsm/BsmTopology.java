@@ -62,7 +62,7 @@ public class BsmTopology {
 
         // Convert ODE BSM to GeoJSON
         KStream<RsuLogKey, ProcessedBsm<Point>> processedJsonBsmStream =
-                validatedOdeBsmStream.transform(() -> new BsmProcessedJsonConverter());
+                validatedOdeBsmStream.map(new BsmProcessedJsonConverter());
 
         processedJsonBsmStream.to(
                 // Push the joined GeoJSON stream back out to the BSM GeoJSON topic

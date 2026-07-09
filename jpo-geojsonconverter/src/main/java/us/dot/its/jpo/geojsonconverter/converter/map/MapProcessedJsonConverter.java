@@ -13,8 +13,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.kstream.Transformer;
-import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import us.dot.its.jpo.asn.j2735.r2024.Common.*;
@@ -35,14 +34,11 @@ import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 
 @Slf4j
 public class MapProcessedJsonConverter
-        implements Transformer<Void, DeserializedRawMap, KeyValue<RsuIntersectionKey, ProcessedMap<LineString>>> {
+        implements KeyValueMapper<Void, DeserializedRawMap, KeyValue<RsuIntersectionKey, ProcessedMap<LineString>>> {
     private static final Logger logger = LoggerFactory.getLogger(MapProcessedJsonConverter.class);
 
-    @Override
-    public void init(ProcessorContext arg0) {}
-
     /**
-     * Transform an ODE MAP POJO to MAP GeoJSON POJO.
+     * Apply the conversion from an ODE MAP POJO to MAP GeoJSON POJO.
      *
      * @param rawKey - Void type because ODE topics have no specified key
      * @param rawMap - The raw POJO
@@ -50,7 +46,7 @@ public class MapProcessedJsonConverter
      *         and the value is the GeoJSON FeatureCollection POJO
      */
     @Override
-    public KeyValue<RsuIntersectionKey, ProcessedMap<LineString>> transform(Void rawKey, DeserializedRawMap rawMap) {
+    public KeyValue<RsuIntersectionKey, ProcessedMap<LineString>> apply(Void rawKey, DeserializedRawMap rawMap) {
         try {
             if (!rawMap.isValidationFailure()) {
                 OdeMessageFrameData rawValue = new OdeMessageFrameData();
@@ -101,10 +97,6 @@ public class MapProcessedJsonConverter
         }
     }
 
-    @Override
-    public void close() {
-        // Nothing to do here
-    }
 
     public MapSharedProperties createProperties(MapData mapData, OdeMessageFrameMetadata metadata,
             IntersectionGeometry intersection, JsonValidatorResult validationMessages) {

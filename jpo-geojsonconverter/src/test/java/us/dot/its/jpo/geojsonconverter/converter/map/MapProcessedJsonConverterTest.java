@@ -15,9 +15,8 @@ import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.processor.ProcessorContext;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.networknt.schema.Error;
 import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
@@ -35,8 +34,8 @@ public class MapProcessedJsonConverterTest {
     OdeMessageFrameData mapMF;
     DeserializedRawMap rawMap;
 
-    @Before
-    public void setup() throws IOException {
+    @BeforeEach
+    void setup() throws IOException {
         String odeMapJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/valid.map.json")));
 
         try (JsonDeserializer<OdeMessageFrameData> odeMapDeserializer =
@@ -61,17 +60,11 @@ public class MapProcessedJsonConverterTest {
         assertNotNull(mapProcessedJsonConverter);
     }
 
-    @Test
-    public void testInit() {
-        ProcessorContext mockContext = mock(ProcessorContext.class);
-        mapProcessedJsonConverter.init(mockContext);
-        assertNotNull(mapProcessedJsonConverter);
-    }
 
     @Test
-    public void testTransform() {
+    public void testApply() {
         KeyValue<RsuIntersectionKey, ProcessedMap<LineString>> mapFeatureCollection =
-                mapProcessedJsonConverter.transform(null, rawMap);
+                mapProcessedJsonConverter.apply(null, rawMap);
         log.info("mapFeatureCollection: {}", mapFeatureCollection);
         assertNotNull(mapFeatureCollection.key);
         assertEquals("172.18.0.1", mapFeatureCollection.key.getRsuId());
@@ -81,11 +74,11 @@ public class MapProcessedJsonConverterTest {
     }
 
     @Test
-    public void testTransformValidationFailure() {
+    public void testApplyValidationFailure() {
         rawMap.setValidationFailure(true);
         rawMap.setFailedMessage("Failed to transform");
         KeyValue<RsuIntersectionKey, ProcessedMap<LineString>> mapFeatureCollection =
-                mapProcessedJsonConverter.transform(null, rawMap);
+                mapProcessedJsonConverter.apply(null, rawMap);
         assertNotNull(mapFeatureCollection.key);
         assertEquals("ERROR", mapFeatureCollection.key.getRsuId());
         assertNotNull(mapFeatureCollection.value);
@@ -93,9 +86,9 @@ public class MapProcessedJsonConverterTest {
     }
 
     @Test
-    public void testTransformException() {
+    public void testApplyException() {
         KeyValue<RsuIntersectionKey, ProcessedMap<LineString>> mapFeatureCollection =
-                mapProcessedJsonConverter.transform(null, null);
+                mapProcessedJsonConverter.apply(null, null);
         assertNotNull(mapFeatureCollection.key);
         assertEquals("ERROR", mapFeatureCollection.key.getRsuId());
         assertNull(mapFeatureCollection.value);
@@ -111,10 +104,4 @@ public class MapProcessedJsonConverterTest {
         assertEquals("DECEMBER", moyTime.getMonth().toString());
     }
 
-    @Test
-    public void testClose() {
-        // Should do nothing, but required override
-        mapProcessedJsonConverter.close();
-        assertNotNull(mapProcessedJsonConverter);
-    }
 }

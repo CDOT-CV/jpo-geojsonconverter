@@ -1,22 +1,21 @@
 package us.dot.its.jpo.geojsonconverter.validator;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.beans.factory.annotation.Value;
 
-@SpringBootTest({"valid.psm.json=classpath:json/valid.psm.json", "invalid.psm.json=classpath:json/invalid.psm.json"})
-@RunWith(SpringRunner.class)
+@SpringBootTest({
+    "valid.psm.json=classpath:json/valid.psm.json",
+    "invalid.psm.json=classpath:json/invalid.psm.json",
+    "spring.kafka.streams.auto-startup=false"})
 @ActiveProfiles("test")
 public class PsmJsonValidatorTest extends AbstractJsonValidatorTest {
 
@@ -25,7 +24,7 @@ public class PsmJsonValidatorTest extends AbstractJsonValidatorTest {
 
     @Test
     public void psmJsonValidatorLoaded() {
-        assertThat(psmJsonValidator, notNullValue());
+        assertNotNull(psmJsonValidator);
     }
 
     @Test

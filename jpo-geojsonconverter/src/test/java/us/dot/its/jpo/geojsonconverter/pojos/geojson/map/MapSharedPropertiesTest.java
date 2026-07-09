@@ -3,7 +3,7 @@ package us.dot.its.jpo.geojsonconverter.pojos.geojson.map;
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.asn.j2735.r2024.Common.IntersectionID;
 import us.dot.its.jpo.asn.j2735.r2024.Common.IntersectionReferenceID;
 import us.dot.its.jpo.asn.j2735.r2024.Common.RoadRegulatorID;
