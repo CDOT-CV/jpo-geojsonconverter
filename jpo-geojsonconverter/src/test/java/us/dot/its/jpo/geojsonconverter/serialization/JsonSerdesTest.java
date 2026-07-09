@@ -1,6 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.serialization;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.apache.kafka.common.serialization.Serde;
 import org.junit.jupiter.api.Test;

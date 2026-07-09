@@ -1,6 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.validator;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -18,7 +18,7 @@ public abstract class AbstractJsonValidatorTest {
     protected void testJsonSchemaResourceLoaded(AbstractJsonValidator validator) {
         var resource = validator.getJsonSchemaResource();
         assertNotNull(resource);
-        assertTrue("Resource does not exist", resource.exists());
+        assertTrue(resource.exists(), "Resource does not exist");
     }
 
     protected void testJsonSchemaLoaded(AbstractJsonValidator validator) throws IOException {

@@ -1,12 +1,8 @@
 package us.dot.its.jpo.geojsonconverter.pojos.geojson.map;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import us.dot.its.jpo.asn.j2735.r2024.Common.Elevation;
-import us.dot.its.jpo.asn.j2735.r2024.Common.Latitude;
-import us.dot.its.jpo.asn.j2735.r2024.Common.Longitude;
-import us.dot.its.jpo.asn.j2735.r2024.Common.Position3D;
 import us.dot.its.jpo.geojsonconverter.pojos.common.ProcessedPosition3D;
 
 public class MapRefPointTest {

@@ -1,6 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.converter.bsm;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;

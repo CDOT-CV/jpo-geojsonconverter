@@ -9,7 +9,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest({
@@ -61,7 +61,7 @@ public class SrmJsonValidatorTest extends AbstractJsonValidatorTest {
     public void testException() {
         SrmJsonValidator badValidator = new SrmJsonValidator(null);
         var result = badValidator.validate("invalid");
-        assertFalse("An exception should have happened", result.isValid());
+        assertFalse(result.isValid(), "An exception should have happened");
     }
 
 

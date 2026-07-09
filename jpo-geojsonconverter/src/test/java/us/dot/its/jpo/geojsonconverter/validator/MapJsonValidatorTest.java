@@ -1,6 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.validator;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
@@ -65,7 +65,7 @@ public class MapJsonValidatorTest extends AbstractJsonValidatorTest  {
     public void testException() {
         MapJsonValidator badValidator = new MapJsonValidator(null);
         var result = badValidator.validate("invalid");
-        assertFalse("An exception should have happened", result.isValid());
+        assertFalse(result.isValid(), "An exception should have happened");
     }
 
     @Value("${valid.map.json}")
