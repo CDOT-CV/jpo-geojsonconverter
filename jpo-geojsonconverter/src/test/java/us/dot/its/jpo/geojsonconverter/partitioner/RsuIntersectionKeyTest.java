@@ -1,8 +1,8 @@
 package us.dot.its.jpo.geojsonconverter.partitioner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 import org.junit.jupiter.api.Test;
@@ -34,18 +34,18 @@ public class RsuIntersectionKeyTest {
         var otherValue2 = new RsuIntersectionKey("0.0.0.0", 99);
         var otherValue3 = new RsuIntersectionKey(ipAddress, intersectionId, 99);
 
-        assertTrue("Value equality", key.equals(keyValue));
-        assertFalse("Value inequality branch 1", key.equals(otherValue1));
-        assertFalse("Value inequality branch 2", key.equals(otherValue2));
-        assertFalse("Value inequality branch 3", key.equals(otherValue3));
-        assertTrue("Reference equality", key.equals(keyRef));
-        assertFalse("Reference inequality", key.equals(otherObject));
-        assertEquals("Hash code values equal", key.hashCode(), keyValue.hashCode());
+        assertTrue(key.equals(keyValue), "Value equality");
+        assertFalse(key.equals(otherValue1), "Value inequality branch 1");
+        assertFalse(key.equals(otherValue2), "Value inequality branch 2");
+        assertFalse(key.equals(otherValue3), "Value inequality branch 3");
+        assertTrue(key.equals(keyRef), "Reference equality");
+        assertFalse(key.equals(otherObject), "Reference inequality");
+        assertEquals(key.hashCode(), keyValue.hashCode(), "Hash code values equal");
 
         // Getter coverage
-        assertEquals("getRsuId", key.getRsuId(), keyValue.getRsuId());
-        assertEquals("getIntersectionId", key.getIntersectionId(), keyValue.getIntersectionId());
-        assertEquals("getRegion", key.getRegion(), keyValue.getRegion());
+        assertEquals(key.getRsuId(), keyValue.getRsuId(), "getRsuId");
+        assertEquals(key.getIntersectionId(), keyValue.getIntersectionId(), "getIntersectionId");
+        assertEquals(key.getRegion(), keyValue.getRegion(), "getRegion");
 
     }
 

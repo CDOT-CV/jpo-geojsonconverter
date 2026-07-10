@@ -1,7 +1,7 @@
 package us.dot.its.jpo.geojsonconverter.partitioner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import org.junit.jupiter.api.Test;
 
@@ -24,8 +24,8 @@ public class RsuLogKeyPartitionerTest {
         int partitionSame = partitioner.partition(topic, sameKey, obj, numPartitions);
         int partitionDifferent = partitioner.partition(topic, differentKey, obj, numPartitions);
 
-        assertEquals("Same keys", partitionKey, partitionSame);
-        assertNotEquals("Different keys", partitionKey, partitionDifferent);
+        assertEquals(partitionKey, partitionSame, "Same keys");
+        assertNotEquals(partitionKey, partitionDifferent, "Different keys");
     }
 
     @Test
@@ -46,7 +46,7 @@ public class RsuLogKeyPartitionerTest {
         int partitionSame = partitioner.partition(topic, sameKey, obj, numPartitions);
         int partitionDifferent = partitioner.partition(topic, differentKey, obj, numPartitions);
 
-        assertEquals("Same keys", partitionKey, partitionSame);
-        assertNotEquals("Different keys", partitionKey, partitionDifferent);
+        assertEquals(partitionKey, partitionSame, "Same keys");
+        assertNotEquals(partitionKey, partitionDifferent, "Different keys");
     }
 }

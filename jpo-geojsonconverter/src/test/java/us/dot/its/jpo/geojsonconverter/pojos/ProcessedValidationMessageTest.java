@@ -1,6 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.pojos;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
