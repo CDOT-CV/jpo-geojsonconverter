@@ -141,6 +141,13 @@
             <groupId>usdot.jpo.ode</groupId>
             <artifactId>jpo-ode-core</artifactId>
             <version>${jpoode.version}</version>
+            <exclusions>
+                <!-- Pulls in JUnit 4 transitively via groovy-test; this project is JUnit 5 only -->
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>usdot.jpo.ode</groupId>
