@@ -43,7 +43,6 @@ public class MapTopologyTest {
     }
 
     @Test
-    @Disabled
     public void testTopologyGeoJson() {
         Topology topology = MapTopology.build(kafkaTopicOdeMapJson, kafkaTopicMapGeoJson, kafkaTopicMapWKT,
                 mapJsonValidator, GeometryOutputMode.GEOJSON_ONLY);
@@ -76,7 +75,6 @@ public class MapTopologyTest {
     }
 
     @Test
-    @Disabled
     public void testTopologyWKT() {
         Topology topology = MapTopology.build(kafkaTopicOdeMapJson, kafkaTopicMapGeoJson, kafkaTopicMapWKT,
                 mapJsonValidator, GeometryOutputMode.WKT);
