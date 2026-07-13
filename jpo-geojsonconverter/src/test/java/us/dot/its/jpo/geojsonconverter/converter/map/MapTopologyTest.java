@@ -15,7 +15,6 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -43,7 +42,6 @@ public class MapTopologyTest {
     }
 
     @Test
-    @Disabled
     public void testTopologyGeoJson() {
         Topology topology = MapTopology.build(kafkaTopicOdeMapJson, kafkaTopicMapGeoJson, kafkaTopicMapWKT,
                 mapJsonValidator, GeometryOutputMode.GEOJSON_ONLY);
@@ -76,7 +74,6 @@ public class MapTopologyTest {
     }
 
     @Test
-    @Disabled
     public void testTopologyWKT() {
         Topology topology = MapTopology.build(kafkaTopicOdeMapJson, kafkaTopicMapGeoJson, kafkaTopicMapWKT,
                 mapJsonValidator, GeometryOutputMode.WKT);
