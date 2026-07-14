@@ -59,7 +59,7 @@ public class PsmTopology {
 
         // Convert ODE PSM to GeoJSON
         KStream<RsuPsmIdKey, ProcessedPsm<Point>> processedJsonPsmStream =
-                validatedOdePsmStream.transform(() -> new PsmProcessedJsonConverter());
+                validatedOdePsmStream.map(new PsmProcessedJsonConverter());
 
         processedJsonPsmStream.to(
                 // Push the joined GeoJSON stream back out to the PSM GeoJSON topic

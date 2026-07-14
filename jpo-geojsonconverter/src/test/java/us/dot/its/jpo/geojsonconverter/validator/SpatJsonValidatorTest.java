@@ -1,24 +1,21 @@
 package us.dot.its.jpo.geojsonconverter.validator;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.IOException;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.beans.factory.annotation.Value;
 
 @SpringBootTest({
     "valid.spat.json=classpath:json/valid.spat.json",
-    "invalid.spat.json=classpath:json/invalid.spat.json" })
-@RunWith(SpringRunner.class)
+    "invalid.spat.json=classpath:json/invalid.spat.json",
+    "spring.kafka.streams.auto-startup=false"})
 @ActiveProfiles("test")
 public class SpatJsonValidatorTest extends AbstractJsonValidatorTest {
     
@@ -27,7 +24,7 @@ public class SpatJsonValidatorTest extends AbstractJsonValidatorTest {
 
     @Test
     public void spatJsonValidatorLoaded() {
-        assertThat(spatJsonValidator, notNullValue());
+        assertNotNull(spatJsonValidator);
     }
 
     @Test
@@ -65,7 +62,7 @@ public class SpatJsonValidatorTest extends AbstractJsonValidatorTest {
     public void testException() {
         SpatJsonValidator badValidator = new SpatJsonValidator(null);
         var result = badValidator.validate("invalid");
-        assertFalse("An exception should have happened", result.isValid());
+        assertFalse(result.isValid(), "An exception should have happened");
     }
 
 

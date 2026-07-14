@@ -1,9 +1,9 @@
 package us.dot.its.jpo.geojsonconverter.partitioner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class RsuIdPartitionerTest {
 
@@ -38,14 +38,14 @@ public class RsuIdPartitionerTest {
         int partition22 = partitioner.partition(topic, key22, obj, numPartitions);
 
         String equalMsg =  "Keys with the same RSU ID should have the same partition number";
-        assertEquals(equalMsg, partition11, partition12);
-        assertEquals(equalMsg, partition21, partition22);
+        assertEquals(partition11, partition12, equalMsg);
+        assertEquals(partition21, partition22, equalMsg);
 
         String notEqualMsg = "Keys with different RSU IDs are unlikely to have the same partition number";
-        assertNotEquals(notEqualMsg, partition11, partition21);
-        assertNotEquals(notEqualMsg, partition11, partition22);
-        assertNotEquals(notEqualMsg, partition12, partition21);
-        assertNotEquals(notEqualMsg, partition12, partition22);
+        assertNotEquals(partition11, partition21, notEqualMsg);
+        assertNotEquals(partition11, partition22, notEqualMsg);
+        assertNotEquals(partition12, partition21, notEqualMsg);
+        assertNotEquals(partition12, partition22, notEqualMsg);
     }
 
     @Test
@@ -66,8 +66,8 @@ public class RsuIdPartitionerTest {
         int partitionSame = partitioner.partition(topic, sameKey, obj, numPartitions);
         int partitionDifferent = partitioner.partition(topic, differentKey, obj, numPartitions);
 
-        assertEquals("Same keys", partitionKey, partitionSame);
-        assertNotEquals("Different keys", partitionKey, partitionDifferent);
+        assertEquals(partitionKey, partitionSame, "Same keys");
+        assertNotEquals(partitionKey, partitionDifferent, "Different keys");
     }
 
     

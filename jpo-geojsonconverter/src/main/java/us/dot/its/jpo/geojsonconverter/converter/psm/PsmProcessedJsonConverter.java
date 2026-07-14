@@ -12,8 +12,7 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.kstream.Transformer;
-import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import us.dot.its.jpo.asn.j2735.r2024.PersonalSafetyMessage.PersonalDeviceUserType;
@@ -34,21 +33,18 @@ import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 
 @Slf4j
 public class PsmProcessedJsonConverter
-        implements Transformer<Void, DeserializedRawPsm, KeyValue<RsuPsmIdKey, ProcessedPsm<Point>>> {
+        implements KeyValueMapper<Void, DeserializedRawPsm, KeyValue<RsuPsmIdKey, ProcessedPsm<Point>>> {
     private static final Logger logger = LoggerFactory.getLogger(PsmProcessedJsonConverter.class);
 
-    @Override
-    public void init(ProcessorContext arg0) {}
-
     /**
-     * Transform an ODE PSM POJO to Processed PSM POJO.
+     * Apply the conversion from an ODE PSM POJO to Processed PSM POJO.
      *
      * @param rawKey - Void type because ODE topics have no specified key
      * @param rawPsm - The raw POJO
      * @return A key value pair: the key a RsuTypeIdKey containing the RSU IP address or the PSM log file name
      */
     @Override
-    public KeyValue<RsuPsmIdKey, ProcessedPsm<Point>> transform(Void rawKey, DeserializedRawPsm rawPsm) {
+    public KeyValue<RsuPsmIdKey, ProcessedPsm<Point>> apply(Void rawKey, DeserializedRawPsm rawPsm) {
         try {
             if (!rawPsm.isValidationFailure()) {
                 OdeMessageFrameData rawValue = new OdeMessageFrameData();
@@ -86,10 +82,6 @@ public class PsmProcessedJsonConverter
         }
     }
 
-    @Override
-    public void close() {
-        // Nothing to do here
-    }
 
     public ProcessedPsm<Point> createProcessedPsm(OdeMessageFrameMetadata metadata,
             PersonalSafetyMessageMessageFrame psmMessageFrame, JsonValidatorResult validationMessages) {

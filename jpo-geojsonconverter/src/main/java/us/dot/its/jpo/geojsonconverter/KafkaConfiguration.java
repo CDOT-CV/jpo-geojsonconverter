@@ -23,8 +23,8 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "kafka.topics")
 @Profile("!test")
 public class KafkaConfiguration {
-    
-    @Autowired 
+
+    @Autowired
     private KafkaAdmin admin;
 
     @Autowired

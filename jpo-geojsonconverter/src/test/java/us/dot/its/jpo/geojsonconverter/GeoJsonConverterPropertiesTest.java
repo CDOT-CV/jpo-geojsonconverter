@@ -1,14 +1,14 @@
 package us.dot.its.jpo.geojsonconverter;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Properties;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.boot.info.BuildProperties;
 
 
@@ -19,8 +19,8 @@ public class GeoJsonConverterPropertiesTest {
     GeoJsonConverterProperties testGeoJsonConverterProperties;
     BuildProperties mockBuildProperties;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         testGeoJsonConverterProperties = new GeoJsonConverterProperties();
         testGeoJsonConverterProperties.initialize();
         testGeoJsonConverterProperties.setStreamsConfigReplicationFactor(1);
@@ -42,14 +42,14 @@ public class GeoJsonConverterPropertiesTest {
     @Test
     public void testInitShouldCatchUnknownHostException() {
         String expectedBroker = "localhost:9092";
-        assertEquals("Incorrect KafkaBrokers", expectedBroker, testGeoJsonConverterProperties.getKafkaBrokers());
+        assertEquals(expectedBroker, testGeoJsonConverterProperties.getKafkaBrokers(), "Incorrect KafkaBrokers");
     }
 
     @Test
     public void testKafkaBrokersSetterAndGetter() {
         String testKafkaBrokers = "testKafkaBrokers";
         testGeoJsonConverterProperties.setKafkaBrokers(testKafkaBrokers);
-        assertEquals("Incorrect KafkaBrokers", testKafkaBrokers, testGeoJsonConverterProperties.getKafkaBrokers());
+        assertEquals(testKafkaBrokers, testGeoJsonConverterProperties.getKafkaBrokers(), "Incorrect KafkaBrokers");
     }
 
     @Test
@@ -62,28 +62,28 @@ public class GeoJsonConverterPropertiesTest {
     public void testKafkaTopicOdeSpatJsonSetterAndGetter() {
         String testKafkaTopicOdeSpatJson = "testKafkaTopicOdeSpatJson";
         testGeoJsonConverterProperties.setKafkaTopicOdeSpatJson(testKafkaTopicOdeSpatJson);
-        assertEquals("Incorrect KafkaTopicOdeSpatJson", testKafkaTopicOdeSpatJson, testGeoJsonConverterProperties.getKafkaTopicOdeSpatJson());
+        assertEquals(testKafkaTopicOdeSpatJson, testGeoJsonConverterProperties.getKafkaTopicOdeSpatJson(), "Incorrect KafkaTopicOdeSpatJson");
     }
 
     @Test
     public void testKafkaTopicSpatGeoJsonSetterAndGetter() {
         String testKafkaTopicSpatGeoJson = "testKafkaTopicSpatGeoJson";
         testGeoJsonConverterProperties.setKafkaTopicSpatGeoJson(testKafkaTopicSpatGeoJson);
-        assertEquals("Incorrect KafkaTopicSpatGeoJson", testKafkaTopicSpatGeoJson, testGeoJsonConverterProperties.getKafkaTopicSpatGeoJson());
+        assertEquals(testKafkaTopicSpatGeoJson, testGeoJsonConverterProperties.getKafkaTopicSpatGeoJson(), "Incorrect KafkaTopicSpatGeoJson");
     }
 
     @Test
     public void testKafkaTopicOdeMapJsonSetterAndGetter() {
         String testKafkaTopicOdeMapJson = "testKafkaTopicOdeMapJson";
         testGeoJsonConverterProperties.setKafkaTopicOdeMapJson(testKafkaTopicOdeMapJson);
-        assertEquals("Incorrect KafkaTopicOdeMapJson", testKafkaTopicOdeMapJson, testGeoJsonConverterProperties.getKafkaTopicOdeMapJson());
+        assertEquals(testKafkaTopicOdeMapJson, testGeoJsonConverterProperties.getKafkaTopicOdeMapJson(), "Incorrect KafkaTopicOdeMapJson");
     }
 
     @Test
     public void testKafkaTopicMapGeoJsonSetterAndGetter() {
         String testKafkaTopicMapGeoJson = "testKafkaTopicMapGeoJson";
         testGeoJsonConverterProperties.setKafkaTopicProcessedMap(testKafkaTopicMapGeoJson);
-        assertEquals("Incorrect KafkaTopicMapGeoJson", testKafkaTopicMapGeoJson, testGeoJsonConverterProperties.getKafkaTopicProcessedMap());
+        assertEquals(testKafkaTopicMapGeoJson, testGeoJsonConverterProperties.getKafkaTopicProcessedMap(), "Incorrect KafkaTopicMapGeoJson");
     }
 
     @Test

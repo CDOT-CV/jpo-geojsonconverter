@@ -1,7 +1,9 @@
 package us.dot.its.jpo.geojsonconverter.converter.spat;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -13,11 +15,9 @@ import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -26,8 +26,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.spat.ProcessedSpat;
 import us.dot.its.jpo.geojsonconverter.serialization.JsonSerdes;
 import us.dot.its.jpo.geojsonconverter.validator.SpatJsonValidator;
 
-@SpringBootTest
-@RunWith(SpringRunner.class)
+@SpringBootTest(properties = "spring.kafka.streams.auto-startup=false")
 @ActiveProfiles("test")
 public class SpatTopologyTest {
     private String kafkaTopicOdeSpatJson = "topic.OdeSpatJson";
@@ -37,8 +36,8 @@ public class SpatTopologyTest {
     @Autowired
     SpatJsonValidator spatJsonValidator;
 
-    @Before
-    public void setup() throws IOException {
+    @BeforeEach
+    void setup() throws IOException {
         odeSpatJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/valid.spat.json")));
     }
 
@@ -58,14 +57,14 @@ public class SpatTopologyTest {
             // Check SpatGeoJson topic for properly converted message data
             List<KeyValue<RsuIntersectionKey, ProcessedSpat>> processedSpatJsonResults =
                     outputTopic.readKeyValuesToList();
-            assertEquals(processedSpatJsonResults.size(), 1);
+            assertEquals(1, processedSpatJsonResults.size());
 
             KeyValue<RsuIntersectionKey, ProcessedSpat> processedSpatJson = processedSpatJsonResults.get(0);
             assertNotNull(processedSpatJson.key);
             assertEquals("172.18.0.1", processedSpatJson.key.getRsuId());
             assertEquals(8804, processedSpatJson.key.getIntersectionId());
             assertNotNull(processedSpatJson.value);
-            assertEquals(false, processedSpatJson.value.isCti4501Conformant());
+            assertFalse(processedSpatJson.value.isCti4501Conformant());
             assertEquals(4, processedSpatJson.value.getValidationMessages().size());
             assertEquals(8, processedSpatJson.value.getStates().size());
         }
@@ -87,7 +86,7 @@ public class SpatTopologyTest {
             // Check SpatGeoJson topic for properly converted message data
             List<KeyValue<RsuIntersectionKey, ProcessedSpat>> processedSpatJsonResults =
                     outputTopic.readKeyValuesToList();
-            assertEquals(processedSpatJsonResults.size(), 1);
+            assertEquals(1, processedSpatJsonResults.size());
 
             KeyValue<RsuIntersectionKey, ProcessedSpat> processedSpatJson = processedSpatJsonResults.get(0);
             assertNotNull(processedSpatJson.key);

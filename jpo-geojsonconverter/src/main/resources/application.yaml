@@ -43,9 +43,6 @@ kafka.topics:
       cleanupPolicy: delete
       retentionMs: 300000
 
-# Jackson Properties
-spring.jackson.serialization.write-dates-as-timestamps: false
-
 kafka.linger_ms: 50
 
 # Whether to fully decode RTCM payloads

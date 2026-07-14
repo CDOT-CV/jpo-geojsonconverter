@@ -14,12 +14,9 @@ import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
-
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuPsmIdKey;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.psm.ProcessedPsm;
@@ -28,8 +25,7 @@ import us.dot.its.jpo.geojsonconverter.validator.PsmJsonValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-@RunWith(SpringRunner.class)
+@SpringBootTest(properties = "spring.kafka.streams.auto-startup=false")
 @ActiveProfiles("test")
 public class PsmTopologyTest {
     String kafkaTopicOdePsmJson = "topic.OdePsmJson";
@@ -40,8 +36,8 @@ public class PsmTopologyTest {
     @Autowired
     PsmJsonValidator psmJsonValidator;
 
-    @Before
-    public void setup() throws IOException {
+    @BeforeEach
+    void setup() throws IOException {
         odePsmJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/valid.psm.json")));
     }
 
@@ -60,7 +56,7 @@ public class PsmTopologyTest {
 
             List<KeyValue<RsuPsmIdKey, ProcessedPsm<Point>>> processedPsmJsonResults =
                     outputTopic.readKeyValuesToList();
-            assertEquals(processedPsmJsonResults.size(), 1);
+            assertEquals(1, processedPsmJsonResults.size());
 
             KeyValue<RsuPsmIdKey, ProcessedPsm<Point>> processedPsmJson = processedPsmJsonResults.get(0);
             assertNotNull(processedPsmJson.key);
@@ -88,7 +84,7 @@ public class PsmTopologyTest {
 
             List<KeyValue<RsuPsmIdKey, ProcessedPsm<Point>>> processedPsmJsonResults =
                     outputTopic.readKeyValuesToList();
-            assertEquals(processedPsmJsonResults.size(), 1);
+            assertEquals(1, processedPsmJsonResults.size());
 
             KeyValue<RsuPsmIdKey, ProcessedPsm<Point>> processedPsmJson = processedPsmJsonResults.get(0);
             assertNotNull(processedPsmJson.key);

@@ -6,11 +6,11 @@ import org.apache.kafka.common.serialization.VoidSerializer;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import java.util.stream.Stream;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -29,34 +29,18 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 
 @Slf4j
-@RunWith(Parameterized.class)
 public class SrmTopologyTest {
     final String inputTopicName = "topic.OdeSrmJson";
     final String outputTopicName = "topic.ProcessedSrm";
 
-    @Parameter(0)
-    public String inputJson;
-
-    @Parameter(1)
-    public int expectNumberOfRequests;
-
-    @Parameter(2)
-    public boolean expectValid;
-
-    @Parameters
-    public static Collection<Object[]> params() throws IOException {
-        return Arrays.asList(new Object[][] {
-                { loadResource("json/valid.srm.json"), 1, true },
-                { loadResource("json/valid.srm-multi.json"), 2, true },
-                { loadResource("json/invalid.srm.json"), 1, false}
-        });
-    }
-
-    @Test
-    public void topologyTest() {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void topologyTest(String inputJson, int expectNumberOfRequests, boolean expectValid) {
         SrmJsonValidator validator = new SrmJsonValidator("classpath:schemas/srm.schema.json");
         SrmConverter converter = new SrmConverter();
         Topology topology = SrmTopology.build(inputTopicName, outputTopicName, validator, converter);
@@ -69,19 +53,19 @@ public class SrmTopologyTest {
 
             List<KeyValue<RsuVehicleIdKey, ProcessedSrm>> results = outputTopic.readKeyValuesToList();
 
-            assertThat(results, hasSize(1));
+            assertEquals(1, results.size());
 
             KeyValue<RsuVehicleIdKey, ProcessedSrm> result = results.getFirst();
             RsuVehicleIdKey key = result.key;
-            assertThat(key, notNullValue());
-            assertThat(key.getRsuId(), equalTo("172.18.0.1"));
+            assertNotNull(key);
+            assertEquals("172.18.0.1", key.getRsuId());
             ProcessedSrm processedSrm = result.value;
-            assertThat(processedSrm, notNullValue());
+            assertNotNull(processedSrm);
             SrmProperties properties = processedSrm.getProperties();
-            assertThat(properties, notNullValue());
-            assertThat(properties.getAsn1(), notNullValue());
-            assertThat(properties.getOdeReceivedAt(), notNullValue());
-            assertThat(properties.getMessageType(), equalTo("SRM"));
+            assertNotNull(properties);
+            assertNotNull(properties.getAsn1());
+            assertNotNull(properties.getOdeReceivedAt());
+            assertEquals("SRM", properties.getMessageType());
             assertThat(properties.getRequests(), hasSize(equalTo(expectNumberOfRequests)));
             if (expectValid) {
                 assertThat("expected valid message but has validation messages",
@@ -93,8 +77,16 @@ public class SrmTopologyTest {
 
 
             Point geometry = processedSrm.getGeometry();
-            assertThat(geometry, notNullValue());
+            assertNotNull(geometry);
         }
+    }
+
+    public static Stream<Arguments> params() throws IOException {
+        return Stream.of(
+                Arguments.of( loadResource("json/valid.srm.json"), 1, true ),
+                Arguments.of( loadResource("json/valid.srm-multi.json"), 2, true ),
+                Arguments.of( loadResource("json/invalid.srm.json"), 1, false)
+        );
     }
 
     private static String loadResource(String path) throws IOException {

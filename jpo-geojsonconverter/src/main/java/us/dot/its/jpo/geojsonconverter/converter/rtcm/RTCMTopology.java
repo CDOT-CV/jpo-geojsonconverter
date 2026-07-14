@@ -58,7 +58,7 @@ public class RTCMTopology {
 
         // Convert to ProcessedRTCM
         KStream<RsuStationIdKey, ProcessedRTCM> processedRTCMStream =
-                validatedOdeRTCMStream.transform(() -> new RTCMTransformer(rtcmConverter));
+                validatedOdeRTCMStream.map(new RTCMTransformer(rtcmConverter));
 
         processedRTCMStream.to(rtcmProcessedJsonTopic,
                 Produced.with(
