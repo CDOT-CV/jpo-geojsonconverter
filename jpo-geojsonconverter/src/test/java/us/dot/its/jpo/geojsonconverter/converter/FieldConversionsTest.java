@@ -1,6 +1,12 @@
 package us.dot.its.jpo.geojsonconverter.converter;
 
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.asn.j2735.r2024.Common.*;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.DistanceUnits;
 import us.dot.its.jpo.asn.j2735.r2024.SignalRequestMessage.DeltaTime;
@@ -10,11 +16,6 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class FieldConversionsTest {
     @Test
@@ -26,7 +27,7 @@ public class FieldConversionsTest {
         final var moy = new MinuteOfTheYear(minuteOfYear);
         final ZonedDateTime minuteDate = FieldConversions.convertMinuteOfYear(moy, ingestTime);
         final int year = minuteDate.getYear();
-        assertThat(year, equalTo(2025));
+        assertEquals(2025, year);
     }
 
     @Test
@@ -34,7 +35,7 @@ public class FieldConversionsTest {
         ZonedDateTime ingestTime = ZonedDateTime.of(2025, 10, 3, 0, 0, 1, 500, ZoneOffset.UTC);
         final var moy = new MinuteOfTheYear(527040L);
         final ZonedDateTime minuteDate = FieldConversions.convertMinuteOfYear(moy, ingestTime);
-        assertThat(minuteDate, nullValue());
+        assertNull(minuteDate);
     }
 
 
@@ -46,30 +47,30 @@ public class FieldConversionsTest {
         // Last minute of this year
         final ZonedDateTime ingestTimeThisYear = ZonedDateTime.of(2022, 12, 31, 23, 59, 59, 500, ZoneOffset.UTC);
         final ZonedDateTime minuteDate1 = FieldConversions.convertMinuteOfYear(moy, ingestTimeThisYear);
-        assertThat(minuteDate1, notNullValue());
+        assertNotNull(minuteDate1);
         final int year1 = minuteDate1.getYear();
-        assertThat(year1, equalTo(2022));
+        assertEquals(2022, year1);
 
         // First minute of next year
         final ZonedDateTime ingestTimeNextYear = ZonedDateTime.of(2023, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
         final ZonedDateTime minuteDate2 = FieldConversions.convertMinuteOfYear(moy, ingestTimeNextYear);
-        assertThat(minuteDate2, notNullValue());
+        assertNotNull(minuteDate2);
         final int year2 = minuteDate2.getYear();
-        assertThat(year2, equalTo(2022));
+        assertEquals(2022, year2);
 
         final var moyLeap = new MinuteOfTheYear(527037L);
         // Last minute of leap year
         final ZonedDateTime ingestTimeThisLeapYear = ZonedDateTime.of(2024, 12, 31, 23, 59, 59, 500, ZoneOffset.UTC);
         final ZonedDateTime minuteDateLeap1 = FieldConversions.convertMinuteOfYear(moyLeap, ingestTimeThisLeapYear);
-        assertThat(minuteDateLeap1, notNullValue());
+        assertNotNull(minuteDateLeap1);
         final int yearLeap1 = minuteDateLeap1.getYear();
-        assertThat(yearLeap1, equalTo(2024));
+        assertEquals(2024, yearLeap1);
 
         final ZonedDateTime ingestTimeNextLeapYear = ZonedDateTime.of(2025, 1, 1, 0, 0, 1, 500, ZoneOffset.UTC);
         final ZonedDateTime minuteDateLeap2 = FieldConversions.convertMinuteOfYear(moy, ingestTimeNextLeapYear);
-        assertThat(minuteDateLeap2, notNullValue());
+        assertNotNull(minuteDateLeap2);
         final int yearLeap2 = minuteDateLeap2.getYear();
-        assertThat(yearLeap2, equalTo(2024));
+        assertEquals(2024, yearLeap2);
     }
 
     // ========== Coordinate Conversion Tests ==========

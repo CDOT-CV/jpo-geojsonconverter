@@ -1,8 +1,8 @@
 package us.dot.its.jpo.geojsonconverter;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class SystemConfigTest {
 
@@ -25,7 +25,7 @@ public class SystemConfigTest {
         testSystemConfig.setSchemaName(testSchemaName);
         testSystemConfig.setThreadCount(testThreadCount);
 
-        assertEquals("Incorrect schemaName", testSchemaName, testSystemConfig.getSchemaName());
-        assertEquals("Incorrect threadCount", testThreadCount, testSystemConfig.getThreadCount());
+        assertEquals(testSchemaName, testSystemConfig.getSchemaName(), "Incorrect schemaName");
+        assertEquals(testThreadCount, testSystemConfig.getThreadCount(), "Incorrect threadCount");
     }
 }

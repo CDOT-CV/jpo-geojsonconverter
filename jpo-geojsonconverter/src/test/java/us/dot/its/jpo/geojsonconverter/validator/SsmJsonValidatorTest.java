@@ -1,25 +1,24 @@
 package us.dot.its.jpo.geojsonconverter.validator;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.util.AssertionErrors.assertFalse;
 
 @SpringBootTest({
         "valid.ssm.json=classpath:json/valid.ssm.json",
-        "invalid.ssm.json=classpath:json/invalid.ssm.json"})
-@RunWith(SpringRunner.class)
+        "invalid.ssm.json=classpath:json/invalid.ssm.json",
+        "spring.kafka.streams.auto-startup=false"})
 @ActiveProfiles("test")
+@Slf4j
 public class SsmJsonValidatorTest extends AbstractJsonValidatorTest {
 
     @Autowired
@@ -27,7 +26,7 @@ public class SsmJsonValidatorTest extends AbstractJsonValidatorTest {
 
     @Test
     public void jsonValidatorLoaded() {
-        assertThat(jsonValidator, notNullValue());
+        assertNotNull(jsonValidator);
     }
 
     @Test
@@ -63,6 +62,9 @@ public class SsmJsonValidatorTest extends AbstractJsonValidatorTest {
     @Test
     public void testException() {
         SsmJsonValidator badValidator = new SsmJsonValidator(null);
+
+        log.debug("Class Path: {}", System.getProperty("java.class.path"));
+
         var result = badValidator.validate("invalid");
         assertFalse("An exception should have happened", result.isValid());
     }

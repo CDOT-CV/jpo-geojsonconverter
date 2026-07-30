@@ -1,9 +1,9 @@
 package us.dot.its.jpo.geojsonconverter.partitioner;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 
 public class IntersectionIdPartitionerTest {
@@ -47,16 +47,16 @@ public class IntersectionIdPartitionerTest {
         int partition222 = partitioner.partition(topic, key222, value, numPartitions);
 
         final String equalMsg = "Keys with the same intersectionID should have the same partition, regardless of rsuIP and region.";
-        assertEquals(equalMsg, partition111, partition111_same);
-        assertEquals(equalMsg, partition111, partition112);
-        assertEquals(equalMsg, partition111, partition211);
-        assertEquals(equalMsg, partition111, partition212);
+        assertEquals(partition111, partition111_same, equalMsg);
+        assertEquals(partition111, partition112, equalMsg);
+        assertEquals(partition111, partition211, equalMsg);
+        assertEquals(partition111, partition212, equalMsg);
 
         final String notEqualMsg = "Keys with different intersectionIDs are unlikely to have the same partition number";
-        assertNotEquals(notEqualMsg, partition111, partition121);
-        assertNotEquals(notEqualMsg, partition111, partition122);
-        assertNotEquals(notEqualMsg, partition111, partition221);
-        assertNotEquals(notEqualMsg, partition111, partition222);
+        assertNotEquals(partition111, partition121, notEqualMsg);
+        assertNotEquals(partition111, partition122, notEqualMsg);
+        assertNotEquals(partition111, partition221, notEqualMsg);
+        assertNotEquals(partition111, partition222, notEqualMsg);
 
     }
 
@@ -78,7 +78,7 @@ public class IntersectionIdPartitionerTest {
         int partitionSame = partitioner.partition(topic, sameKey, obj, numPartitions);
         int partitionDifferent = partitioner.partition(topic, differentKey, obj, numPartitions);
 
-        assertEquals("Same keys", partitionKey, partitionSame);
-        assertNotEquals("Different keys", partitionKey, partitionDifferent);
+        assertEquals(partitionKey, partitionSame, "Same keys");
+        assertNotEquals(partitionKey, partitionDifferent, "Different keys");
     }
 }

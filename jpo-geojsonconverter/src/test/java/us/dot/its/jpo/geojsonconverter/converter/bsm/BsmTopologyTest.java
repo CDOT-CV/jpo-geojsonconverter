@@ -11,11 +11,8 @@ import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
-
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuLogKey;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.bsm.ProcessedBsm;
@@ -25,8 +22,7 @@ import us.dot.its.jpo.geojsonconverter.validator.BsmJsonValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-@RunWith(SpringRunner.class)
+@SpringBootTest(properties = "spring.kafka.streams.auto-startup=false")
 @ActiveProfiles("test")
 public class BsmTopologyTest {
     String kafkaTopicOdeBsmJson = "topic.OdeBsmJson";
@@ -52,7 +48,7 @@ public class BsmTopologyTest {
 
             // Check ProcessedBsm topic for properly converted message data
             List<KeyValue<RsuLogKey, ProcessedBsm<Point>>> processedBsmJsonResults = outputTopic.readKeyValuesToList();
-            assertEquals(processedBsmJsonResults.size(), 1);
+            assertEquals(1, processedBsmJsonResults.size());
 
             KeyValue<RsuLogKey, ProcessedBsm<Point>> processedBsmJson = processedBsmJsonResults.get(0);
             assertNotNull(processedBsmJson.key);
@@ -78,7 +74,7 @@ public class BsmTopologyTest {
 
             // Check ProcessedBsm topic for properly converted message data
             List<KeyValue<RsuLogKey, ProcessedBsm<Point>>> processedBsmJsonResults = outputTopic.readKeyValuesToList();
-            assertEquals(processedBsmJsonResults.size(), 1);
+            assertEquals(1, processedBsmJsonResults.size());
 
             KeyValue<RsuLogKey, ProcessedBsm<Point>> processedBsmJson = processedBsmJsonResults.get(0);
             assertNotNull(processedBsmJson.key);

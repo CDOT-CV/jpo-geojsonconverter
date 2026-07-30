@@ -2,7 +2,11 @@ package us.dot.its.jpo.geojsonconverter.pojos.spat;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
+
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +17,6 @@ import lombok.Data;
 import lombok.Generated;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 
 import us.dot.its.jpo.geojsonconverter.DateJsonMapper;
 import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
@@ -47,6 +50,9 @@ import us.dot.its.jpo.geojsonconverter.pojos.common.ProcessedIntersectionReferen
  * status - A bitstring represeting the status of the intersection.
  * <p>
  * utcTimeStamp - The timestamp of the SPaT message in UTC calculated from the SPaT message relative to the
+ * odeReceivedAt. Deprecated, use utcTimeStampTS instead.
+ * <p>
+ * utcTimeStampTS - The timestamp of the SPaT message in UTC calculated from the SPaT message relative to the
  * odeReceivedAt.
  * <p>
  * enabledLanes - List of enabled lanes in the intersection.
@@ -78,6 +84,40 @@ public class ProcessedSpat {
     private ZonedDateTime utcTimeStamp;
     private List<Integer> enabledLanes = new ArrayList<>();
     private List<ProcessedMovementState> states = null;
+
+    /**
+     * The SPAT timestamp
+     * @deprecated To be removed in a future release, to transition to utcTimeStampTS
+     * of type Instant, to support correct storage as a timestamp in Mongo DB.
+     * @return The timestamp
+     */
+    @Deprecated(since = "3.3.0", forRemoval = true)
+    public ZonedDateTime getUtcTimeStamp() {
+        return utcTimeStamp;
+    }
+
+    @Deprecated(since = "3.3.0", forRemoval = true)
+    public void setUtcTimeStamp(ZonedDateTime utcTimeStamp) {
+        this.utcTimeStamp = utcTimeStamp;
+    }
+
+    /**
+     * The SPAT timestamp
+     * @return The timestamp
+     */
+    @JsonProperty("utcTimeStampTS")
+    public Instant getUtcTimeStampTS() {
+        return utcTimeStamp != null ? utcTimeStamp.toInstant() : null;
+    }
+
+    @JsonProperty("utcTimeStampTS")
+    public void setUtcTimeStampTS(Instant utcTimeStampTS) {
+        if (utcTimeStampTS == null) {
+            utcTimeStamp = null;
+        } else {
+            utcTimeStamp = ZonedDateTime.ofInstant(utcTimeStampTS, ZoneOffset.UTC);
+        }
+    }
 
     /**
      * Sets both intersection ID and region with null checks

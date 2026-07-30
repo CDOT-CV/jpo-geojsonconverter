@@ -1,5 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.converter.spat;
 
+import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.asn.j2735.r2024.Common.DSecond;
 import us.dot.its.jpo.asn.j2735.r2024.Common.IntersectionReferenceID;
 import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
@@ -25,24 +26,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.kstream.Transformer;
-import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
 
+@Slf4j
 public class SpatProcessedJsonConverter
-        implements Transformer<Void, DeserializedRawSpat, KeyValue<RsuIntersectionKey, ProcessedSpat>> {
+        implements KeyValueMapper<Void, DeserializedRawSpat, KeyValue<RsuIntersectionKey, ProcessedSpat>> {
     private static final Logger logger = LoggerFactory.getLogger(SpatProcessedJsonConverter.class);
 
-    @Override
-    public void init(ProcessorContext arg0) {}
-
     /**
-     * Transform an ODE SPaT POJO to Processed SPaT POJO.
+     * Apply the conversion from an ODE SPaT POJO to SPaT GeoJSON POJO.
      *
      * @param rawKey - Void type because ODE topics have no specified key
      * @param rawSpat - The raw POJO
@@ -50,7 +48,7 @@ public class SpatProcessedJsonConverter
      *         and the value is the GeoJSON FeatureCollection POJO
      */
     @Override
-    public KeyValue<RsuIntersectionKey, ProcessedSpat> transform(Void rawKey, DeserializedRawSpat rawSpat) {
+    public KeyValue<RsuIntersectionKey, ProcessedSpat> apply(Void rawKey, DeserializedRawSpat rawSpat) {
         try {
             if (!rawSpat.isValidationFailure()) {
                 OdeMessageFrameData rawValue = new OdeMessageFrameData();
@@ -89,10 +87,6 @@ public class SpatProcessedJsonConverter
         }
     }
 
-    @Override
-    public void close() {
-        // Nothing to do here
-    }
 
     public ProcessedSpat createProcessedSpat(SPAT spat, OdeMessageFrameMetadata metadata,
             JsonValidatorResult validationMessages) {
@@ -122,11 +116,19 @@ public class SpatProcessedJsonConverter
             object.setException(exception.getStackTrace().toString());
             processedSpatValidationMessages.add(object);
         }
-        for (ValidationMessage vm : validationMessages.getValidationMessages()) {
+        for (Error vm : validationMessages.getValidationMessages()) {
             ProcessedValidationMessage object = new ProcessedValidationMessage();
             object.setMessage(vm.getMessage());
-            object.setSchemaPath(vm.getSchemaPath());
-            object.setJsonPath(vm.getPath());
+            final var schemaLocation = vm.getSchemaLocation();
+            if (schemaLocation != null) {
+                object.setSchemaPath(schemaLocation.toString());
+            } else {
+                log.warn("validationMessage.schemaLocation is null");
+            }
+            final var evaluationPath = vm.getEvaluationPath();
+            if (evaluationPath != null) {
+                object.setJsonPath(vm.getEvaluationPath().toString());
+            }
 
             processedSpatValidationMessages.add(object);
         }

@@ -27,6 +27,11 @@ services:
       CONFLUENT_SECRET: ${CONFLUENT_SECRET}
       geometry.output.mode: ${GEOMETRY_OUTPUT_MODE}
       spring.kafka.bootstrap-servers: ${DOCKER_HOST_IP:?error}:9092
+      streams-config-replication-factor: ${GJC_STREAMS_CONFIG_REPLICATION_FACTOR}
+      streams-config-acks: ${GJC_STREAMS_CONFIG_ACKS}
+      streams-config-num-stream-threads: ${GJC_STREAMS_CONFIG_NUM_STREAM_THREADS}
+      streams-config-cache-max-bytes-buffering: ${GJC_STREAMS_CONFIG_CACHE_MAX_BYTES_BUFFERING}
+      streams-config-commit-interval-ms: ${GJC_COMMIT_INTERVAL_MS}
     logging:
       options:
         max-size: "10m"
@@ -35,6 +40,39 @@ services:
       kafka:
         condition: service_healthy
         required: false
+
+  geojsonconverter_base:
+    profiles:
+      - geojson_base
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        MAVEN_GITHUB_TOKEN: ${MAVEN_GITHUB_TOKEN:?error}
+        MAVEN_GITHUB_ORG: ${MAVEN_GITHUB_ORG:?error}
+    image: jpo_geojsonconverter:latest
+    restart: ${RESTART_POLICY}
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 2G
+    environment:
+      DOCKER_HOST_IP: ${DOCKER_HOST_IP:?error}
+      KAFKA_TYPE: ${KAFKA_TYPE}
+      CONFLUENT_KEY: ${CONFLUENT_KEY}
+      CONFLUENT_SECRET: ${CONFLUENT_SECRET}
+      geometry.output.mode: ${GEOMETRY_OUTPUT_MODE}
+      spring.kafka.bootstrap-servers: ${DOCKER_HOST_IP:?error}:9092
+      streams-config-replication-factor: ${GJC_STREAMS_CONFIG_REPLICATION_FACTOR}
+      streams-config-acks: ${GJC_STREAMS_CONFIG_ACKS}
+      streams-config-num-stream-threads: ${GJC_STREAMS_CONFIG_NUM_STREAM_THREADS}
+      streams-config-cache-max-bytes-buffering: ${GJC_STREAMS_CONFIG_CACHE_MAX_BYTES_BUFFERING}
+      streams-config-commit-interval-ms: ${GJC_STREAMS_CONFIG_COMMIT_INTERVAL_MS}
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   # ODE Services:
   ode:

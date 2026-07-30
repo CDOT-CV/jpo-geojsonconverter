@@ -1,6 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.converter.map;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,15 +13,11 @@ import org.apache.kafka.streams.TestInputTopic;
 import org.apache.kafka.streams.TestOutputTopic;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.jupiter.api.Disabled;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
-
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuIntersectionKey;
 import us.dot.its.jpo.geojsonconverter.pojos.GeometryOutputMode;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
@@ -29,8 +25,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.map.ProcessedMap;
 import us.dot.its.jpo.geojsonconverter.serialization.JsonSerdes;
 import us.dot.its.jpo.geojsonconverter.validator.MapJsonValidator;
 
-@SpringBootTest
-@RunWith(SpringRunner.class)
+@SpringBootTest(properties = "spring.kafka.streams.auto-startup=false")
 @ActiveProfiles("test")
 public class MapTopologyTest {
     String kafkaTopicOdeMapJson = "topic.OdeMapJson";
@@ -41,13 +36,12 @@ public class MapTopologyTest {
     @Autowired
     private MapJsonValidator mapJsonValidator;
 
-    @Before
-    public void setup() throws IOException {
+    @BeforeEach
+    void setup() throws IOException {
         odeMapJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/valid.map.json")));
     }
 
     @Test
-    @Disabled
     public void testTopologyGeoJson() {
         Topology topology = MapTopology.build(kafkaTopicOdeMapJson, kafkaTopicMapGeoJson, kafkaTopicMapWKT,
                 mapJsonValidator, GeometryOutputMode.GEOJSON_ONLY);
@@ -64,7 +58,7 @@ public class MapTopologyTest {
             // Check MapGeoJson topic for properly converted message data
             List<KeyValue<RsuIntersectionKey, ProcessedMap<LineString>>> mapGeoJsonResults =
                     outputTopic.readKeyValuesToList();
-            assertEquals(mapGeoJsonResults.size(), 1);
+            assertEquals(1, mapGeoJsonResults.size());
 
             KeyValue<RsuIntersectionKey, ProcessedMap<LineString>> mapGeoJson = mapGeoJsonResults.get(0);
             assertNotNull(mapGeoJson.key);
@@ -75,12 +69,11 @@ public class MapTopologyTest {
             assertEquals(2,
                     mapGeoJson.value.getMapFeatureCollection().getFeatures()[0].getProperties().getIngressApproach());
             assertEquals(false, mapGeoJson.value.getProperties().getCti4501Conformant());
-            assertEquals(5, mapGeoJson.value.getProperties().getValidationMessages().size());
+            assertEquals(4, mapGeoJson.value.getProperties().getValidationMessages().size());
         }
     }
 
     @Test
-    @Disabled
     public void testTopologyWKT() {
         Topology topology = MapTopology.build(kafkaTopicOdeMapJson, kafkaTopicMapGeoJson, kafkaTopicMapWKT,
                 mapJsonValidator, GeometryOutputMode.WKT);
@@ -96,7 +89,7 @@ public class MapTopologyTest {
 
             // Check MapWKT topic for properly converted message data
             List<KeyValue<RsuIntersectionKey, ProcessedMap<String>>> mapWKTResults = outputTopic.readKeyValuesToList();
-            assertEquals(mapWKTResults.size(), 1);
+            assertEquals(1, mapWKTResults.size());
 
             KeyValue<RsuIntersectionKey, ProcessedMap<String>> mapWKT = mapWKTResults.get(0);
             assertNotNull(mapWKT.key);
@@ -127,7 +120,7 @@ public class MapTopologyTest {
             // Check MapGeoJson topic for properly converted message data
             List<KeyValue<RsuIntersectionKey, ProcessedMap<LineString>>> mapGeoJsonResults =
                     outputTopic.readKeyValuesToList();
-            assertEquals(mapGeoJsonResults.size(), 1);
+            assertEquals(1, mapGeoJsonResults.size());
 
             KeyValue<RsuIntersectionKey, ProcessedMap<LineString>> mapGeoJson = mapGeoJsonResults.get(0);
             assertNotNull(mapGeoJson.key);

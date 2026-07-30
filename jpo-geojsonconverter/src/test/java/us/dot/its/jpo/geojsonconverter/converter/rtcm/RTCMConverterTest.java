@@ -3,11 +3,11 @@ package us.dot.its.jpo.geojsonconverter.converter.rtcm;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import java.util.stream.Stream;
 import us.dot.its.jpo.asn.j2735.r2024.RTCMcorrections.RTCMcorrectionsMessageFrame;
 import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.rtcm.ProcessedRTCM;
@@ -20,62 +20,51 @@ import java.util.stream.Collectors;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Slf4j
-@RunWith(Parameterized.class)
 public class RTCMConverterTest {
 
     private final static ObjectMapper mapper = new ObjectMapper();
 
-    @Parameter(0)
-    public String rtcmJson;
-
-    @Parameter(1)
-    public boolean expectCti4501Conformant;
-
-    @Parameter(2)
-    public String expectValidationMessageIncludes;
-
-    @Parameter(3)
-    public Long expectUtcTime;
-
-    @Test
-    public void testProcessRtcm() throws JsonProcessingException {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testProcessRtcm(String rtcmJson, boolean expectCti4501Conformant, String expectValidationMessageIncludes, Long expectUtcTime) throws JsonProcessingException {
         RTCMDecoder decoder = new RTCMDecoder(false);
         RTCMConverter converter = new RTCMConverter(decoder);
         RTCMcorrectionsMessageFrame messageFrame = mapper.readValue(rtcmJson, RTCMcorrectionsMessageFrame.class);
         String str = mapper.writeValueAsString(messageFrame);
         log.info(str);
         ProcessedRTCM processedRtcm = converter.processRTCM(messageFrame);
-        assertThat(processedRtcm, notNullValue());
+        assertNotNull(processedRtcm);
         RTCMProperties properties = processedRtcm.getProperties();
-        assertThat(properties, notNullValue());
-        assertThat(properties.getMsgCnt(), equalTo(82));
+        assertNotNull(properties);
+        assertEquals(82, properties.getMsgCnt());
 
         log.info(mapper.writeValueAsString(processedRtcm));
         if (expectCti4501Conformant) {
-            assertThat(properties.getRev(), equalTo("rtcmRev3"));
+            assertEquals("rtcmRev3", properties.getRev());
             assertThat(properties.getValidationMessages(), hasSize(equalTo(0)));
-            assertThat(properties.isCti4501Conformant(), equalTo(true));
+            assertEquals(true, properties.isCti4501Conformant());
         } else {
             assertThat(properties.getValidationMessages(), hasSize(greaterThanOrEqualTo(1)));
             Set<String> messages = properties.getValidationMessages().stream().map(ProcessedValidationMessage::getMessage).collect(Collectors.toSet());
             assertThat(messages, hasItems(containsString(expectValidationMessageIncludes)));
-            assertThat(properties.isCti4501Conformant(), equalTo(false));
+            assertEquals(false, properties.isCti4501Conformant());
         }
         if (expectUtcTime != null) {
-            assertThat(properties.getUtcTime(), equalTo(expectUtcTime));
+            assertEquals(properties.getUtcTime(), expectUtcTime);
         }
     }
 
-    @Parameters
-    public static Collection<Object[]> params() {
-        return Arrays.asList(new Object[][] {
-                { RTCM , false, "DDateTime", null },
-                { RTCM_CTI4501_VALID, true, null,  1753482274168L },
-                { RTCM_REV2_INVALID, false, "DE_RTCM_Revision", null }
-        });
-    };
+    public static Stream<Arguments> params() {
+        return Stream.of(
+                Arguments.of( RTCM , false, "DDateTime", null ),
+                Arguments.of( RTCM_CTI4501_VALID, true, null,  1753482274168L ),
+                Arguments.of( RTCM_REV2_INVALID, false, "DE_RTCM_Revision", null )
+        );
+    }
 
 
     public static final String RTCM = """

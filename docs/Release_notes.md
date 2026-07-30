@@ -1,6 +1,25 @@
 JPO GeoJSON Converter Release Notes
 ----------------------------
 
+
+Version 3.3.0
+----------------------------------------
+
+### **Summary**
+
+This release focuses on improved configurability, validation accuracy, and message processing reliability. Key enhancements include configurable Kafka Streams settings, updated JSON schema validation, MAP validation fixes, and RTCM validation fixes. A bug related to timestamp handling in the SRM converter was fixed. An Instant timestamp field has been added to the ProcessedSpat message to allow for better compatability with MongoDB to support ATSPM integration in the CIMMS application.
+
+Enhancements in this release:
+
+- [Json schema validator updates](https://github.com/neaeraconsulting/jpo-geojsonconverter/pull/1)
+- [Configurable streams config](https://github.com/neaeraconsulting/jpo-geojsonconverter/pull/2)
+- [Fix bug with SRM timestamp handling](https://github.com/neaeraconsulting/jpo-geojsonconverter/pull/3/changes)
+- [MAP ingress connections logic update](https://github.com/neaeraconsulting/jpo-geojsonconverter/pull/4)
+- [Fix for RTCM Validation](https://github.com/neaeraconsulting/jpo-geojsonconverter/pull/6)
+- [Update CI workflow and README badges](https://github.com/usdot-jpo-ode/jpo-geojsonconverter/pull/112)
+- [Add UTC timestamp instant to ProcessedSpat](https://github.com/neaeraconsulting/jpo-geojsonconverter/pull/7)
+
+
 Version 3.2.0
 ----------------------------------------
 

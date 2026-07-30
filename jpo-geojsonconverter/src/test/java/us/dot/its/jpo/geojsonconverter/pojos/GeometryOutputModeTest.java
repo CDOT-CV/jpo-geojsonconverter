@@ -1,9 +1,10 @@
 package us.dot.its.jpo.geojsonconverter.pojos;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class GeometryOutputModeTest {
     @Test
@@ -18,6 +19,6 @@ public class GeometryOutputModeTest {
     public void testFindByNameNull() {
         String wktMode = "test";
         GeometryOutputMode gomTest = GeometryOutputMode.findByName(wktMode);
-        assertEquals(null, gomTest);
+        assertNull(gomTest);
     }
 }

@@ -68,7 +68,7 @@ public class MapTopology {
 
         // Convert ODE MAP to GeoJSON
         KStream<RsuIntersectionKey, ProcessedMap<LineString>> processedMapStream =
-                validatedOdeMapStream.transform(() -> new MapProcessedJsonConverter());
+                validatedOdeMapStream.map(new MapProcessedJsonConverter());
 
         // Removes null messages from being posted to output topic.
         // Helpful to remove generated messages that caused exceptions.
@@ -86,7 +86,7 @@ public class MapTopology {
         if (gom == GeometryOutputMode.WKT) {
             // Convert ProcessedMap GeoJSON to WKT
             KStream<RsuIntersectionKey, ProcessedMap<String>> wktProcessedMapStream =
-                    processedMapStream.transform(() -> new MapProcessedWKTConverter());
+                    processedMapStream.map(new MapProcessedWKTConverter());
 
             // Removes null messages from being posted to output topic.
             // Helpful to remove generated messages that caused exceptions.

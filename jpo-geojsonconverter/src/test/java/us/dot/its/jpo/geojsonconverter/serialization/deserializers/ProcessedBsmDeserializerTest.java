@@ -5,10 +5,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.Resource;
 
 import org.apache.commons.io.IOUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
 import us.dot.its.jpo.geojsonconverter.pojos.common.*;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.bsm.ProcessedBsm;
@@ -16,8 +14,9 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.bsm.ProcessedBsm;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-@SpringBootTest({"processed.bsm.json=classpath:json/sample.processed-bsm.json"})
-@RunWith(SpringRunner.class)
+@SpringBootTest({
+    "processed.bsm.json=classpath:json/sample.processed-bsm.json",
+    "spring.kafka.streams.auto-startup=false"})
 @ActiveProfiles("test")
 public class ProcessedBsmDeserializerTest {
     @Test
@@ -66,7 +65,7 @@ public class ProcessedBsmDeserializerTest {
             assertNotNull(accuracy);
             assertEquals(9.3D, accuracy.getSemiMajor());
             assertEquals(12.05D, accuracy.getSemiMinor());
-            assertEquals(null, accuracy.getOrientation());
+            assertNull(accuracy.getOrientation());
             var brakes = props.getBrakes();
             assertNotNull(brakes);
             assertEquals(ProcessedTractionControlStatus.UNAVAILABLE, brakes.getTraction());

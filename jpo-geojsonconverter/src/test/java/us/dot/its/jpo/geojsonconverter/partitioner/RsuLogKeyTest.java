@@ -1,12 +1,10 @@
 package us.dot.its.jpo.geojsonconverter.partitioner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class RsuLogKeyTest {
     final static String ipAddress = "127.0.0.1";
@@ -28,18 +26,18 @@ public class RsuLogKeyTest {
         var otherValue2 = new RsuLogKey("0.0.0.0", "", bsmId);
         var otherValue3 = new RsuLogKey(ipAddress, "bsmTx.gz", bsmId);
 
-        assertTrue("Value equality", key.equals(keyValue));
-        assertFalse("Value inequality branch 1", key.equals(otherValue1));
-        assertFalse("Value inequality branch 2", key.equals(otherValue2));
-        assertFalse("Value inequality branch 3", key.equals(otherValue3));
-        assertTrue("Reference equality", key.equals(keyRef));
-        assertFalse("Reference inequality", key.equals(otherObject));
-        assertEquals("Hash code values equal", key.hashCode(), keyValue.hashCode());
+        assertTrue(key.equals(keyValue), "Value equality");
+        assertFalse(key.equals(otherValue1), "Value inequality branch 1");
+        assertFalse(key.equals(otherValue2), "Value inequality branch 2");
+        assertFalse(key.equals(otherValue3), "Value inequality branch 3");
+        assertTrue(key.equals(keyRef), "Reference equality");
+        assertFalse(key.equals(otherObject), "Reference inequality");
+        assertEquals(key.hashCode(), keyValue.hashCode(), "Hash code values equal");
 
         // Getter coverage
-        assertEquals("getRsuId", key.getRsuId(), keyValue.getRsuId());
-        assertEquals("getLogId", key.getLogId(), keyValue.getLogId());
-        assertEquals("getBsmId", key.getBsmId(), keyValue.getBsmId());
+        assertEquals(key.getRsuId(), keyValue.getRsuId(), "getRsuId");
+        assertEquals(key.getLogId(), keyValue.getLogId(), "getLogId");
+        assertEquals(key.getBsmId(), keyValue.getBsmId(), "getBsmId");
     }
 
     @Test
@@ -50,8 +48,8 @@ public class RsuLogKeyTest {
         key.setBsmId(bsmId);
 
         String str = key.toString();
-        assertThat(str, containsString(ipAddress));
-        assertThat(str, containsString(logFileName));
-        assertThat(str, containsString(bsmId));
+        assertTrue(str.contains(ipAddress));
+        assertTrue(str.contains(logFileName));
+        assertTrue(str.contains(bsmId));
     }
 }

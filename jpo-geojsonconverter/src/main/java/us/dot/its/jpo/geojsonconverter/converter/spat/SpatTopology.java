@@ -60,7 +60,7 @@ public class SpatTopology {
 
         // Convert ODE SPaT to ProcessedSpat which is not GeoJSON
         KStream<RsuIntersectionKey, ProcessedSpat> processedJsonSpatStream =
-                validatedOdeSpatStream.transform(() -> new SpatProcessedJsonConverter());
+                validatedOdeSpatStream.map(new SpatProcessedJsonConverter());
 
         processedJsonSpatStream.to(
                 // Push the ProcessedSpat to the output topic partioned by RsuIntersectionKey

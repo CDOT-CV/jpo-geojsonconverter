@@ -1,18 +1,17 @@
 package us.dot.its.jpo.geojsonconverter.validator;
 
 import java.io.IOException;
-import java.util.Set;
+import java.util.List;
 
+import com.networknt.schema.*;
+import com.networknt.schema.Error;
+import com.networknt.schema.path.PathType;
 import lombok.Getter;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.ValidationMessage;
-import com.networknt.schema.SpecVersion;
 import org.springframework.core.io.ResourceLoader;
 
 /**
@@ -32,18 +31,36 @@ public abstract class AbstractJsonValidator {
     private final ObjectMapper mapper = new ObjectMapper();
     @Getter
     private final Resource jsonSchemaResource;
-    private JsonSchema jsonSchema;
+    private Schema jsonSchema;
 
 
-    public JsonSchema getJsonSchema() throws IOException {
+    public Schema getJsonSchema() throws IOException {
         if (jsonSchema == null) {
             try (var inputStream = jsonSchemaResource.getInputStream()) {
-                JsonNode schemaNode = mapper.readTree(inputStream);
 
-                // Use Json schema version 2019-09 because the 2020-12 implementation in networknt seems buggy as of now.
-                JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909);
+                SchemaRegistryConfig config =
+                        SchemaRegistryConfig
+                                .builder()
+                                .cacheRefs(true)
+                                .failFast(false)
+                                .pathType(PathType.JSON_POINTER)
+                                .losslessNarrowing(true)
+                                .build();
 
-                jsonSchema = factory.getSchema(schemaNode);
+                SchemaRegistry registry = SchemaRegistry.withDefaultDialect(SpecificationVersion.DRAFT_2019_09,
+                        builder ->
+                                builder.schemaRegistryConfig(config)
+                                .schemaIdResolvers(resolvers
+                                        -> resolvers
+                                        // Replace url-based schema id with classpath-based schema id
+                                        .mappings(
+                                                // Predicate - replace if this is true
+                                                source -> source.startsWith("https://") && source.contains("/schemas"),
+                                                // Function to transform the schema id
+                                                source -> source.replaceFirst("https://.+/schemas", "classpath:/schemas")
+                                        )));
+
+                jsonSchema = registry.getSchema(inputStream, InputFormat.JSON);
             } 
         }
         return jsonSchema;
@@ -53,7 +70,7 @@ public abstract class AbstractJsonValidator {
         var result = new JsonValidatorResult();
         try {
             JsonNode node = mapper.readTree(json);
-            Set<ValidationMessage> validationMessages = getJsonSchema().validate(node);
+            List<Error> validationMessages = getJsonSchema().validate(node);
             result.addValidationMessages(validationMessages);
         } catch (Exception e) {
             result.addException(e);
@@ -65,7 +82,7 @@ public abstract class AbstractJsonValidator {
         var result = new JsonValidatorResult();
         try { 
             JsonNode node = mapper.readTree(jsonBytes);
-            Set<ValidationMessage> validationMessages = getJsonSchema().validate(node);
+            List<Error> validationMessages = getJsonSchema().validate(node);
             result.addValidationMessages(validationMessages);
         } catch (Exception e) {
             result.addException(e);
