@@ -24,7 +24,8 @@ import lombok.extern.slf4j.Slf4j;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Slf4j
 public class ProcessedCircleRegionInfo extends ProcessedRegionInfoBase {
-    private Integer radius;
+    /** Circle radius in meters, preserving the precision provided by J2735 DistanceUnits. */
+    private Double radius;
 
     /**
      * Override to ensure only heading-based direction info is allowed for circle regions.

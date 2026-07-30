@@ -151,9 +151,11 @@ public class TimGeometryConverter {
                     for (GeographicalPath region : dataFrame.getRegions()) {
                         // Get anchor point coordinates
                         if (region.getAnchor() != null) {
-                            double lat = FieldConversions.convertLat(region.getAnchor().getLat().getValue());
-                            double lon = FieldConversions.convertLong(region.getAnchor().getLong_().getValue());
-                            coordinates.add(Arrays.asList(lon, lat)); // [longitude, latitude]
+                            Double lat = FieldConversions.convertLat(region.getAnchor().getLat().getValue());
+                            Double lon = FieldConversions.convertLong(region.getAnchor().getLong_().getValue());
+                            if (lat != null && lon != null) {
+                                coordinates.add(Arrays.asList(lon, lat)); // [longitude, latitude]
+                            }
                         }
                     }
                 }
@@ -241,39 +243,70 @@ public class TimGeometryConverter {
     }
 
     /**
-     * Create MultiLineString or MultiPolygon from multiple regions
+     * Create MultiLineString, MultiPolygon, or GeometryCollection from multiple regions.
+     * <p>
+     * ITWG best-practice examples may place a path and circle in the same data frame; those are emitted as a
+     * {@link GeometryCollection} rather than a corrupt MultiPolygon of open paths.
      */
     private Geometry createMultiGeometryFromRegions(List<GeographicalPath> regions) {
-        List<List<List<Double>>> allCoordinates = new ArrayList<>();
-        boolean hasPolygons = false;
+        List<List<List<Double>>> pathCoordinates = new ArrayList<>();
+        List<List<List<Double>>> polygonCoordinates = new ArrayList<>();
 
-        // Process each region and determine geometry types
         for (GeographicalPath region : regions) {
             List<List<Double>> coordinates = extractCoordinatesFromRegion(region);
-            if (!coordinates.isEmpty()) {
-                allCoordinates.add(coordinates);
+            if (coordinates.isEmpty()) {
+                continue;
+            }
 
-                // Determine if this region should be a polygon or linestring
-                boolean isClosedPath = region.getClosedPath() != null && region.getClosedPath().getValue();
-                boolean isCircle = region.getDescription() != null && region.getDescription().getGeometry() != null
-                        && region.getDescription().getGeometry().getCircle() != null;
-
-                if (isCircle || isClosedPath) {
-                    hasPolygons = true;
-                }
+            ProcessedRegionType regionType = determineRegionType(region);
+            if (regionType == ProcessedRegionType.CIRCLE || regionType == ProcessedRegionType.POLYGON) {
+                polygonCoordinates.add(coordinates);
+            } else {
+                pathCoordinates.add(coordinates);
             }
         }
 
-        if (allCoordinates.isEmpty()) {
+        boolean hasPaths = !pathCoordinates.isEmpty();
+        boolean hasPolygons = !polygonCoordinates.isEmpty();
+
+        if (!hasPaths && !hasPolygons) {
             return null;
         }
 
-        // If we have polygons, use MultiPolygon, otherwise use MultiLineString
-        if (hasPolygons) {
-            return createMultiPolygonFromCoordinates(allCoordinates);
-        } else {
-            return createMultiLineStringFromCoordinates(allCoordinates);
+        if (hasPaths && hasPolygons) {
+            List<Geometry> geometries = new ArrayList<>();
+            for (List<List<Double>> path : pathCoordinates) {
+                Geometry line = createLineStringFromCoordinates(path);
+                if (line != null) {
+                    geometries.add(line);
+                }
+            }
+            for (List<List<Double>> polygon : polygonCoordinates) {
+                Geometry poly = createPolygonFromCoordinates(polygon);
+                if (poly != null) {
+                    geometries.add(poly);
+                }
+            }
+            if (geometries.isEmpty()) {
+                return null;
+            }
+            if (geometries.size() == 1) {
+                return geometries.get(0);
+            }
+            return new GeometryCollection(geometries.toArray(new Geometry[0]));
         }
+
+        if (hasPolygons) {
+            if (polygonCoordinates.size() == 1) {
+                return createPolygonFromCoordinates(polygonCoordinates.get(0));
+            }
+            return createMultiPolygonFromCoordinates(polygonCoordinates);
+        }
+
+        if (pathCoordinates.size() == 1) {
+            return createLineStringFromCoordinates(pathCoordinates.get(0));
+        }
+        return createMultiLineStringFromCoordinates(pathCoordinates);
     }
 
     /**
@@ -481,8 +514,12 @@ public class TimGeometryConverter {
         }
 
         Position3D anchor = region.getAnchor();
-        double anchorLat = FieldConversions.convertLat(anchor.getLat().getValue());
-        double anchorLon = FieldConversions.convertLong(anchor.getLong_().getValue());
+        Double anchorLat = FieldConversions.convertLat(anchor.getLat().getValue());
+        Double anchorLon = FieldConversions.convertLong(anchor.getLong_().getValue());
+        if (anchorLat == null || anchorLon == null) {
+            log.warn("Cannot process offset path: unavailable anchor lat/lon");
+            return new ArrayList<>();
+        }
 
         List<PathNodeData> pathData = new ArrayList<>();
         // Add anchor point with no offsets
@@ -531,15 +568,15 @@ public class TimGeometryConverter {
         List<List<Double>> coordinates = new ArrayList<>();
 
         // Initialize anchor coordinates if available
-        double anchorLat = 0.0;
-        double anchorLon = 0.0;
+        Double anchorLat = null;
+        Double anchorLon = null;
         boolean hasAnchor = false;
 
         if (region.getAnchor() != null) {
             Position3D anchor = region.getAnchor();
             anchorLat = FieldConversions.convertLat(anchor.getLat().getValue());
             anchorLon = FieldConversions.convertLong(anchor.getLong_().getValue());
-            hasAnchor = true;
+            hasAnchor = anchorLat != null && anchorLon != null;
         }
 
         if (path.getOffset() != null) {
@@ -548,7 +585,8 @@ public class TimGeometryConverter {
             // Handle LL (Latitude/Longitude) coordinates
             if (path.getOffset().getLl() != null && path.getOffset().getLl().getNodes() != null) {
                 // Initialize currentCoords with anchor if available, otherwise use default
-                double[] currentCoords = hasAnchor ? new double[] {anchorLon, anchorLat} : new double[] {0.0, 0.0};
+                double[] currentCoords =
+                        hasAnchor ? new double[] {anchorLon, anchorLat} : new double[] {0.0, 0.0};
 
                 for (var node : path.getOffset().getLl().getNodes()) {
                     if (node.getDelta() != null) {
@@ -581,7 +619,7 @@ public class TimGeometryConverter {
     }
 
     private List<List<Double>> extractCoordinatesFromGeometry(GeographicalPath region, GeometricProjection geometry) {
-        if (geometry == null || region.getAnchor() == null) {
+        if (geometry == null) {
             return new ArrayList<>();
         }
 
@@ -596,14 +634,15 @@ public class TimGeometryConverter {
                 Double radiusMeters = FieldConversions.convertDistanceToMeters(radius, units);
 
                 // Use circle's center coordinates, not the anchor point
-                double centerLat = FieldConversions.convertLat(circle.getCenter().getLat().getValue());
-                double centerLon = FieldConversions.convertLong(circle.getCenter().getLong_().getValue());
+                Double centerLat = FieldConversions.convertLat(circle.getCenter().getLat().getValue());
+                Double centerLon = FieldConversions.convertLong(circle.getCenter().getLong_().getValue());
 
-                if (radiusMeters != null) {
+                if (radiusMeters != null && centerLat != null && centerLon != null) {
                     // Create circle points using accurate geodetic calculations
-                    coordinates.addAll(createCirclePoints(centerLon, centerLat, radiusMeters.intValue()));
+                    coordinates.addAll(createCirclePoints(centerLon, centerLat, radiusMeters));
                 } else {
-                    log.error("Invalid circle radius: {}", radius);
+                    log.error("Invalid circle radius or center: radius={}, centerLat={}, centerLon={}", radius,
+                            centerLat, centerLon);
                 }
             } else {
                 log.warn("Circle geometry missing radius or center field");
@@ -622,7 +661,7 @@ public class TimGeometryConverter {
      * @param radiusMeters Radius in meters
      * @return List of coordinate points forming a circle
      */
-    private List<List<Double>> createCirclePoints(double centerLon, double centerLat, int radiusMeters) {
+    private List<List<Double>> createCirclePoints(double centerLon, double centerLat, double radiusMeters) {
         List<List<Double>> coordinates = new ArrayList<>();
 
         // Validate center coordinates

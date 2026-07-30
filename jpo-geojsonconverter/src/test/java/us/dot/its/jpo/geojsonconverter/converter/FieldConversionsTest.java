@@ -115,9 +115,9 @@ public class FieldConversionsTest {
 
     @Test
     public void testConvertLongWithZoom() {
-        // Test normal longitude with zoom
+        // Test normal longitude with zoom (Zoom N multiplies LSB span by 2^N)
         Double result = FieldConversions.convertLongWithZoom(1800000000L, 2.0);
-        assertThat(result, equalTo(90.0));
+        assertThat(result, equalTo(360.0));
 
         // Test with null base value
         result = FieldConversions.convertLongWithZoom(1800000001L, 2.0);
@@ -126,9 +126,9 @@ public class FieldConversionsTest {
 
     @Test
     public void testConvertLatWithZoom() {
-        // Test normal latitude with zoom
+        // Test normal latitude with zoom (Zoom N multiplies LSB span by 2^N)
         Double result = FieldConversions.convertLatWithZoom(900000000L, 4.0);
-        assertThat(result, equalTo(22.5));
+        assertThat(result, equalTo(360.0));
 
         // Test with null base value
         result = FieldConversions.convertLatWithZoom(900000001L, 4.0);
@@ -143,11 +143,11 @@ public class FieldConversionsTest {
         assertThat(result.length, equalTo(2));
 
         // Verify longitude offset calculation
-        double expectedLonOffset = (100000.0 / 11111100.0) / (2.0 * Math.cos(Math.toRadians(40.0)));
+        double expectedLonOffset = (100000.0 / 11111100.0) * 2.0 / Math.cos(Math.toRadians(40.0));
         assertThat(result[0], closeTo(expectedLonOffset, 0.0001));
 
         // Verify latitude offset calculation
-        double expectedLatOffset = (200000.0 / 11111100.0) / 2.0;
+        double expectedLatOffset = (200000.0 / 11111100.0) * 2.0;
         assertThat(result[1], closeTo(expectedLatOffset, 0.0001));
     }
 

@@ -12,10 +12,14 @@ import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Component;
 import com.networknt.schema.Error;
 import lombok.extern.slf4j.Slf4j;
+import us.dot.its.jpo.asn.j2735.r2024.Common.HeadingSlice;
 import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Position3D;
 import us.dot.its.jpo.asn.j2735.r2024.J2540ITIS.ITIScodes;
 import us.dot.its.jpo.asn.j2735.r2024.ITIS.ITIScodesAndTextSequence;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.Circle;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.DirectionOfUse;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.DistanceUnits;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.GeographicalPath;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.SpeedLimitSequence;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerDataFrame;
@@ -252,12 +256,14 @@ public class TimConverter {
         ProcessedValidityPeriod validityPeriod = new ProcessedValidityPeriod();
         ZonedDateTime startDateTime = odeDate;
 
-        if (dataFrame.getStartYear() != null && dataFrame.getStartTime() != null) {
-            int startYear = (int) dataFrame.getStartYear().getValue();
+        // ASN.1 startYear is optional; when absent, use the ODE receive year with MinuteOfTheYear
+        if (dataFrame.getStartTime() != null) {
+            Integer startYear =
+                    dataFrame.getStartYear() != null ? (int) dataFrame.getStartYear().getValue() : null;
             MinuteOfTheYear startTimeMoy = dataFrame.getStartTime();
             startDateTime = J2735DateTimeConverter.generateUTCTimestamp(startTimeMoy, null, odeDate, startYear);
-            validityPeriod.setStartTime(startDateTime);
         }
+        validityPeriod.setStartTime(startDateTime);
 
         if (dataFrame.getDurationTime() != null) {
             int duration = (int) dataFrame.getDurationTime().getValue();
@@ -320,15 +326,16 @@ public class TimConverter {
         ProcessedElevationProfile elevationProfile = new ProcessedElevationProfile();
 
         // Set anchor point and elevation from anchor
-        setAnchorPointAndElevation(region, elevationProfile);
+        ProcessedAnchorPoint anchorPoint = setAnchorPointAndElevation(region, elevationProfile);
 
         // Extract and apply offset information for elevation and lane width profiles
         populateProfilesWithOffsets(region, elevationProfile);
 
         // Create the appropriate region info object based on type
         ProcessedRegionInfoBase regionInfo = createRegionInfoByType(regionType, region, elevationProfile);
+        regionInfo.setAnchorPoint(anchorPoint);
 
-        // Set direction info for this specific region
+        // Set direction info for this specific region (ITWG rules vary by geofence type)
         ProcessedDirectionInfoBase directionInfo = createProcessedDirectionInfoFromAsnData(region, regionType);
         regionInfo.setDirectionInfo(directionInfo);
 
@@ -501,11 +508,17 @@ public class TimConverter {
                 break;
             case CIRCLE:
                 regionInfo = new ProcessedCircleRegionInfo();
-                // Set radius for circle regions
                 if (region.getDescription() != null && region.getDescription().getGeometry() != null
                         && region.getDescription().getGeometry().getCircle() != null) {
-                    Integer radius = (int) region.getDescription().getGeometry().getCircle().getRadius().getValue();
-                    ((ProcessedCircleRegionInfo) regionInfo).setRadius(radius);
+                    Circle circle = region.getDescription().getGeometry().getCircle();
+                    if (circle.getRadius() != null) {
+                        long radiusValue = circle.getRadius().getValue();
+                        DistanceUnits units = circle.getUnits();
+                        Double radiusMeters = FieldConversions.convertDistanceToMeters(radiusValue, units);
+                        if (radiusMeters != null) {
+                            ((ProcessedCircleRegionInfo) regionInfo).setRadius(radiusMeters);
+                        }
+                    }
                 }
                 break;
             case POLYGON:
@@ -524,51 +537,86 @@ public class TimConverter {
         return regionInfo;
     }
 
+    /**
+     * Build direction info per ITWG TIM best practices:
+     * <ul>
+     * <li>PATH ({@code closedPath=false}): use {@code GeographicalPath.directionality}</li>
+     * <li>POLYGON ({@code closedPath=true}): use {@code GeographicalPath.direction} (HeadingSlice)</li>
+     * <li>CIRCLE: use {@code description.geometry.direction} (HeadingSlice), not path directionality</li>
+     * </ul>
+     * Non-applicable direction fields are ignored so polygon/circle features are not dropped when a
+     * non-compliant {@code directionality} is present.
+     */
     private ProcessedDirectionInfoBase createProcessedDirectionInfoFromAsnData(GeographicalPath region,
             ProcessedRegionType regionType) {
-        // Check if we have directionality information first (simpler case)
-        if (region.getDirectionality() != null) {
-            ProcessedDirectionalityDirectionInfo directionalityInfo = new ProcessedDirectionalityDirectionInfo();
-            directionalityInfo.setDirectionType(ProcessedDirectionType.DIRECTIONALITY);
-
-            // Convert ASN.1 directionality to processed directionality
-            String directionalityValue = region.getDirectionality().toString();
-            try {
-                ProcessedDirectionality directionality =
-                        ProcessedDirectionality.fromValue(directionalityValue.toLowerCase());
-                directionalityInfo.setDirectionality(directionality);
-            } catch (IllegalArgumentException e) {
-                log.warn("Unknown directionality value: {}, using UNKNOWN", directionalityValue);
-                directionalityInfo.setDirectionality(ProcessedDirectionality.UNKNOWN);
-            }
-
-            return directionalityInfo;
-        }
-
-        // Check if we have direction information (bitstring)
-        if (region.getDirection() != null) {
-            ProcessedHeadingDirectionInfo headingInfo = new ProcessedHeadingDirectionInfo();
-            headingInfo.setDirectionType(ProcessedDirectionType.HEADING);
-
-            // Parse heading sectors as ranges, merging adjacent sectors
-            int[][] sectorRanges = FieldConversions.parseHeadingSectorsAsRanges(region.getDirection());
-            if (sectorRanges.length > 0) {
-                List<ProcessedHeading> headingList = new ArrayList<>();
-
-                for (int[] range : sectorRanges) {
-                    ProcessedHeading processedHeading = new ProcessedHeading();
-                    double[] headingAndRange = FieldConversions.sectorRangeToHeadingAndRange(range[0], range[1]);
-                    processedHeading.setHeading(headingAndRange[0]);
-                    processedHeading.setRange(headingAndRange[1]);
-                    headingList.add(processedHeading);
+        return switch (regionType) {
+            case PATH -> {
+                if (region.getDirectionality() != null) {
+                    yield createDirectionalityDirectionInfo(region.getDirectionality());
                 }
-
-                headingInfo.setHeadingList(headingList);
-                return headingInfo;
+                // Non-preferred fallback for deployments that encode path heading via HeadingSlice
+                yield createHeadingDirectionInfo(region.getDirection());
             }
+            case POLYGON -> createHeadingDirectionInfo(region.getDirection());
+            case CIRCLE -> {
+                HeadingSlice geometryDirection = null;
+                if (region.getDescription() != null && region.getDescription().getGeometry() != null) {
+                    geometryDirection = region.getDescription().getGeometry().getDirection();
+                }
+                yield createHeadingDirectionInfo(geometryDirection);
+            }
+            case UNKNOWN -> {
+                if (region.getDirectionality() != null) {
+                    yield createDirectionalityDirectionInfo(region.getDirectionality());
+                }
+                yield createHeadingDirectionInfo(region.getDirection());
+            }
+        };
+    }
+
+    private ProcessedDirectionalityDirectionInfo createDirectionalityDirectionInfo(DirectionOfUse directionalityAsn) {
+        ProcessedDirectionalityDirectionInfo directionalityInfo = new ProcessedDirectionalityDirectionInfo();
+        directionalityInfo.setDirectionType(ProcessedDirectionType.DIRECTIONALITY);
+
+        // Prefer ASN getName() ("forward"); Enum.toString() ("FORWARD") also works after toLowerCase
+        String directionalityValue =
+                directionalityAsn.getName() != null ? directionalityAsn.getName() : directionalityAsn.toString();
+        try {
+            ProcessedDirectionality directionality =
+                    ProcessedDirectionality.fromValue(directionalityValue.toLowerCase());
+            directionalityInfo.setDirectionality(directionality);
+        } catch (IllegalArgumentException e) {
+            log.warn("Unknown directionality value: {}, using UNKNOWN", directionalityValue);
+            directionalityInfo.setDirectionality(ProcessedDirectionality.UNKNOWN);
         }
 
-        return null;
+        return directionalityInfo;
+    }
+
+    private ProcessedHeadingDirectionInfo createHeadingDirectionInfo(HeadingSlice directionBitstring) {
+        if (directionBitstring == null) {
+            return null;
+        }
+
+        ProcessedHeadingDirectionInfo headingInfo = new ProcessedHeadingDirectionInfo();
+        headingInfo.setDirectionType(ProcessedDirectionType.HEADING);
+
+        int[][] sectorRanges = FieldConversions.parseHeadingSectorsAsRanges(directionBitstring);
+        if (sectorRanges.length == 0) {
+            return null;
+        }
+
+        List<ProcessedHeading> headingList = new ArrayList<>();
+        for (int[] range : sectorRanges) {
+            ProcessedHeading processedHeading = new ProcessedHeading();
+            double[] headingAndRange = FieldConversions.sectorRangeToHeadingAndRange(range[0], range[1]);
+            processedHeading.setHeading(headingAndRange[0]);
+            processedHeading.setRange(headingAndRange[1]);
+            headingList.add(processedHeading);
+        }
+
+        headingInfo.setHeadingList(headingList);
+        return headingInfo;
     }
 
     private void processAdvisoryContent(List<ITIScodesAndTextSequence> advisoryList,

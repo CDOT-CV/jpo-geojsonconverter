@@ -133,7 +133,7 @@ public class FieldConversions {
     public static Double convertLongWithZoom(long j2735Long, double zoomFactor) {
         Double baseValue = convertLong(j2735Long);
         if (baseValue != null) {
-            return baseValue / zoomFactor;
+            return baseValue * zoomFactor;
         }
         return null;
     }
@@ -148,7 +148,7 @@ public class FieldConversions {
     public static Double convertLatWithZoom(long j2735Lat, double zoomFactor) {
         Double baseValue = convertLat(j2735Lat);
         if (baseValue != null) {
-            return baseValue / zoomFactor;
+            return baseValue * zoomFactor;
         }
         return null;
     }
@@ -163,9 +163,9 @@ public class FieldConversions {
      * @return Array with [longitude_offset, latitude_offset] in decimal degrees
      */
     public static double[] convertJ2735XY(long j2735X, long j2735Y, double currentLat, double zoomFactor) {
-        double latOffset = (j2735Y / CENTIMETERS_PER_DEGREE_LATITUDE) / zoomFactor;
+        double latOffset = (j2735Y / CENTIMETERS_PER_DEGREE_LATITUDE) * zoomFactor;
         double lonOffset =
-                (j2735X / (CENTIMETERS_PER_DEGREE_LATITUDE * Math.cos(Math.toRadians(currentLat)))) / zoomFactor;
+                (j2735X / (CENTIMETERS_PER_DEGREE_LATITUDE * Math.cos(Math.toRadians(currentLat)))) * zoomFactor;
         return new double[] {lonOffset, latOffset};
     }
 
@@ -400,12 +400,10 @@ public class FieldConversions {
      * @return Year as integer, or null if dYear is null or unknown
      */
     public static Integer convertDYear(DYear dYear) {
-        if (dYear == null)
-            return null;
+        if (dYear == null) return null;
         long value = dYear.getValue();
         // 0 represents unknown year
-        if (value == 0)
-            return null;
+        if (value == 0) return null;
         return (int) value;
     }
 
@@ -416,12 +414,10 @@ public class FieldConversions {
      * @return Month as integer (1-12), or null if dMonth is null or unknown
      */
     public static Integer convertDMonth(DMonth dMonth) {
-        if (dMonth == null)
-            return null;
+        if (dMonth == null) return null;
         long value = dMonth.getValue();
         // 0 Represents unknown month
-        if (value == 0)
-            return null;
+        if (value == 0) return null;
         return (int) value;
     }
 
@@ -432,12 +428,10 @@ public class FieldConversions {
      * @return Day of month as integer (1-31), or null if dDay is null or unknown
      */
     public static Integer convertDDay(DDay dDay) {
-        if (dDay == null)
-            return null;
+        if (dDay == null) return null;
         long value = dDay.getValue();
         // 0 represents unknown day
-        if (value == 0)
-            return null;
+        if (value == 0) return null;
         return (int) value;
     }
 
@@ -449,14 +443,12 @@ public class FieldConversions {
      * @return Hour as integer (0-23), or null if dHour is null or unavailable
      */
     public static Integer convertDHour(DHour dHour) {
-        if (dHour == null)
-            return null;
+        if (dHour == null) return null;
         long value = dHour.getValue();
         // Per J2735 (2024) sec 7.34: 31 represents unknown hours and the values 24-30 are used by some applications
         // to represent schedule adherence.
         // But they are omitted here for use by the RTCM timestamp.
-        if (value > MAX_HOUR)
-            return null;
+        if (value > MAX_HOUR) return null;
         return (int) value;
     }
 
@@ -467,12 +459,10 @@ public class FieldConversions {
      * @return Minute as integer (0-59), or null if dMinute is null or unknown
      */
     public static Integer convertDMinute(DMinute dMinute) {
-        if (dMinute == null)
-            return null;
+        if (dMinute == null) return null;
         long value = dMinute.getValue();
         // Per J2735 (2024) sec 7.37: 60 represents unknown hours
-        if (value == MINUTE_UNAVAILABLE)
-            return null;
+        if (value == MINUTE_UNAVAILABLE) return null;
         return (int) value;
     }
 
@@ -483,12 +473,10 @@ public class FieldConversions {
      * @return second of minute, and nanosecond of second
      */
     public static SecondNanos convertDSecond(DSecond dSecond) {
-        if (dSecond == null)
-            return null;
+        if (dSecond == null) return null;
         long value = dSecond.getValue();
         // Per J2735 (2024) sec. 7.43: 65535 represents unavailable, and values 61000 and above are reserved.
-        if (value >= SECOND_RESERVED_THRESHOLD)
-            return null;
+        if (value >= SECOND_RESERVED_THRESHOLD) return null;
         final int secondOfMinute = Math.floorDiv((int) value, MILLISECONDS_PER_SECOND);
         final int milliOfSecond = (int) value - (secondOfMinute * MILLISECONDS_PER_SECOND);
         final int nanoOfSecond = milliOfSecond * NANOSECONDS_PER_MILLISECOND;
@@ -507,8 +495,7 @@ public class FieldConversions {
      * @return Java ZoneOffset
      */
     public static ZoneOffset convertDOffset(DOffset dOffset) {
-        if (dOffset == null)
-            return ZoneOffset.UTC;
+        if (dOffset == null) return ZoneOffset.UTC;
         final int value = (int) dOffset.getValue();
         int offsetHours = Math.floorDiv(value, MINUTES_PER_HOUR);
         int offsetMinutes = value - (offsetHours * MINUTES_PER_HOUR);
@@ -685,8 +672,7 @@ public class FieldConversions {
      */
     public static ZonedDateTime convertMinuteOfYear(final MinuteOfTheYear minuteOfTheYear,
             final ZonedDateTime ingestTime) {
-        if (minuteOfTheYear == null)
-            return null;
+        if (minuteOfTheYear == null) return null;
         final int moy = (int) minuteOfTheYear.getValue();
         final int dayOfYear = (moy / MINUTES_PER_DAY) + 1;
         final boolean isLastDayOfYear = dayOfYear >= DAYS_PER_YEAR; // or second to last if leap year
@@ -714,11 +700,9 @@ public class FieldConversions {
      * @return ZonedDateTime for the year at the beginning of the minute
      */
     public static ZonedDateTime convertMinuteOfYear(final MinuteOfTheYear minuteOfTheYear, final int year) {
-        if (minuteOfTheYear == null)
-            return null;
+        if (minuteOfTheYear == null) return null;
         final long moy = minuteOfTheYear.getValue();
-        if (moy == MINUTE_OF_YEAR_INVALID)
-            return null;
+        if (moy == MINUTE_OF_YEAR_INVALID) return null;
         final String dateString = String.format("%d-01-01T00:00:00.00Z", year);
         final ZonedDateTime yearDate = Instant.parse(dateString).atZone(ZoneId.of("UTC"));
         return yearDate.plusMinutes(moy);
@@ -753,10 +737,8 @@ public class FieldConversions {
     }
 
     private static ZonedDateTime convertMinuteOfYearAndDSecond(final ZonedDateTime minuteDate, final DSecond dSecond) {
-        if (minuteDate == null)
-            return null;
-        if (dSecond == null)
-            return minuteDate;
+        if (minuteDate == null) return null;
+        if (dSecond == null) return minuteDate;
         SecondNanos secondNanos = convertDSecond(dSecond);
         return minuteDate.withSecond(secondNanos.secondOfMinute()).withNano(secondNanos.nanoOfSecond());
     }
@@ -770,8 +752,7 @@ public class FieldConversions {
      * @return Message count as integer, or null if msgCount is null
      */
     public static Integer convertMsgCount(final MsgCount msgCount) {
-        if (msgCount == null)
-            return null;
+        if (msgCount == null) return null;
         return (int) msgCount.getValue();
     }
 
@@ -782,8 +763,7 @@ public class FieldConversions {
      * @return RegionIntersectionId containing region and intersection ID, or both null if input is null
      */
     public static RegionIntersectionId convertIntersectionReferenceID(IntersectionReferenceID intersectionReferenceID) {
-        if (intersectionReferenceID == null)
-            return new RegionIntersectionId(null, null);
+        if (intersectionReferenceID == null) return new RegionIntersectionId(null, null);
         var region = intersectionReferenceID.getRegion();
         Integer regionValue = region != null ? (int) region.getValue() : null;
         var id = intersectionReferenceID.getId();
@@ -801,8 +781,7 @@ public class FieldConversions {
      * @return Vehicle ID as String, or null if vehicleID is null or has no value
      */
     public static String convertVehicleID(final VehicleID vehicleID) {
-        if (vehicleID == null)
-            return null;
+        if (vehicleID == null) return null;
         // CHOICE of EntityID or StationID
         // EntityID is an Octet string, StationId is an integer
         // Return a String in either case
@@ -823,8 +802,7 @@ public class FieldConversions {
      * @return AccessPointID containing lane, approach, and connection IDs, or all null if input is null
      */
     public static AccessPointID convertIntersectionAccessPointID(final IntersectionAccessPoint iap) {
-        if (iap == null)
-            return new AccessPointID(null, null, null);
+        if (iap == null) return new AccessPointID(null, null, null);
 
         // CHOICE of LaneID, ConnectionID, or ApproachID
         Integer laneId = null;

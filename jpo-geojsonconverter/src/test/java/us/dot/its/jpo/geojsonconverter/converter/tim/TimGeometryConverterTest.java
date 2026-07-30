@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.*;
 import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Geometry;
+import us.dot.its.jpo.geojsonconverter.pojos.geojson.GeometryCollection;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.MultiLineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.MultiPolygon;
@@ -140,16 +141,24 @@ public class TimGeometryConverterTest {
                         String.format("Feature %d MultiPolygon should have coordinates", i));
                 assertTrue(multiPolygon.getCoordinates().length > 0,
                         String.format("Feature %d MultiPolygon should have at least one polygon", i));
+            } else if (geometry instanceof GeometryCollection) {
+                GeometryCollection geometryCollection = (GeometryCollection) geometry;
+                assertNotNull(geometryCollection.getGeometries(),
+                        String.format("Feature %d GeometryCollection should have geometries", i));
+                assertTrue(geometryCollection.getGeometries().length > 0,
+                        String.format("Feature %d GeometryCollection should have at least one geometry", i));
             }
 
             // Verify that the number of regions in regionInfoList matches the geometry structure
             if (feature.getProperties() != null && feature.getProperties().getRegionInfoList() != null) {
                 int regionCount = feature.getProperties().getRegionInfoList().size();
                 if (regionCount > 1) {
-                    // Multiple regions should result in MultiLineString or MultiPolygon
-                    assertTrue(geometry instanceof MultiLineString || geometry instanceof MultiPolygon,
+                    // Multiple regions: Multi*, or GeometryCollection when path + polygon/circle are mixed
+                    assertTrue(
+                            geometry instanceof MultiLineString || geometry instanceof MultiPolygon
+                                    || geometry instanceof GeometryCollection,
                             String.format(
-                                    "Feature %d with %d regions should have MultiLineString or MultiPolygon geometry",
+                                    "Feature %d with %d regions should have MultiLineString, MultiPolygon, or GeometryCollection",
                                     i, regionCount));
                 }
             }
@@ -308,8 +317,8 @@ public class TimGeometryConverterTest {
             calculator.setDestinationGeographicPoint(firstPoint[0], firstPoint[1]);
             double distance = calculator.getOrthodromicDistance();
 
-            // Allow some tolerance for approximation (within 10% of expected radius)
-            double tolerance = radius * 0.1;
+            // The converted geometry must preserve the 0.1 m precision of the decimeter input.
+            double tolerance = 0.05;
             assertTrue(Math.abs(distance - radius) <= tolerance,
                     String.format(
                             "Circle radius should be approximately %f meters, but calculated distance is %f meters",
