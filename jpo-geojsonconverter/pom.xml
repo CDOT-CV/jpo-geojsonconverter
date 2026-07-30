@@ -37,6 +37,7 @@
         <!-- Allow override of github organization when publishing artifacts to github -->
         <github_organization>usdot-jpo-ode</github_organization>
         <jsonschema.generator.version>4.31.1</jsonschema.generator.version>
+        <lombok.version>1.18.30</lombok.version>
     </properties>
     <dependencies>
         <!-- Spring Boot Dependencies -->
@@ -155,7 +156,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.30</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -241,6 +242,26 @@
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
+            <!-- Explicitly register annotation processors. When annotationProcessorPaths
+                 is set, Maven does not auto-discover processors from the classpath. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
+                            <version>${spring-boot.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
