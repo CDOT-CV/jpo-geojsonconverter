@@ -1,14 +1,14 @@
 package us.dot.its.jpo.geojsonconverter.utils;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.asn.j2735.r2024.Common.DSecond;
 import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
 import us.dot.its.jpo.asn.j2735.r2024.SPAT.TimeMark;
@@ -32,14 +32,14 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, TEST_ODE_DATE, year);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Year should be correct", 2024, result.getYear());
-        assertEquals("Month should be January", 1, result.getMonthValue());
-        assertEquals("Day should be 1", 1, result.getDayOfMonth());
-        assertEquals("Hour should be 16 (1000 minutes = 16 hours 40 minutes)", 16, result.getHour());
-        assertEquals("Minute should be 40", 40, result.getMinute());
-        assertEquals("Second should be 5", 5, result.getSecond());
-        assertEquals("Zone should be UTC", ZoneOffset.UTC, result.getOffset());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(2024, result.getYear(), "Year should be correct");
+        assertEquals(1, result.getMonthValue(), "Month should be January");
+        assertEquals(1, result.getDayOfMonth(), "Day should be 1");
+        assertEquals(16, result.getHour(), "Hour should be 16 (1000 minutes = 16 hours 40 minutes)");
+        assertEquals(40, result.getMinute(), "Minute should be 40");
+        assertEquals(5, result.getSecond(), "Second should be 5");
+        assertEquals(ZoneOffset.UTC, result.getOffset(), "Zone should be UTC");
     }
 
     @Test
@@ -52,13 +52,13 @@ public class J2735DateTimeConverterTest {
 
         int odeSecond = TEST_ODE_DATE.getSecond();
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Year should be correct", 2024, result.getYear());
-        assertEquals("Month should be January", 1, result.getMonthValue());
-        assertEquals("Day should be 2 (1440 minutes = 24 hours)", 2, result.getDayOfMonth());
-        assertEquals("Hour should be 0", 0, result.getHour());
-        assertEquals("Minute should be 0", 0, result.getMinute());
-        assertEquals("Second should be " + odeSecond, odeSecond, result.getSecond());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(2024, result.getYear(), "Year should be correct");
+        assertEquals(1, result.getMonthValue(), "Month should be January");
+        assertEquals(2, result.getDayOfMonth(), "Day should be 2 (1440 minutes = 24 hours)");
+        assertEquals(0, result.getHour(), "Hour should be 0");
+        assertEquals(0, result.getMinute(), "Minute should be 0");
+        assertEquals(odeSecond, result.getSecond(), "Second should be " + odeSecond);
     }
 
     @Test
@@ -68,13 +68,13 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(null, dSecond, TEST_ODE_DATE, 2024);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getYear(), result.getYear());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getMonthValue(), result.getMonthValue());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getDayOfMonth(), result.getDayOfMonth());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getHour(), result.getHour());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getMinute(), result.getMinute());
-        assertEquals("Second should be 2 (from DSecond)", 2, result.getSecond());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_ODE_DATE.getYear(), result.getYear(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getMonthValue(), result.getMonthValue(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getDayOfMonth(), result.getDayOfMonth(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getHour(), result.getHour(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getMinute(), result.getMinute(), "Should use ODE date as base");
+        assertEquals(2, result.getSecond(), "Second should be 2 (from DSecond)");
     }
 
     @Test
@@ -85,8 +85,8 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, TEST_ODE_DATE, null);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should use ODE date year", TEST_ODE_DATE.getYear(), result.getYear());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_ODE_DATE.getYear(), result.getYear(), "Should use ODE date year");
     }
 
     @Test
@@ -97,8 +97,8 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, TEST_ODE_DATE);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should use ODE date year", TEST_ODE_DATE.getYear(), result.getYear());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_ODE_DATE.getYear(), result.getYear(), "Should use ODE date year");
     }
 
     @Test
@@ -108,10 +108,10 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, TEST_ODE_DATE);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should use ODE date year", TEST_ODE_DATE.getYear(), result.getYear());
-        assertEquals("Should calculate correct time from MOY", 8, result.getHour()); // 500 minutes = 8 hours 20 minutes
-        assertEquals("Should calculate correct time from MOY", 20, result.getMinute());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_ODE_DATE.getYear(), result.getYear(), "Should use ODE date year");
+        assertEquals(8, result.getHour(), "Should calculate correct time from MOY"); // 500 minutes = 8 hours 20 minutes
+        assertEquals(20, result.getMinute(), "Should calculate correct time from MOY");
     }
 
     @Test
@@ -119,8 +119,8 @@ public class J2735DateTimeConverterTest {
         // Test the 2-parameter overload with null MOY
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(null, TEST_ODE_DATE);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should return ODE date unchanged", TEST_ODE_DATE, result);
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_ODE_DATE, result, "Should return ODE date unchanged");
     }
 
     @Test
@@ -131,12 +131,12 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, TEST_ODE_DATE, 2024);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should be start of year", 1, result.getMonthValue());
-        assertEquals("Should be start of year", 1, result.getDayOfMonth());
-        assertEquals("Should be start of year", 0, result.getHour());
-        assertEquals("Should be start of year", 0, result.getMinute());
-        assertEquals("Should be 1 second from DSecond", 1, result.getSecond());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(1, result.getMonthValue(), "Should be start of year");
+        assertEquals(1, result.getDayOfMonth(), "Should be start of year");
+        assertEquals(0, result.getHour(), "Should be start of year");
+        assertEquals(0, result.getMinute(), "Should be start of year");
+        assertEquals(1, result.getSecond(), "Should be 1 second from DSecond");
     }
 
     @Test
@@ -147,11 +147,11 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, TEST_ODE_DATE, 2024);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should be end of year", 12, result.getMonthValue());
-        assertEquals("Should be end of year", 31, result.getDayOfMonth());
-        assertEquals("Should be end of year", 0, result.getHour());
-        assertEquals("Should be end of year", 0, result.getMinute());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(12, result.getMonthValue(), "Should be end of year");
+        assertEquals(31, result.getDayOfMonth(), "Should be end of year");
+        assertEquals(0, result.getHour(), "Should be end of year");
+        assertEquals(0, result.getMinute(), "Should be end of year");
     }
 
     @Test
@@ -162,8 +162,8 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, TEST_ODE_DATE, 2024);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should be 59 seconds", 59, result.getSecond());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(59, result.getSecond(), "Should be 59 seconds");
     }
 
     @Test
@@ -175,7 +175,7 @@ public class J2735DateTimeConverterTest {
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, TEST_ODE_DATE, 2024);
 
         // The method should handle negative values gracefully
-        assertNotNull("Result should not be null even with negative values", result);
+        assertNotNull(result, "Result should not be null even with negative values");
     }
 
     @Test
@@ -187,8 +187,8 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, TEST_ODE_DATE, leapYear);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should be January 2nd", 2, result.getDayOfMonth());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(2, result.getDayOfMonth(), "Should be January 2nd");
     }
 
     @Test
@@ -200,8 +200,8 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, TEST_ODE_DATE, nonLeapYear);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should be January 2nd", 2, result.getDayOfMonth());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(2, result.getDayOfMonth(), "Should be January 2nd");
     }
 
     @Test
@@ -214,9 +214,9 @@ public class J2735DateTimeConverterTest {
         ZonedDateTime result1 = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, TEST_ODE_DATE, year);
         ZonedDateTime result2 = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, TEST_ODE_DATE);
 
-        assertNotNull("Result 1 should not be null", result1);
-        assertNotNull("Result 2 should not be null", result2);
-        assertEquals("Results should be consistent", result1, result2);
+        assertNotNull(result1, "Result 1 should not be null");
+        assertNotNull(result2, "Result 2 should not be null");
+        assertEquals(result1, result2, "Results should be consistent");
     }
 
     @Test
@@ -224,8 +224,8 @@ public class J2735DateTimeConverterTest {
         // Test with both MOY and DSecond null - should return ODE date unchanged
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(null, null, TEST_ODE_DATE, 2024);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should return ODE date unchanged", TEST_ODE_DATE, result);
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_ODE_DATE, result, "Should return ODE date unchanged");
     }
 
     @Test
@@ -235,14 +235,14 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(null, dSecond, TEST_ODE_DATE, 2024);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getYear(), result.getYear());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getMonthValue(), result.getMonthValue());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getDayOfMonth(), result.getDayOfMonth());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getHour(), result.getHour());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getMinute(), result.getMinute());
-        assertEquals("Second should be 3 (from DSecond)", 3, result.getSecond());
-        assertEquals("Millisecond should be 0", 0, result.getNano() / 1_000_000);
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_ODE_DATE.getYear(), result.getYear(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getMonthValue(), result.getMonthValue(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getDayOfMonth(), result.getDayOfMonth(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getHour(), result.getHour(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getMinute(), result.getMinute(), "Should use ODE date as base");
+        assertEquals(3, result.getSecond(), "Second should be 3 (from DSecond)");
+        assertEquals(0, result.getNano() / 1_000_000, "Millisecond should be 0");
     }
 
     @Test
@@ -252,13 +252,13 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(null, dSecond, TEST_ODE_DATE, 2024);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getYear(), result.getYear());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getMonthValue(), result.getMonthValue());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getDayOfMonth(), result.getDayOfMonth());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getHour(), result.getHour());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getMinute(), result.getMinute());
-        assertEquals("Second should be 59 (from DSecond)", 59, result.getSecond());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_ODE_DATE.getYear(), result.getYear(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getMonthValue(), result.getMonthValue(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getDayOfMonth(), result.getDayOfMonth(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getHour(), result.getHour(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getMinute(), result.getMinute(), "Should use ODE date as base");
+        assertEquals(59, result.getSecond(), "Second should be 59 (from DSecond)");
     }
 
     @Test
@@ -268,14 +268,14 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(null, dSecond, TEST_ODE_DATE, 2024);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getYear(), result.getYear());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getMonthValue(), result.getMonthValue());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getDayOfMonth(), result.getDayOfMonth());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getHour(), result.getHour());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getMinute(), result.getMinute());
-        assertEquals("Second should be 0 (from DSecond)", 0, result.getSecond());
-        assertEquals("Millisecond should be 0", 0, result.getNano() / 1_000_000);
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_ODE_DATE.getYear(), result.getYear(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getMonthValue(), result.getMonthValue(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getDayOfMonth(), result.getDayOfMonth(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getHour(), result.getHour(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getMinute(), result.getMinute(), "Should use ODE date as base");
+        assertEquals(0, result.getSecond(), "Second should be 0 (from DSecond)");
+        assertEquals(0, result.getNano() / 1_000_000, "Millisecond should be 0");
     }
 
     @Test
@@ -286,7 +286,7 @@ public class J2735DateTimeConverterTest {
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(null, dSecond, TEST_ODE_DATE, 2024);
 
         // The method should handle negative values gracefully
-        assertNotNull("Result should not be null even with negative DSecond", result);
+        assertNotNull(result, "Result should not be null even with negative DSecond");
     }
 
     @Test
@@ -294,8 +294,8 @@ public class J2735DateTimeConverterTest {
         // Test the 2-parameter overload with null MOY and null year
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(null, TEST_ODE_DATE);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should return ODE date unchanged", TEST_ODE_DATE, result);
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_ODE_DATE, result, "Should return ODE date unchanged");
     }
 
     @Test
@@ -305,13 +305,13 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(null, dSecond, TEST_ODE_DATE);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getYear(), result.getYear());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getMonthValue(), result.getMonthValue());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getDayOfMonth(), result.getDayOfMonth());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getHour(), result.getHour());
-        assertEquals("Should use ODE date as base", TEST_ODE_DATE.getMinute(), result.getMinute());
-        assertEquals("Second should be 1 (from DSecond)", 1, result.getSecond());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_ODE_DATE.getYear(), result.getYear(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getMonthValue(), result.getMonthValue(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getDayOfMonth(), result.getDayOfMonth(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getHour(), result.getHour(), "Should use ODE date as base");
+        assertEquals(TEST_ODE_DATE.getMinute(), result.getMinute(), "Should use ODE date as base");
+        assertEquals(1, result.getSecond(), "Second should be 1 (from DSecond)");
     }
 
     // ===== generateOffsetUTCTimestampForTimeMark TESTS =====
@@ -323,11 +323,11 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(TEST_BASE_DATE, timeMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Hour should be same as base", TEST_BASE_DATE.getHour(), result.getHour());
-        assertEquals("Minute should be 8 (500000ms = 8min 20s)", 8, result.getMinute());
-        assertEquals("Second should be 20", 20, result.getSecond());
-        assertEquals("Zone should be UTC", ZoneOffset.UTC, result.getOffset());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_BASE_DATE.getHour(), result.getHour(), "Hour should be same as base");
+        assertEquals(8, result.getMinute(), "Minute should be 8 (500000ms = 8min 20s)");
+        assertEquals(20, result.getSecond(), "Second should be 20");
+        assertEquals(ZoneOffset.UTC, result.getOffset(), "Zone should be UTC");
     }
 
     @Test
@@ -337,8 +337,8 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(TEST_BASE_DATE, timeMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should return epoch time for unknown time mark", 0, result.toEpochSecond());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(0, result.toEpochSecond(), "Should return epoch time for unknown time mark");
     }
 
     @Test
@@ -349,10 +349,10 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(currentTime, timeMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should add an hour for rollover", 16, result.getHour()); // Should be 4 PM, not 3 PM
-        assertEquals("Minute should be 1 (100000ms = 1min 40s)", 1, result.getMinute());
-        assertEquals("Second should be 40", 40, result.getSecond());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(16, result.getHour(), "Should add an hour for rollover"); // Should be 4 PM, not 3 PM
+        assertEquals(1, result.getMinute(), "Minute should be 1 (100000ms = 1min 40s)");
+        assertEquals(40, result.getSecond(), "Second should be 40");
     }
 
     @Test
@@ -363,10 +363,10 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(currentTime, timeMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should add an hour for rollover", 16, result.getHour()); // Should be 4 PM
-        assertEquals("Minute should be 3 (200000ms = 3min 20s)", 3, result.getMinute());
-        assertEquals("Second should be 20", 20, result.getSecond());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(16, result.getHour(), "Should add an hour for rollover"); // Should be 4 PM
+        assertEquals(3, result.getMinute(), "Minute should be 3 (200000ms = 3min 20s)");
+        assertEquals(20, result.getSecond(), "Second should be 20");
     }
 
     @Test
@@ -374,7 +374,7 @@ public class J2735DateTimeConverterTest {
         // Test with null time mark
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(TEST_BASE_DATE, null);
 
-        assertNull("Result should be null for null time mark", result);
+        assertNull(result, "Result should be null for null time mark");
     }
 
     @Test
@@ -384,12 +384,11 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(TEST_BASE_DATE, timeMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Hour should be next hour due to leap second rollover", TEST_BASE_DATE.getHour() + 1,
-                result.getHour());
-        assertEquals("Minute should be 0 (leap second rolls over to next hour)", 0, result.getMinute());
-        assertEquals("Second should be 0 (leap second rolls over to next hour)", 0, result.getSecond());
-        assertEquals("Zone should be UTC", ZoneOffset.UTC, result.getOffset());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_BASE_DATE.getHour() + 1, result.getHour(), "Hour should be next hour due to leap second rollover");
+        assertEquals(0, result.getMinute(), "Minute should be 0 (leap second rolls over to next hour)");
+        assertEquals(0, result.getSecond(), "Second should be 0 (leap second rolls over to next hour)");
+        assertEquals(ZoneOffset.UTC, result.getOffset(), "Zone should be UTC");
     }
 
     @Test
@@ -399,13 +398,12 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(TEST_BASE_DATE, timeMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Hour should be next hour due to leap second rollover", TEST_BASE_DATE.getHour() + 1,
-                result.getHour());
-        assertEquals("Minute should be 0 (leap second rolls over to next hour)", 0, result.getMinute());
-        assertEquals("Second should be 0 (leap second rolls over to next hour)", 0, result.getSecond());
-        assertEquals("Millisecond should be 500 (5 deciseconds = 500ms)", 500, result.getNano() / 1_000_000);
-        assertEquals("Zone should be UTC", ZoneOffset.UTC, result.getOffset());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_BASE_DATE.getHour() + 1, result.getHour(), "Hour should be next hour due to leap second rollover");
+        assertEquals(0, result.getMinute(), "Minute should be 0 (leap second rolls over to next hour)");
+        assertEquals(0, result.getSecond(), "Second should be 0 (leap second rolls over to next hour)");
+        assertEquals(500, result.getNano() / 1_000_000, "Millisecond should be 500 (5 deciseconds = 500ms)");
+        assertEquals(ZoneOffset.UTC, result.getOffset(), "Zone should be UTC");
     }
 
     @Test
@@ -415,13 +413,12 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(TEST_BASE_DATE, timeMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Hour should be next hour due to leap second rollover", TEST_BASE_DATE.getHour() + 1,
-                result.getHour());
-        assertEquals("Minute should be 0 (leap second rolls over to next hour)", 0, result.getMinute());
-        assertEquals("Second should be 0 (leap second rolls over to next hour)", 0, result.getSecond());
-        assertEquals("Millisecond should be 900 (9 deciseconds = 900ms)", 900, result.getNano() / 1_000_000);
-        assertEquals("Zone should be UTC", ZoneOffset.UTC, result.getOffset());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_BASE_DATE.getHour() + 1, result.getHour(), "Hour should be next hour due to leap second rollover");
+        assertEquals(0, result.getMinute(), "Minute should be 0 (leap second rolls over to next hour)");
+        assertEquals(0, result.getSecond(), "Second should be 0 (leap second rolls over to next hour)");
+        assertEquals(900, result.getNano() / 1_000_000, "Millisecond should be 900 (9 deciseconds = 900ms)");
+        assertEquals(ZoneOffset.UTC, result.getOffset(), "Zone should be UTC");
     }
 
     @Test
@@ -432,10 +429,10 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(currentTime, timeMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should add an hour for rollover", 16, result.getHour()); // Should be 4 PM, not 3 PM
-        assertEquals("Minute should be 0 (leap second rolls over to next hour)", 0, result.getMinute());
-        assertEquals("Second should be 0 (leap second rolls over to next hour)", 0, result.getSecond());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(16, result.getHour(), "Should add an hour for rollover"); // Should be 4 PM, not 3 PM
+        assertEquals(0, result.getMinute(), "Minute should be 0 (leap second rolls over to next hour)");
+        assertEquals(0, result.getSecond(), "Second should be 0 (leap second rolls over to next hour)");
     }
 
     @Test
@@ -446,10 +443,10 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(currentTime, timeMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should add an hour due to leap second rollover", 16, result.getHour()); // Should be 4 PM
-        assertEquals("Minute should be 0 (leap second rolls over to next hour)", 0, result.getMinute());
-        assertEquals("Second should be 0 (leap second rolls over to next hour)", 0, result.getSecond());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(16, result.getHour(), "Should add an hour due to leap second rollover"); // Should be 4 PM
+        assertEquals(0, result.getMinute(), "Minute should be 0 (leap second rolls over to next hour)");
+        assertEquals(0, result.getSecond(), "Second should be 0 (leap second rolls over to next hour)");
     }
 
     @Test
@@ -459,8 +456,7 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(TEST_BASE_DATE, timeMark);
 
-        assertEquals("Result should be set to UTC time zero",
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.of("UTC")), result);
+        assertEquals(ZonedDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.of("UTC")), result, "Result should be set to UTC time zero");
     }
 
     @Test
@@ -470,8 +466,7 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(TEST_BASE_DATE, timeMark);
 
-        assertEquals("Result should be set to UTC time zero",
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.of("UTC")), result);
+        assertEquals(ZonedDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.of("UTC")), result, "Result should be set to UTC time zero");
     }
 
     @Test
@@ -481,11 +476,11 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(TEST_BASE_DATE, timeMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Hour should be next hour due to rollover", TEST_BASE_DATE.getHour() + 1, result.getHour());
-        assertEquals("Minute should be 0", 0, result.getMinute());
-        assertEquals("Second should be 0", 0, result.getSecond());
-        assertEquals("Millisecond should be 0", 0, result.getNano() / 1_000_000);
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_BASE_DATE.getHour() + 1, result.getHour(), "Hour should be next hour due to rollover");
+        assertEquals(0, result.getMinute(), "Minute should be 0");
+        assertEquals(0, result.getSecond(), "Second should be 0");
+        assertEquals(0, result.getNano() / 1_000_000, "Millisecond should be 0");
     }
 
     @Test
@@ -495,11 +490,11 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(TEST_BASE_DATE, timeMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Hour should be same as base", TEST_BASE_DATE.getHour(), result.getHour());
-        assertEquals("Minute should be 59", 59, result.getMinute());
-        assertEquals("Second should be 59", 59, result.getSecond());
-        assertEquals("Millisecond should be 900 (9 deciseconds = 900ms)", 900, result.getNano() / 1_000_000);
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_BASE_DATE.getHour(), result.getHour(), "Hour should be same as base");
+        assertEquals(59, result.getMinute(), "Minute should be 59");
+        assertEquals(59, result.getSecond(), "Second should be 59");
+        assertEquals(900, result.getNano() / 1_000_000, "Millisecond should be 900 (9 deciseconds = 900ms)");
     }
 
     @Test
@@ -509,8 +504,7 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(TEST_BASE_DATE, timeMark);
 
-        assertEquals("Result should be set to UTC time zero",
-                ZonedDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.of("UTC")), result);
+        assertEquals(ZonedDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.of("UTC")), result, "Result should be set to UTC time zero");
     }
 
     @Test
@@ -520,10 +514,10 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(TEST_BASE_DATE, timeMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Minute should be 59", 59, result.getMinute());
-        assertEquals("Second should be 59 (3599900ms = 3599.9s = 59min 59.9s)", 59, result.getSecond());
-        assertEquals("Millisecond should be 900 (9 deciseconds = 900ms)", 900, result.getNano() / 1_000_000);
+        assertNotNull(result, "Result should not be null");
+        assertEquals(59, result.getMinute(), "Minute should be 59");
+        assertEquals(59, result.getSecond(), "Second should be 59 (3599900ms = 3599.9s = 59min 59.9s)");
+        assertEquals(900, result.getNano() / 1_000_000, "Millisecond should be 900 (9 deciseconds = 900ms)");
     }
 
     // ===== generateOffsetUTCTimestampForSecMark TESTS =====
@@ -535,11 +529,11 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForSecMark(TEST_BASE_DATE, secMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Hour should be same as base", TEST_BASE_DATE.getHour(), result.getHour());
-        assertEquals("Minute should be same as base", TEST_BASE_DATE.getMinute(), result.getMinute());
-        assertEquals("Second should be 5", 5, result.getSecond());
-        assertEquals("Millisecond should be 0", 0, result.getNano() / 1_000_000);
+        assertNotNull(result, "Result should not be null");
+        assertEquals(TEST_BASE_DATE.getHour(), result.getHour(), "Hour should be same as base");
+        assertEquals(TEST_BASE_DATE.getMinute(), result.getMinute(), "Minute should be same as base");
+        assertEquals(5, result.getSecond(), "Second should be 5");
+        assertEquals(0, result.getNano() / 1_000_000, "Millisecond should be 0");
     }
 
     @Test
@@ -549,9 +543,9 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForSecMark(TEST_BASE_DATE, secMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Second should be 5", 5, result.getSecond());
-        assertEquals("Millisecond should be 234", 234, result.getNano() / 1_000_000);
+        assertNotNull(result, "Result should not be null");
+        assertEquals(5, result.getSecond(), "Second should be 5");
+        assertEquals(234, result.getNano() / 1_000_000, "Millisecond should be 234");
     }
 
     @Test
@@ -561,8 +555,8 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForSecMark(TEST_BASE_DATE, secMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should return epoch time for unknown sec mark", 0, result.toEpochSecond());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(0, result.toEpochSecond(), "Should return epoch time for unknown sec mark");
     }
 
     @Test
@@ -574,9 +568,9 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForSecMark(nearMinuteEnd, secMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should subtract a minute for rollover", 29, result.getMinute()); // Should be 29 minutes, not 30
-        assertEquals("Second should be 55", 55, result.getSecond());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(29, result.getMinute(), "Should subtract a minute for rollover"); // Should be 29 minutes, not 30
+        assertEquals(55, result.getSecond(), "Second should be 55");
     }
 
     @Test
@@ -588,9 +582,9 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForSecMark(normalTime, secMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Should not subtract a minute", 30, result.getMinute()); // Should stay at 30 minutes
-        assertEquals("Second should be 55", 55, result.getSecond());
+        assertNotNull(result, "Result should not be null");
+        assertEquals(30, result.getMinute(), "Should not subtract a minute"); // Should stay at 30 minutes
+        assertEquals(55, result.getSecond(), "Second should be 55");
     }
 
     @Test
@@ -598,7 +592,7 @@ public class J2735DateTimeConverterTest {
         // Test with null sec mark
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForSecMark(TEST_BASE_DATE, null);
 
-        assertNull("Result should be null for null sec mark", result);
+        assertNull(result, "Result should be null for null sec mark");
     }
 
     @Test
@@ -608,8 +602,8 @@ public class J2735DateTimeConverterTest {
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForSecMark(TEST_BASE_DATE, secMark);
 
-        assertNotNull("Result should not be null", result);
-        assertEquals("Second should be 59", 59, result.getSecond());
-        assertEquals("Millisecond should be 999", 999, result.getNano() / 1_000_000);
+        assertNotNull(result, "Result should not be null");
+        assertEquals(59, result.getSecond(), "Second should be 59");
+        assertEquals(999, result.getNano() / 1_000_000, "Millisecond should be 999");
     }
 }

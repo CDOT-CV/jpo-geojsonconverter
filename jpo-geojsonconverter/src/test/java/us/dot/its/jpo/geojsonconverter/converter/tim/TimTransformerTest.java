@@ -10,8 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.apache.kafka.streams.KeyValue;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuTimKey;
 import us.dot.its.jpo.geojsonconverter.pojos.common.DeserializedRawMessageFrame;
@@ -24,7 +24,7 @@ public class TimTransformerTest {
     private TimTransformer timTransformer;
     private OdeMessageFrameData timMF;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         // Load sample TIM JSON file
         String timJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/sample.ode-tim.json")));
@@ -40,16 +40,16 @@ public class TimTransformerTest {
     }
 
     @Test
-    public void testTransformWithValidTim() {
-        // Test successful TIM transformation
+    public void testApplyWithValidTim() {
+        // Test successful TIM conversion
         DeserializedRawMessageFrame deserializedRawTim = new DeserializedRawMessageFrame();
         deserializedRawTim.setOdeMessageFrameData(timMF);
         deserializedRawTim.setValidationFailure(false);
         deserializedRawTim.setValidationResults(new JsonValidatorResult());
 
-        KeyValue<RsuTimKey, ProcessedTim> result = timTransformer.transform(null, deserializedRawTim);
+        KeyValue<RsuTimKey, ProcessedTim> result = timTransformer.apply(null, deserializedRawTim);
 
-        // Verify transformation result
+        // Verify conversion result
         assertNotNull(result);
         assertNotNull(result.key);
         assertNotNull(result.value);
@@ -69,8 +69,8 @@ public class TimTransformerTest {
     }
 
     @Test
-    public void testTransformWithValidationFailure() {
-        // Test TIM transformation with validation failure
+    public void testApplyWithValidationFailure() {
+        // Test TIM conversion with validation failure
         JsonValidatorResult validatorResult = new JsonValidatorResult();
         Exception testException = new Exception("Critical validation error");
         validatorResult.addException(testException);
@@ -81,7 +81,7 @@ public class TimTransformerTest {
         deserializedRawTim.setValidationResults(validatorResult);
         deserializedRawTim.setFailedMessage("Invalid TIM message");
 
-        KeyValue<RsuTimKey, ProcessedTim> result = timTransformer.transform(null, deserializedRawTim);
+        KeyValue<RsuTimKey, ProcessedTim> result = timTransformer.apply(null, deserializedRawTim);
 
         // Verify failure handling
         assertNotNull(result);
@@ -97,9 +97,9 @@ public class TimTransformerTest {
     }
 
     @Test
-    public void testTransformWithNullInput() {
+    public void testApplyWithNullInput() {
         // Test error handling with null input
-        KeyValue<RsuTimKey, ProcessedTim> result = timTransformer.transform(null, null);
+        KeyValue<RsuTimKey, ProcessedTim> result = timTransformer.apply(null, null);
 
         // Verify error handling
         assertNotNull(result);
@@ -109,14 +109,14 @@ public class TimTransformerTest {
     }
 
     @Test
-    public void testTransformWithException() {
+    public void testApplyWithException() {
         // Test exception handling by providing malformed data
         DeserializedRawMessageFrame deserializedRawTim = new DeserializedRawMessageFrame();
         deserializedRawTim.setOdeMessageFrameData(null); // This should cause an exception
         deserializedRawTim.setValidationFailure(false);
         deserializedRawTim.setValidationResults(new JsonValidatorResult());
 
-        KeyValue<RsuTimKey, ProcessedTim> result = timTransformer.transform(null, deserializedRawTim);
+        KeyValue<RsuTimKey, ProcessedTim> result = timTransformer.apply(null, deserializedRawTim);
 
         // Verify exception handling
         assertNotNull(result);

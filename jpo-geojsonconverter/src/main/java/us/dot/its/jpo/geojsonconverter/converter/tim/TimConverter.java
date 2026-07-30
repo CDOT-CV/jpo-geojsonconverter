@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Component;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Error;
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Position3D;
@@ -684,11 +684,19 @@ public class TimConverter {
             msg.setException(Arrays.toString(exception.getStackTrace()));
             compliance.getValidationMessages().add(msg);
         }
-        for (ValidationMessage vm : validatorResult.getValidationMessages()) {
+        for (Error vm : validatorResult.getValidationMessages()) {
             var msg = new ProcessedValidationMessage();
             msg.setMessage(vm.getMessage());
-            msg.setSchemaPath(vm.getSchemaPath());
-            msg.setJsonPath(vm.getPath());
+            final var schemaLocation = vm.getSchemaLocation();
+            if (schemaLocation != null) {
+                msg.setSchemaPath(schemaLocation.toString());
+            } else {
+                log.warn("validationMessage.schemaLocation is null");
+            }
+            final var evaluationPath = vm.getEvaluationPath();
+            if (evaluationPath != null) {
+                msg.setJsonPath(evaluationPath.toString());
+            }
             compliance.getValidationMessages().add(msg);
         }
         compliance.setCompliant(compliance.getValidationMessages().isEmpty());

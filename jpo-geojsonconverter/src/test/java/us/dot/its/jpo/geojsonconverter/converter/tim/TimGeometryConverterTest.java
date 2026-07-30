@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.*;
 import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
@@ -30,7 +30,7 @@ public class TimGeometryConverterTest {
     private TimConverter timConverter;
     private OdeMessageFrameData timMF;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         geometryConverter = new TimGeometryConverter();
         timConverter = new TimConverter(geometryConverter);

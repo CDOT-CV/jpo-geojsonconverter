@@ -1,7 +1,7 @@
 package us.dot.its.jpo.geojsonconverter.converter.tim;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -10,8 +10,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import org.apache.kafka.streams.KeyValue;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.*;
 import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
@@ -30,7 +30,7 @@ public class TimProcessedJsonConverterTest {
     TimProcessedJsonConverter timProcessedJsonConverter;
     OdeMessageFrameData timMF;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         // Load combined sample TIM JSON file for integration testing
         String timJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/sample.ode-tim.json")));
@@ -40,21 +40,21 @@ public class TimProcessedJsonConverterTest {
             timMF = odeTimDeserializer.deserialize("test-topic", timJsonString.getBytes());
         }
 
-        // Create TimConverter with TimGeometryProcessor dependency
+        // Create TimConverter with TimGeometryConverter dependency
         TimGeometryConverter geometryProcessor = new TimGeometryConverter();
         TimConverter timConverter = new TimConverter(geometryProcessor);
         timProcessedJsonConverter = new TimProcessedJsonConverter(timConverter);
     }
 
     @Test
-    public void testTransformWithValidTim() {
+    public void testApplyWithValidTim() {
         // Test successful TIM processing with sample data
         DeserializedRawMessageFrame deserializedRawTim = new DeserializedRawMessageFrame();
         deserializedRawTim.setOdeMessageFrameData(timMF);
         deserializedRawTim.setValidationFailure(false);
         deserializedRawTim.setValidationResults(new JsonValidatorResult());
 
-        KeyValue<RsuTimKey, ProcessedTim> result = timProcessedJsonConverter.transform(null, deserializedRawTim);
+        KeyValue<RsuTimKey, ProcessedTim> result = timProcessedJsonConverter.apply(null, deserializedRawTim);
 
         assertNotNull(result);
         assertNotNull(result.key);
@@ -102,7 +102,7 @@ public class TimProcessedJsonConverterTest {
     }
 
     @Test
-    public void testTransformWithValidationMessages() {
+    public void testApplyWithValidationMessages() {
         // Test TIM processing with validation messages (non-compliant)
         JsonValidatorResult validatorResult = new JsonValidatorResult();
         Exception testException = new Exception("Warning: Minor validation issue");
@@ -113,7 +113,7 @@ public class TimProcessedJsonConverterTest {
         deserializedRawTim.setValidationFailure(false);
         deserializedRawTim.setValidationResults(validatorResult);
 
-        KeyValue<RsuTimKey, ProcessedTim> result = timProcessedJsonConverter.transform(null, deserializedRawTim);
+        KeyValue<RsuTimKey, ProcessedTim> result = timProcessedJsonConverter.apply(null, deserializedRawTim);
 
         assertNotNull(result);
         assertNotNull(result.key);
@@ -128,7 +128,7 @@ public class TimProcessedJsonConverterTest {
     }
 
     @Test
-    public void testTransformWithInvalidTim() {
+    public void testApplyWithInvalidTim() {
         // Test TIM processing with validation failure
         JsonValidatorResult validatorResult = new JsonValidatorResult();
         Exception testException = new Exception("Critical validation error");
@@ -140,7 +140,7 @@ public class TimProcessedJsonConverterTest {
         deserializedRawTim.setValidationResults(validatorResult);
         deserializedRawTim.setFailedMessage("Invalid TIM message");
 
-        KeyValue<RsuTimKey, ProcessedTim> result = timProcessedJsonConverter.transform(null, deserializedRawTim);
+        KeyValue<RsuTimKey, ProcessedTim> result = timProcessedJsonConverter.apply(null, deserializedRawTim);
 
         assertNotNull(result);
         assertNotNull(result.key);
@@ -156,9 +156,9 @@ public class TimProcessedJsonConverterTest {
     }
 
     @Test
-    public void testTransformWithNullInput() {
+    public void testApplyWithNullInput() {
         // Test error handling with null input
-        KeyValue<RsuTimKey, ProcessedTim> result = timProcessedJsonConverter.transform(null, null);
+        KeyValue<RsuTimKey, ProcessedTim> result = timProcessedJsonConverter.apply(null, null);
         assertNotNull(result.key);
         assertEquals("ERROR", result.key.getRsuId());
         assertNull(result.value);

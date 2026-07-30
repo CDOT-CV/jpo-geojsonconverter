@@ -10,18 +10,18 @@ import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.kstream.Transformer;
-import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 /**
- * Kafka Streams transformer for converting ODE TIM messages to Processed TIM GeoJSON format.
- * 
- * This transformer handles the Kafka Streams specific operations and delegates the actual conversion logic to the
- * TimConverter class.
+ * {@link KeyValueMapper} for converting ODE TIM messages to Processed TIM format.
+ *
+ * <p>
+ * This mapper handles the Kafka Streams specific operations and delegates the actual conversion logic to the
+ * {@link TimConverter} class.
  */
 @Slf4j
 public class TimTransformer
-        implements Transformer<Void, DeserializedRawMessageFrame, KeyValue<RsuTimKey, ProcessedTim>> {
+        implements KeyValueMapper<Void, DeserializedRawMessageFrame, KeyValue<RsuTimKey, ProcessedTim>> {
 
     private static final String ERROR_RSU_ID = "ERROR";
 
@@ -31,13 +31,8 @@ public class TimTransformer
         this.timConverter = timConverter;
     }
 
-    @Override
-    public void init(ProcessorContext context) {
-        // No initialization required
-    }
-
     /**
-     * Transform an ODE TIM POJO to Processed TIM POJO.
+     * Apply the conversion from an ODE TIM POJO to Processed TIM POJO.
      *
      * @param rawKey Void type because ODE topics have no specified key
      * @param rawTim The raw POJO containing TIM data
@@ -45,7 +40,7 @@ public class TimTransformer
      *         count, and the value is the ProcessedTim POJO
      */
     @Override
-    public KeyValue<RsuTimKey, ProcessedTim> transform(Void rawKey, DeserializedRawMessageFrame rawTim) {
+    public KeyValue<RsuTimKey, ProcessedTim> apply(Void rawKey, DeserializedRawMessageFrame rawTim) {
         try {
             if (!rawTim.isValidationFailure()) {
                 return processValidTim(rawTim);
@@ -56,11 +51,6 @@ public class TimTransformer
             log.error("Exception converting ODE TIM to Processed TIM: {}", e.getMessage(), e);
             return createErrorKeyValuePair();
         }
-    }
-
-    @Override
-    public void close() {
-        // No cleanup required
     }
 
     /**
@@ -146,4 +136,3 @@ public class TimTransformer
         return new RsuTimKey(rsuId, packetId, msgCnt);
     }
 }
-

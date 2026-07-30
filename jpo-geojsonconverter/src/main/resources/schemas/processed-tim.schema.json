@@ -47,23 +47,6 @@
         }
       }
     },
-    "ProcessedCompliance" : {
-      "type" : "object",
-      "properties" : {
-        "compliant" : {
-          "type" : "boolean"
-        },
-        "standard" : {
-          "$ref" : "#/$defs/Standard"
-        },
-        "validationMessages" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/$defs/ProcessedValidationMessage"
-          }
-        }
-      }
-    },
     "ProcessedContentType" : {
       "type" : "string",
       "enum" : [ "ADVISORY", "ROAD_SIGNAGE", "COMMERCIAL_SIGNAGE" ]
@@ -120,6 +103,23 @@
     "ProcessedRegionType" : {
       "type" : "string",
       "enum" : [ "PATH", "POLYGON", "CIRCLE", "UNKNOWN" ]
+    },
+    "ProcessedTimCompliance" : {
+      "type" : "object",
+      "properties" : {
+        "compliant" : {
+          "type" : "boolean"
+        },
+        "standard" : {
+          "$ref" : "#/$defs/Standard"
+        },
+        "validationMessages" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ProcessedValidationMessage"
+          }
+        }
+      }
     },
     "ProcessedTimContent" : {
       "type" : "object",
@@ -233,7 +233,7 @@
     },
     "Standard" : {
       "type" : "string",
-      "enum" : [ "ITWG", "CTW" ]
+      "enum" : [ "ITWG", "CTW", "J2735" ]
     },
     "TimContentItemType" : {
       "type" : "string",
@@ -248,7 +248,7 @@
     "compliance" : {
       "type" : "array",
       "items" : {
-        "$ref" : "#/$defs/ProcessedCompliance"
+        "$ref" : "#/$defs/ProcessedTimCompliance"
       }
     },
     "dataFrameFeatureCollection" : {

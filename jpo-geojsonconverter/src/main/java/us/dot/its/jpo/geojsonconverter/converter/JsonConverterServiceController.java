@@ -16,6 +16,7 @@ import us.dot.its.jpo.geojsonconverter.converter.rtcm.RTCMConverter;
 import us.dot.its.jpo.geojsonconverter.converter.rtcm.RTCMTopology;
 import us.dot.its.jpo.geojsonconverter.converter.spat.SpatTopology;
 import us.dot.its.jpo.geojsonconverter.converter.bsm.BsmTopology;
+import us.dot.its.jpo.geojsonconverter.converter.tim.TimConverter;
 import us.dot.its.jpo.geojsonconverter.converter.tim.TimTopology;
 import us.dot.its.jpo.geojsonconverter.converter.srm.SrmConverter;
 import us.dot.its.jpo.geojsonconverter.converter.srm.SrmTopology;
@@ -36,8 +37,8 @@ public class JsonConverterServiceController {
     public JsonConverterServiceController(GeoJsonConverterProperties geojsonProps, MapJsonValidator mapJsonValidator,
             SpatJsonValidator spatJsonValidator, BsmJsonValidator bsmJsonValidator, PsmJsonValidator psmJsonValidator,
             RTCMJsonValidator rtcmJsonValidator, RTCMConverter rtcmConverter, TimJsonValidator timJsonValidator,
-            SrmJsonValidator srmJsonValidator, SrmConverter srmConverter, SsmJsonValidator ssmJsonValidator,
-            SsmConverter ssmConverter) {
+            TimConverter timConverter, SrmJsonValidator srmJsonValidator, SrmConverter srmConverter,
+            SsmJsonValidator ssmJsonValidator, SsmConverter ssmConverter) {
         super();
 
         try {
@@ -128,7 +129,7 @@ public class JsonConverterServiceController {
             logger.info("Creating the Processed TIM Kafka-Streams topology");
 
             var timTopology = TimTopology.build(geojsonProps.getKafkaTopicOdeTimJson(),
-                    geojsonProps.getKafkaTopicProcessedTim(), timJsonValidator);
+                    geojsonProps.getKafkaTopicProcessedTim(), timJsonValidator, timConverter);
             var timStreams = new KafkaStreams(timTopology, geojsonProps.createStreamProperties("processedtimjson"));
             Runtime.getRuntime().addShutdownHook(Thread.ofVirtual().unstarted(() -> {
                 try {

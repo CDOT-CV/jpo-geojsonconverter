@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformation;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformationMessageFrame;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedContentType;
@@ -20,7 +20,7 @@ public class TimConverterTest {
     private TimConverter timConverter;
     private OdeMessageFrameData timMF;
 
-    @Before
+    @BeforeEach
     public void setup() throws IOException {
         // Load sample TIM JSON file
         String timJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/sample.ode-tim.json")));

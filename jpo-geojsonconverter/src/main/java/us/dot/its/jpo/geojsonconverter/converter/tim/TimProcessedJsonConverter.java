@@ -6,23 +6,23 @@ import us.dot.its.jpo.geojsonconverter.pojos.tim.*;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.streams.KeyValue;
-import org.apache.kafka.streams.kstream.Transformer;
-import org.apache.kafka.streams.processor.ProcessorContext;
+import org.apache.kafka.streams.kstream.KeyValueMapper;
 
 /**
  * Converts ODE TIM messages to Processed TIM GeoJSON format.
- * 
+ *
+ * <p>
  * This converter processes Traveler Information Messages (TIM) from ASN.1 format and generates GeoJSON features with
  * appropriate geometries: - Path regions become LineString or MultiLineString - Circle/closed regions become Polygon or
  * MultiPolygon - Multiple regions are combined into MultiLineString or MultiPolygon as appropriate
- * 
+ *
  * @deprecated This class has been refactored into separate classes for better maintainability. Use
  *             {@link TimTransformer} for Kafka Streams operations and {@link TimConverter} for conversion logic.
  */
 @Slf4j
 @Deprecated
 public class TimProcessedJsonConverter
-        implements Transformer<Void, DeserializedRawMessageFrame, KeyValue<RsuTimKey, ProcessedTim>> {
+        implements KeyValueMapper<Void, DeserializedRawMessageFrame, KeyValue<RsuTimKey, ProcessedTim>> {
 
     private final TimTransformer timTransformer;
 
@@ -30,13 +30,8 @@ public class TimProcessedJsonConverter
         this.timTransformer = new TimTransformer(timConverter);
     }
 
-    @Override
-    public void init(ProcessorContext context) {
-        timTransformer.init(context);
-    }
-
     /**
-     * Transform an ODE TIM POJO to Processed TIM POJO.
+     * Apply the conversion from an ODE TIM POJO to Processed TIM POJO.
      *
      * @param rawKey Void type because ODE topics have no specified key
      * @param rawTim The raw POJO containing TIM data
@@ -44,12 +39,7 @@ public class TimProcessedJsonConverter
      *         count, and the value is the ProcessedTim POJO
      */
     @Override
-    public KeyValue<RsuTimKey, ProcessedTim> transform(Void rawKey, DeserializedRawMessageFrame rawTim) {
-        return timTransformer.transform(rawKey, rawTim);
-    }
-
-    @Override
-    public void close() {
-        timTransformer.close();
+    public KeyValue<RsuTimKey, ProcessedTim> apply(Void rawKey, DeserializedRawMessageFrame rawTim) {
+        return timTransformer.apply(rawKey, rawTim);
     }
 }
