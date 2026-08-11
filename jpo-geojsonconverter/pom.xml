@@ -17,7 +17,7 @@
 
     <groupId>usdot.jpo.ode</groupId>
     <artifactId>jpo-geojsonconverter</artifactId>
-    <version>3.3.0</version>
+    <version>3.4.0-alpha1</version>
     <packaging>jar</packaging>
     <name>jpo-geojsonconverter</name>
     <description>J2735 message to GeoJSON converter for US DOT ITS JPO ODE</description>
