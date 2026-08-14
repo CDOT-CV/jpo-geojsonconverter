@@ -31,14 +31,14 @@ end
 %% Column 2: Processing
 subgraph COL2 ["Processing Service<br/>(jpo-geojsonconverter)"]
     direction TB
-    V_Map["Validate Map"] --> C_Map["Convert Map"]
-    V_Spat["Validate Spat"] --> C_Spat["Convert Spat"]
-    V_Bsm["Validate Bsm"] --> C_Bsm["Convert Bsm"]
-    V_Psm["Validate Psm"] --> C_Psm["Convert Psm"]
-    V_Rtcm["Validate Rtcm"] --> C_Rtcm["Convert Rtcm"]
-    V_Srm["Validate Srm"] --> C_Srm["Convert Srm"]
-    V_Ssm["Validate Ssm"] --> C_Ssm["Convert Ssm"]
-    V_Tim["Validate Tim"] --> C_Tim["Convert Tim"]
+    V_Map["Validate MAP"] --> C_Map["Convert MAP"]
+    V_Spat["Validate SPaT"] --> C_Spat["Convert SPaT"]
+    V_Bsm["Validate BSM"] --> C_Bsm["Convert BSM"]
+    V_Psm["Validate PSM"] --> C_Psm["Convert PSM"]
+    V_Rtcm["Validate RTCM"] --> C_Rtcm["Convert RTCM"]
+    V_Srm["Validate SRM"] --> C_Srm["Convert SRM"]
+    V_Ssm["Validate SSM"] --> C_Ssm["Convert SSM"]
+    V_Tim["Validate TIM"] --> C_Tim["Convert TIM"]
 end
 
 %% Column 3: Output Topics
@@ -649,7 +649,7 @@ Example `ProcessedSsm` message:
 
 The GeoJSON Converter produces `ProcessedTim` messages from `TravelerInformationMessage` (TIM) message frames received from the ODE.
 
-The ODE TIMs are not yet being validated in the GeoJsonConverter as this will be implemented in a following work item. Validation of messages will use best practices guidance from either the Interoperability Technical Working Group (ITWG) or Connecting The West (CTW) best practices.
+ODE TIMs are structurally validated against the TIM JSON schema. Content-level validation against Interoperability Technical Working Group (ITWG) or Connecting The West (CTW) best practices is planned for a follow-up work item.
 
 #### Transformation Process
 
@@ -658,7 +658,8 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
 1. **Message Structure**: The `ProcessedTim` is a single JSON object containing:
    - Root-level metadata (message type, timestamps, origin IP, ASN.1 data, etc.)
    - A `dataFrameFeatureCollection` containing GeoJSON Feature objects, one for each dataframe within the incoming TIM.
-   - A `location` field (Point geometry) for MongoDB 2D sphere indexing
+   - A `location` field containing a representative region-anchor point for coarse MongoDB 2dsphere indexing
+   - Optional IEEE 1609.2 signed-message metadata, including certificate validity timestamps when supplied by the ODE
    - Compliance information for validation tracking.
 
 2. **Data Frame to Feature Conversion**: Each `TravelerDataFrame` in the TIM message becomes a GeoJSON Feature in the `dataFrameFeatureCollection`:
@@ -667,19 +668,21 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
    - Properties are extracted from the data frame metadata and content
 
 3. **Region Geometry Processing**: Regions within each data frame are converted to GeoJSON geometries based on their type:
-   - **PATH**: Converted to `LineString` geometry using offset path calculations from the anchor point
+   - **PATH**: Converted to `LineString` geometry from LL/XY offsets or explicit LL latitude/longitude nodes
    - **CIRCLE**: Converted to `Polygon` geometry using UTM coordinate transformations for accurate geodetic calculations. The circle is approximated with an adaptive number of points based on diameter (12-64 points)
    - **POLYGON**: Converted to `Polygon` geometry from closed paths
    - If a data frame contains multiple regions, they are combined into `MultiLineString` or `MultiPolygon` geometries
 
-4. **Offset Path Processing**: For PATH regions, coordinates are calculated using:
-   - An anchor point (absolute lat/lon) as the starting coordinate
-   - Offset nodes (LL or XY format) that are accumulated from the anchor
+4. **Path Processing**: For PATH regions, coordinates are calculated using:
+   - An anchor point (absolute lat/lon) as the starting coordinate when one is present
+   - LL or XY offset nodes accumulated from an anchor; LL offsets may also follow an explicit absolute LL node
+   - Explicit LL latitude/longitude nodes, which can establish a path without an anchor
    - Zoom scaling factors (2^scale) applied to offset calculations
-   - Support for both latitude/longitude (LL) and Cartesian (XY) coordinate systems
+   - Computed lanes and legacy `oldRegion` definitions are not currently supported
 
 5. **Content Processing**: The content field is processed to extract:
-   - **ITIS Codes**: Converted to both numeric codes and human-readable phrases using ITIS code lookup
+   - **ITIS Codes**: Converted to both numeric codes and human-readable phrases using the generated J2735 `ITIScodes` POJO from `jpo-asn-pojos`
+   - **Unknown ITIS Codes**: Preserved numerically and assigned the phrase `unknown`; new standard codes are added by updating the J2735 ASN.1 bundle in `jpo-asn-pojos`
    - **Text Content**: Plain text items are preserved as-is
    - **Content Type**: Determined from the frame type (ADVISORY, ROAD_SIGNAGE, or COMMERCIAL_SIGNAGE)
    - **Combined Sentence**: All content items are concatenated in order to form a readable sentence
@@ -688,6 +691,7 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
    - Start time: Derived from `startYear` and `startTime` (MinuteOfTheYear), or defaults to ODE receive time
    - End time: Calculated by adding `durationTime` (in minutes) to the start time
    - Infinite duration: If `durationTime` equals 32000, the validity period is marked as infinite with an end time of 9999-12-31T23:59:59Z
+   - This period describes TIM applicability, not certificate validity. When present, signature generation time and certificate validity are reported separately in root-level `signedDataMetadata`; `isCertPresent` records whether the incoming message included the certificate.
 
 7. **Region Information Extraction**: For each region, the following information is extracted:
    - **Region Type**: Determined by checking for circle geometry, closed path flag, or path existence
@@ -695,21 +699,21 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
    - **Lane Width Profile**: Default width from region, plus node-level width offsets (for PATH regions only)
    - **Direction Information**: Either directionality (forward/backward/both) or heading sectors (bitstring converted to heading ranges)
 
-8. **Location Calculation**: The `location` field is calculated as the geographic center point of all anchor points from all regions across all data frames, using a simple average of coordinates.
+8. **Representative Location Calculation**: The `location` field is the simple average of all valid region anchors across the data frames. It supports coarse containment or proximity filtering only; it may fall outside the rendered TIM geometry, so consumers must use `dataFrameFeatureCollection` for geometry intersection or roadway-traversal queries. The field is omitted when no valid anchors are available.
 
-9. **Compliance Information**: Compliance tracking includes:
+9. **Compliance Information**: Structural schema-compliance tracking includes:
    - Standard type (currently ITWG, with CTW planned for future)
    - Compliance status (true if no validation messages)
    - List of validation messages if any issues are found
+   - Full content-level ITWG/CTW best-practice checking is not yet implemented
 
 10. **Kafka Key Generation**: ProcessedTim messages have an `RsuTimKey` containing:
     - RSU IP address (originIp)
     - Packet ID (from the TIM message)
     - Message count (msgCnt)
-    and are partitioned using the `RsuTimParitioner` as follows:
-    - If the RSU ID/originIp is present, it is partitioned on
-    - If RSU ID is missing, Packet ID is partitioned on
-    - If both are missing, the default murmur2 hash partitioning is used
+    and are partitioned using the `RsuTimPartitioner` as follows:
+    - If the RSU ID/origin IP is present, messages are grouped by that value
+    - If the RSU ID is missing, the complete serialized key is distributed with Kafka's Murmur2 hash; Packet ID is not used alone because it is unique per TIM and provides no useful grouping
 
 [ProcessedTim schema can be found here.](<jpo-geojsonconverter/src/main/resources/schemas/processed-tim.schema.json>)
 
@@ -976,7 +980,7 @@ A GitHub token is required to pull artifacts from GitHub repositories. This is r
 6. Click "Generate token" and copy the token.
 7. Copy the token name and token value into your `.env` file.
 8. Create a copy of [settings.xml](jpo-geojsonconverter/settings.xml) and save it to `~/.m2/settings.xml`
-9. Update the variables in your `~/.m2/settings.xml` with the token value and target jpo-ode organization. Here is an example filled in `settings.xml` file:
+9. Set `MAVEN_GITHUB_TOKEN` to the token value and `MAVEN_GITHUB_ORG` to the organization that publishes the selected `jpo-ode` dependency. This branch uses `jpo-ode` version `7.0.0-alpha1`, which is published under `CDOT-CV`; use `usdot-jpo-ode` for versions published by the upstream organization. The repository's [settings.xml](jpo-geojsonconverter/settings.xml) reads both variables:
 
 ```XML
 <?xml version="1.0" encoding="UTF-8"?>
@@ -987,8 +991,8 @@ A GitHub token is required to pull artifacts from GitHub repositories. This is r
     <servers>
         <server>
             <id>github</id>
-            <username>jpo_geojsonconverter</username>
-            <password>ghp_token-string-value</password>
+            <username>YOUR_GITHUB_USERNAME</username>
+            <password>${env.MAVEN_GITHUB_TOKEN}</password>
         </server>
     </servers>
     <profiles>
@@ -998,7 +1002,7 @@ A GitHub token is required to pull artifacts from GitHub repositories. This is r
                 <repository>
                     <id>github</id>
                     <name>GitHub Apache Maven Packages</name>
-                    <url>https://maven.pkg.github.com/usdot-jpo-ode/jpo-ode</url>
+                    <url>https://maven.pkg.github.com/${env.MAVEN_GITHUB_ORG}/jpo-ode</url>
                     <snapshots>
                         <enabled>false</enabled>
                     </snapshots>
@@ -1008,6 +1012,28 @@ A GitHub token is required to pull artifacts from GitHub repositories. This is r
     </profiles>
 </settings>
 ```
+
+#### Non-Docker build and test
+
+From the `jpo-geojsonconverter` module directory, export the package credentials and run the Maven wrapper. `verify` compiles the application and runs the complete unit-test suite.
+
+Linux/macOS:
+
+```bash
+export MAVEN_GITHUB_TOKEN="YOUR_TOKEN"
+export MAVEN_GITHUB_ORG="CDOT-CV"
+./mvnw --settings settings.xml clean verify
+```
+
+Windows PowerShell:
+
+```powershell
+$env:MAVEN_GITHUB_TOKEN = "YOUR_TOKEN"
+$env:MAVEN_GITHUB_ORG = "CDOT-CV"
+.\mvnw.cmd --settings settings.xml clean verify
+```
+
+To run one test class while iterating, replace `clean verify` with `-Dtest=TimGeometryConverterTest test`.
 
 #### Step 4 - Build and run jpo-geojsonconverter application
 

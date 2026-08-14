@@ -4,12 +4,19 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Kafka key for TIM messages. Partition on RSU ID, with TIM-specific fields for better message organization.
+ * Kafka key for TIM messages. Messages are grouped by RSU when the ODE supplies a stable RSU identifier; otherwise,
+ * the full key is hashed by {@link RsuTimPartitioner}.
+ *
+ * <p>The no-argument constructor is required by the JSON serde when Kafka keys are deserialized. Application code
+ * should use a value-setting constructor when creating a new key.
  */
 @Data
 @NoArgsConstructor
 public class RsuTimKey implements RsuIdKey {
 
+    /**
+     * The ODE metadata {@code originIp} for RSU-originated TIMs, or another stable RSU identifier if the source evolves.
+     */
     private String rsuId;
     private String packetId;
     private Integer msgCnt;

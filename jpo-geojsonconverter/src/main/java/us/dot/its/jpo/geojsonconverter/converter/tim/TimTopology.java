@@ -12,6 +12,7 @@ import org.apache.kafka.streams.kstream.Produced;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuTimKey;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuTimPartitioner;
 import us.dot.its.jpo.geojsonconverter.pojos.common.DeserializedRawMessageFrame;
+import us.dot.its.jpo.geojsonconverter.pojos.common.Ieee1609Dot2MetadataExtractor;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
 import us.dot.its.jpo.geojsonconverter.serialization.JsonSerdes;
 import us.dot.its.jpo.geojsonconverter.validator.JsonValidatorResult;
@@ -41,6 +42,8 @@ public class TimTopology {
                         JsonValidatorResult validationResults = timJsonValidator.validate(value.get());
                         deserializedRawMessageFrame
                                 .setOdeMessageFrameData(serde.deserializer().deserialize(timOdeJsonTopic, value.get()));
+                        deserializedRawMessageFrame.setSignedDataMetadata(
+                                Ieee1609Dot2MetadataExtractor.extractSignedDataMetadata(value.get()));
                         deserializedRawMessageFrame.setValidationResults(validationResults);
                         log.debug(validationResults.describeResults());
                     } catch (Exception e) {

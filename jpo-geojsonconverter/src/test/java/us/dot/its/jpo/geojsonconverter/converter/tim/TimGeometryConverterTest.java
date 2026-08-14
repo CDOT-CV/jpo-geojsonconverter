@@ -2,6 +2,7 @@ package us.dot.its.jpo.geojsonconverter.converter.tim;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -189,13 +190,13 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testCalculateCenterLocationFromRegions() {
+    public void testCalculateCenterLocationFromRegionAnchors() {
         // Extract ASN.1 data
         TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
         TravelerInformation travelerInfo = messageFrame.getValue();
 
         // Test center location calculation
-        Point centerPoint = geometryConverter.calculateCenterLocationFromRegions(travelerInfo);
+        Point centerPoint = geometryConverter.calculateCenterLocationFromRegionAnchors(travelerInfo);
 
         // Verify center point calculation
         assertNotNull(centerPoint);
@@ -206,6 +207,20 @@ public class TimGeometryConverterTest {
         double y = centerPoint.getY();
         assertTrue(x >= -180.0 && x <= 180.0, "Invalid longitude: " + x);
         assertTrue(y >= -90.0 && y <= 90.0, "Invalid latitude: " + y);
+    }
+
+    @Test
+    public void testCalculateCenterLocationReturnsNullWithoutAnchors() {
+        TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
+        TravelerInformation travelerInfo = messageFrame.getValue();
+
+        for (TravelerDataFrame dataFrame : travelerInfo.getDataFrames()) {
+            if (dataFrame.getRegions() != null) {
+                dataFrame.getRegions().forEach(region -> region.setAnchor(null));
+            }
+        }
+
+        assertNull(geometryConverter.calculateCenterLocationFromRegionAnchors(travelerInfo));
     }
 
     @Test

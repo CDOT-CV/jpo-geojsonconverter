@@ -1,11 +1,13 @@
 package us.dot.its.jpo.geojsonconverter.converter.tim;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -14,9 +16,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.*;
+import us.dot.its.jpo.geojsonconverter.DateJsonMapper;
 import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuTimKey;
 import us.dot.its.jpo.geojsonconverter.pojos.common.DeserializedRawMessageFrame;
+import us.dot.its.jpo.geojsonconverter.pojos.common.Ieee1609Dot2MetadataExtractor;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
 import us.dot.its.jpo.geojsonconverter.validator.JsonValidatorResult;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedRegionType;
@@ -99,6 +103,47 @@ public class TimProcessedJsonConverterTest {
 
         // Verify coordinate transformation accuracy
         validateCoordinateTransformation(timMF, processedTim);
+    }
+
+    @Test
+    public void testApplyPreservesIeee1609Dot2Metadata() throws IOException {
+        byte[] signedMetadataJson = Files.readAllBytes(Paths.get("src/test/resources/json/signed-data-metadata.json"));
+        DeserializedRawMessageFrame deserializedRawTim = new DeserializedRawMessageFrame();
+        deserializedRawTim.setOdeMessageFrameData(timMF);
+        deserializedRawTim.setSignedDataMetadata(
+                Ieee1609Dot2MetadataExtractor.extractSignedDataMetadata(signedMetadataJson));
+        deserializedRawTim.setValidationFailure(false);
+        deserializedRawTim.setValidationResults(new JsonValidatorResult());
+        timMF.getMetadata().setCertPresent(true);
+
+        KeyValue<RsuTimKey, ProcessedTim> result = timProcessedJsonConverter.apply(null, deserializedRawTim);
+
+        assertNotNull(result.value.getSignedDataMetadata());
+        assertEquals(32, result.value.getSignedDataMetadata().getPsid());
+        assertEquals(Instant.parse("2026-05-15T18:30:13.894Z"),
+                result.value.getSignedDataMetadata().getGenerationTime());
+        assertEquals(Instant.parse("2026-05-14T10:28:01Z"),
+                result.value.getSignedDataMetadata().getCertificateValidityStart());
+        assertEquals(Instant.parse("2026-06-11T11:28:01Z"),
+                result.value.getSignedDataMetadata().getCertificateValidityEnd());
+        assertTrue(result.value.isCertPresent());
+        String processedTimJson = DateJsonMapper.getInstance().writeValueAsString(result.value);
+        assertTrue(processedTimJson.contains("\"signedDataMetadata\""));
+        assertTrue(processedTimJson.contains("\"isCertPresent\":true"));
+    }
+
+    @Test
+    public void testApplyOmitsAbsentIeee1609Dot2SignedDataMetadata() throws IOException {
+        DeserializedRawMessageFrame deserializedRawTim = new DeserializedRawMessageFrame();
+        deserializedRawTim.setOdeMessageFrameData(timMF);
+        deserializedRawTim.setValidationFailure(false);
+        deserializedRawTim.setValidationResults(new JsonValidatorResult());
+
+        KeyValue<RsuTimKey, ProcessedTim> result = timProcessedJsonConverter.apply(null, deserializedRawTim);
+
+        assertNull(result.value.getSignedDataMetadata());
+        String processedTimJson = DateJsonMapper.getInstance().writeValueAsString(result.value);
+        assertFalse(processedTimJson.contains("\"signedDataMetadata\""));
     }
 
     @Test

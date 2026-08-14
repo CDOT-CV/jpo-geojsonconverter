@@ -1,6 +1,27 @@
 {
   "$schema" : "https://json-schema.org/draft/2020-12/schema",
   "$defs" : {
+    "Ieee1609Dot2SignedDataMetadata" : {
+      "type" : "object",
+      "properties" : {
+        "certificateValidityEnd" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "certificateValidityStart" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "generationTime" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "psid" : {
+          "type" : "integer",
+          "format" : "int32"
+        }
+      }
+    },
     "Point-1" : {
       "type" : "object",
       "properties" : {
@@ -254,6 +275,9 @@
     "dataFrameFeatureCollection" : {
       "$ref" : "#/$defs/ProcessedTimFeatureCollection"
     },
+    "isCertPresent" : {
+      "type" : "boolean"
+    },
     "location" : {
       "$ref" : "#/$defs/Point-2"
     },
@@ -276,6 +300,9 @@
     "schemaVersion" : {
       "type" : "integer",
       "format" : "int32"
+    },
+    "signedDataMetadata" : {
+      "$ref" : "#/$defs/Ieee1609Dot2SignedDataMetadata"
     },
     "timeStamp" : {
       "type" : "string",

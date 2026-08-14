@@ -2,6 +2,7 @@ package us.dot.its.jpo.geojsonconverter.pojos.tim;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -14,6 +15,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import us.dot.its.jpo.geojsonconverter.DateJsonMapper;
+import us.dot.its.jpo.geojsonconverter.pojos.common.Ieee1609Dot2SignedDataMetadata;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedTimFeatureCollection;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
 
@@ -29,6 +31,10 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
  * originIp - The IP address the origin OdeTimJson message was received from
  * <p>
  * asn1 - The ASN.1 encoded string of the origin J2735 TIM message
+ * <p>
+ * signedDataMetadata - IEEE 1609.2 signed-message metadata, when supplied by the ODE
+ * <p>
+ * isCertPresent - Whether the signing certificate was included with the incoming message
  * <p>
  * msgCnt - The message count of the TIM
  * <p>
@@ -51,16 +57,28 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
 @Slf4j
 public class ProcessedTim {
     private int schemaVersion = 1;
-    private String messageType = "TIM";
+    private final String messageType = "TIM";
     private String odeReceivedAt;
     private String originIp;
     private String asn1;
+    private Ieee1609Dot2SignedDataMetadata signedDataMetadata;
+    private boolean certPresent;
     private Integer msgCnt;
     private ZonedDateTime timeStamp;
     private String packetId;
     private Point location;
     private List<ProcessedTimCompliance> compliance;
     private ProcessedTimFeatureCollection dataFrameFeatureCollection;
+
+    @JsonProperty("isCertPresent")
+    public boolean isCertPresent() {
+        return certPresent;
+    }
+
+    @JsonProperty("isCertPresent")
+    public void setCertPresent(boolean certPresent) {
+        this.certPresent = certPresent;
+    }
 
     @Override
     public String toString() {

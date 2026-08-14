@@ -29,6 +29,7 @@ import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformation;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.WorkZoneSequence;
 import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
 import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
+import us.dot.its.jpo.geojsonconverter.pojos.common.Ieee1609Dot2SignedDataMetadata;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Geometry;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.*;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.OffsetInformation;
@@ -66,8 +67,22 @@ public class TimConverter {
      * @return Processed TIM object
      */
     public ProcessedTim createProcessedTim(TravelerInformation travelerInfo, OdeMessageFrameMetadata metadata) {
+        return createProcessedTim(travelerInfo, metadata, null);
+    }
+
+    /**
+     * Create a processed TIM object from ASN.1 data and optional IEEE 1609.2
+     * signed-message metadata.
+     *
+     * @param travelerInfo The ASN.1 TravelerInformation object
+     * @param metadata The ODE message frame metadata
+     * @param signedDataMetadata IEEE 1609.2 signed-data metadata from the raw ODE frame
+     * @return Processed TIM object
+     */
+    public ProcessedTim createProcessedTim(TravelerInformation travelerInfo, OdeMessageFrameMetadata metadata,
+            Ieee1609Dot2SignedDataMetadata signedDataMetadata) {
         ZonedDateTime odeDate = Instant.parse(metadata.getOdeReceivedAt()).atZone(ZoneId.of(UTC_ZONE_ID));
-        ProcessedTim processedTim = initializeProcessedTim(metadata, travelerInfo, odeDate);
+        ProcessedTim processedTim = initializeProcessedTim(metadata, travelerInfo, odeDate, signedDataMetadata);
 
         setComplianceInformation(processedTim);
         setBasicTimProperties(processedTim, travelerInfo);
@@ -96,11 +111,13 @@ public class TimConverter {
      * Initialize the basic ProcessedTim object with metadata and timestamp.
      */
     private ProcessedTim initializeProcessedTim(OdeMessageFrameMetadata metadata, TravelerInformation travelerInfo,
-            ZonedDateTime odeDate) {
+            ZonedDateTime odeDate, Ieee1609Dot2SignedDataMetadata signedDataMetadata) {
         ProcessedTim processedTim = new ProcessedTim();
         processedTim.setOdeReceivedAt(metadata.getOdeReceivedAt());
         processedTim.setOriginIp(metadata.getOriginIp());
         processedTim.setAsn1(metadata.getAsn1());
+        processedTim.setSignedDataMetadata(signedDataMetadata);
+        processedTim.setCertPresent(metadata.isCertPresent());
 
         ZonedDateTime creationTimestamp =
                 J2735DateTimeConverter.generateUTCTimestamp(travelerInfo.getTimeStamp(), odeDate);
@@ -113,7 +130,8 @@ public class TimConverter {
      * Set compliance information for the processed TIM.
      */
     private void setComplianceInformation(ProcessedTim processedTim) {
-        // TODO: Add CTW compliance information
+        // Initialize structural ITWG compliance. jsonValidation(...) records schema failures below.
+        // TODO: Add content-level ITWG/CTW best-practice validation in the planned TIM validator.
         List<ProcessedTimCompliance> complianceList = new ArrayList<>();
         ProcessedTimCompliance compliance = new ProcessedTimCompliance();
         compliance.setStandard(ProcessedTimCompliance.Standard.ITWG);
@@ -157,16 +175,19 @@ public class TimConverter {
     }
 
     /**
-     * Set the location field for MongoDB 2D sphere indexing. Using a calculated center location from the regions.
+     * Set the representative region-anchor location used for coarse MongoDB 2dsphere indexing.
      */
     private void setLocation(ProcessedTim processedTim, TravelerInformation travelerInfo) {
         try {
-            Point jtsPoint = geometryProcessor.calculateCenterLocationFromRegions(travelerInfo);
+            Point jtsPoint = geometryProcessor.calculateCenterLocationFromRegionAnchors(travelerInfo);
             if (jtsPoint != null) {
                 // Convert JTS Point to GeoJSON Point
                 us.dot.its.jpo.geojsonconverter.pojos.geojson.Point geoJsonPoint =
                         new us.dot.its.jpo.geojsonconverter.pojos.geojson.Point(jtsPoint.getX(), jtsPoint.getY());
                 processedTim.setLocation(geoJsonPoint);
+            } else {
+                log.warn("Omitting TIM location because no representative region-anchor point could be calculated; packetId={}",
+                        processedTim.getPacketId());
             }
         } catch (Exception e) {
             log.error("Error calculating center location: {}", e.getMessage(), e);
@@ -724,7 +745,7 @@ public class TimConverter {
         }
 
         // Get the first compliance object (ITWG standard)
-        ProcessedTimCompliance compliance = processedTim.getCompliance().get(0);
+        ProcessedTimCompliance compliance = processedTim.getCompliance().getFirst();
 
         for (Exception exception : validatorResult.getExceptions()) {
             var msg = new ProcessedValidationMessage();

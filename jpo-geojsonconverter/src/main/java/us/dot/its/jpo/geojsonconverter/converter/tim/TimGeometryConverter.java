@@ -137,12 +137,17 @@ public class TimGeometryConverter {
     }
 
     /**
-     * Calculate the center location from all regions' anchor points in the TIM message.
+     * Calculate a representative location from all valid region anchors in the TIM message.
+     *
+     * <p>This point is intended for coarse geospatial indexing. It is not the centroid of the
+     * complete TIM geometry, and callers should use the feature geometries for intersection or
+     * roadway-traversal queries.
      *
      * @param travelerInfo The ASN.1 TravelerInformation object
-     * @return JTS Point representing the center location, or null if no regions found
+     * @return JTS Point representing the average region-anchor location, or {@code null} when no
+     *         valid anchors are available
      */
-    public Point calculateCenterLocationFromRegions(TravelerInformation travelerInfo) {
+    public Point calculateCenterLocationFromRegionAnchors(TravelerInformation travelerInfo) {
         List<List<Double>> coordinates = new ArrayList<>();
 
         if (travelerInfo.getDataFrames() != null) {
@@ -162,22 +167,24 @@ public class TimGeometryConverter {
             }
         }
 
-        // Calculate center location using Geotools GeodeticCalculator
         if (coordinates.isEmpty()) {
+            log.warn("Cannot calculate a representative TIM location: no valid region anchors were found");
             return null;
         }
 
-        // Calculate center point (simple average)
-        double centerLat = coordinates.stream().filter(coord -> coord != null && coord.size() >= 2)
-                .mapToDouble(coord -> coord.get(1)) // latitude
-                .average().orElse(0.0);
+        var averageLatitude = coordinates.stream().filter(coord -> coord != null && coord.size() >= 2)
+                .mapToDouble(coord -> coord.get(1)).average();
+        var averageLongitude = coordinates.stream().filter(coord -> coord != null && coord.size() >= 2)
+                .mapToDouble(coord -> coord.get(0)).average();
 
-        double centerLon = coordinates.stream().filter(coord -> coord != null && coord.size() >= 2)
-                .mapToDouble(coord -> coord.get(0)) // longitude
-                .average().orElse(0.0);
+        if (averageLatitude.isEmpty() || averageLongitude.isEmpty()) {
+            log.warn("Cannot calculate a representative TIM location: region anchors contained no usable coordinates");
+            return null;
+        }
 
         // Create Point geometry using JTS GeometryFactory
-        return new GeometryFactory().createPoint(new Coordinate(centerLon, centerLat));
+        return new GeometryFactory().createPoint(new Coordinate(averageLongitude.getAsDouble(),
+                averageLatitude.getAsDouble()));
     }
 
     /**
@@ -231,15 +238,10 @@ public class TimGeometryConverter {
      * Create geometry based on the region type.
      */
     private Geometry createGeometryByType(List<List<Double>> coordinates, ProcessedRegionType regionType) {
-        switch (regionType) {
-            case CIRCLE:
-            case POLYGON:
-                return createPolygonFromCoordinates(coordinates);
-            case PATH:
-            case UNKNOWN:
-            default:
-                return createLineStringFromCoordinates(coordinates);
-        }
+        return switch (regionType) {
+            case CIRCLE, POLYGON -> createPolygonFromCoordinates(coordinates);
+            case PATH, UNKNOWN -> createLineStringFromCoordinates(coordinates);
+        };
     }
 
     /**
@@ -584,19 +586,23 @@ public class TimGeometryConverter {
 
             // Handle LL (Latitude/Longitude) coordinates
             if (path.getOffset().getLl() != null && path.getOffset().getLl().getNodes() != null) {
-                // Initialize currentCoords with anchor if available, otherwise use default
-                double[] currentCoords =
-                        hasAnchor ? new double[] {anchorLon, anchorLat} : new double[] {0.0, 0.0};
+                double[] currentCoords = hasAnchor ? new double[] {anchorLon, anchorLat} : new double[2];
+                boolean hasCurrentCoordinates = hasAnchor;
+                boolean missingAnchorLogged = false;
 
                 for (var node : path.getOffset().getLl().getNodes()) {
                     if (node.getDelta() != null) {
                         // Check if this is a LatLon node (absolute coordinates) that doesn't need anchor
                         boolean isLatLonNode = node.getDelta().getNode_LatLon() != null;
 
-                        // Process if we have anchor OR if it's a LatLon node (absolute coordinates)
-                        if (hasAnchor || isLatLonNode) {
+                        // An absolute LatLon node establishes a starting coordinate for any following offsets.
+                        if (hasCurrentCoordinates || isLatLonNode) {
                             processLLNode(node.getDelta(), zoomFactor, currentCoords);
+                            hasCurrentCoordinates = true;
                             coordinates.add(Arrays.asList(currentCoords[0], currentCoords[1]));
+                        } else if (!missingAnchorLogged) {
+                            log.warn("Skipping TIM LL offset nodes because the region has no anchor or preceding absolute LatLon node");
+                            missingAnchorLogged = true;
                         }
                     }
                 }
@@ -611,6 +617,8 @@ public class TimGeometryConverter {
                             coordinates.add(Arrays.asList(currentCoords[0], currentCoords[1]));
                         }
                     }
+                } else {
+                    log.warn("Skipping TIM XY offset path because the region has no valid anchor");
                 }
             }
         }
