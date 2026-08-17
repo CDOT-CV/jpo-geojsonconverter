@@ -13,6 +13,7 @@ import org.apache.kafka.streams.KeyValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformationMessageFrame;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuTimKey;
 import us.dot.its.jpo.geojsonconverter.pojos.common.DeserializedRawMessageFrame;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
@@ -66,6 +67,27 @@ public class TimTransformerTest {
         assertNotNull(processedTim.getOdeReceivedAt());
         assertEquals(1, processedTim.getMsgCnt().intValue());
         assertEquals("18D4A500000D7BA133", processedTim.getPacketId());
+    }
+
+    @Test
+    public void testApplyWithMissingPacketIdAndMsgCnt() {
+        TravelerInformationMessageFrame messageFrame =
+                (TravelerInformationMessageFrame) timMF.getPayload().getData();
+        messageFrame.getValue().setPacketID(null);
+        messageFrame.getValue().setMsgCnt(null);
+
+        DeserializedRawMessageFrame deserializedRawTim = new DeserializedRawMessageFrame();
+        deserializedRawTim.setOdeMessageFrameData(timMF);
+        deserializedRawTim.setValidationFailure(false);
+        deserializedRawTim.setValidationResults(new JsonValidatorResult());
+
+        KeyValue<RsuTimKey, ProcessedTim> result = timTransformer.apply(null, deserializedRawTim);
+
+        assertEquals("172.27.0.1", result.key.getRsuId());
+        assertNull(result.key.getPacketId());
+        assertNull(result.key.getMsgCnt());
+        assertNull(result.value.getPacketId());
+        assertNull(result.value.getMsgCnt());
     }
 
     @Test

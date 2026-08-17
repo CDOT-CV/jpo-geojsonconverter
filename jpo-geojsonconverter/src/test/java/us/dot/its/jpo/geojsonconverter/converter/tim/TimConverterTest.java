@@ -14,6 +14,12 @@ import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.GeographicalPath;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerDataFrame;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformation;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformationMessageFrame;
+import us.dot.its.jpo.asn.j2735.r2024.ITIS.ITIScodes;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.ITIStextPhrase;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.SpeedLimit;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.SpeedLimitSequence;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.WorkZone;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.WorkZoneSequence;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.GeometryCollection;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Polygon;
@@ -223,6 +229,63 @@ public class TimConverterTest {
         assertNotNull(processedTim.getCompliance());
         assertTrue(processedTim.getCompliance().size() > 0);
         assertTrue(!processedTim.getCompliance().get(0).isCompliant());
+    }
+
+    @Test
+    public void testConvertsSpeedLimitAndWorkZoneContent() {
+        assertConvertedContent(createSpeedLimitContent(), ProcessedContentType.ROAD_SIGNAGE, "speed-limit Slow down");
+        assertConvertedContent(createWorkZoneContent(), ProcessedContentType.COMMERCIAL_SIGNAGE, "speed-limit Work ahead");
+    }
+
+    private void assertConvertedContent(TravelerDataFrame.ContentChoice content, ProcessedContentType expectedType,
+            String expectedSentence) {
+        travelerInfo.getDataFrames().get(0).setContent(content);
+
+        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, timMF.getMetadata());
+        var convertedContent = processedTim.getDataFrameFeatureCollection().getFeatures().get(0).getProperties()
+                .getContent();
+
+        assertEquals(expectedType, convertedContent.getType());
+        assertEquals(2, convertedContent.getContentItems().size());
+        assertEquals(expectedSentence, convertedContent.getSentence());
+    }
+
+    private TravelerDataFrame.ContentChoice createSpeedLimitContent() {
+        SpeedLimit speedLimit = new SpeedLimit();
+        SpeedLimitSequence itisSequence = new SpeedLimitSequence();
+        SpeedLimitSequence.ItemChoice itisItem = new SpeedLimitSequence.ItemChoice();
+        itisItem.setItis(new ITIScodes(268));
+        itisSequence.setItem(itisItem);
+        speedLimit.add(itisSequence);
+
+        SpeedLimitSequence textSequence = new SpeedLimitSequence();
+        SpeedLimitSequence.ItemChoice textItem = new SpeedLimitSequence.ItemChoice();
+        textItem.setText(new ITIStextPhrase("Slow down"));
+        textSequence.setItem(textItem);
+        speedLimit.add(textSequence);
+
+        TravelerDataFrame.ContentChoice content = new TravelerDataFrame.ContentChoice();
+        content.setSpeedLimit(speedLimit);
+        return content;
+    }
+
+    private TravelerDataFrame.ContentChoice createWorkZoneContent() {
+        WorkZone workZone = new WorkZone();
+        WorkZoneSequence itisSequence = new WorkZoneSequence();
+        WorkZoneSequence.ItemChoice itisItem = new WorkZoneSequence.ItemChoice();
+        itisItem.setItis(new ITIScodes(268));
+        itisSequence.setItem(itisItem);
+        workZone.add(itisSequence);
+
+        WorkZoneSequence textSequence = new WorkZoneSequence();
+        WorkZoneSequence.ItemChoice textItem = new WorkZoneSequence.ItemChoice();
+        textItem.setText(new ITIStextPhrase("Work ahead"));
+        textSequence.setItem(textItem);
+        workZone.add(textSequence);
+
+        TravelerDataFrame.ContentChoice content = new TravelerDataFrame.ContentChoice();
+        content.setWorkZone(workZone);
+        return content;
     }
 
     private static final Long KNOWN_ITIS_CODE_1 = 268L;

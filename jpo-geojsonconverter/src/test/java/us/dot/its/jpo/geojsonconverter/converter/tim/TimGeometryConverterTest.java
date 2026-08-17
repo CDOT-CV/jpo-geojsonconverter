@@ -1,6 +1,7 @@
 package us.dot.its.jpo.geojsonconverter.converter.tim;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -13,6 +14,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.*;
+import us.dot.its.jpo.asn.j2735.r2024.Common.Latitude;
+import us.dot.its.jpo.asn.j2735.r2024.Common.Longitude;
+import us.dot.its.jpo.asn.j2735.r2024.Common.Node_LLmD_64b;
+import us.dot.its.jpo.asn.j2735.r2024.Common.Offset_B10;
+import us.dot.its.jpo.asn.j2735.r2024.Common.OffsetLL_B18;
 import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Geometry;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.GeometryCollection;
@@ -187,6 +193,8 @@ public class TimGeometryConverterTest {
         LineString lineString = (LineString) geometry;
         assertNotNull(lineString.getCoordinates());
         assertTrue(lineString.getCoordinates().length > 0);
+        assertEquals(region.getDescription().getPath().getOffset().getXy().getNodes().size(),
+                lineString.getCoordinates().length);
     }
 
     @Test
@@ -489,5 +497,149 @@ public class TimGeometryConverterTest {
                 }
             }
         }
+    }
+
+    @Test
+    public void testAllLlOffsetChoicesAndAttributesProduceProfiles() {
+        GeographicalPath region = firstRegion();
+        region.getDescription().getPath().setOffset(createLlOffsetChoice(createLlNodes()));
+
+        Geometry geometry = geometryConverter.createGeometryFromRegion(region);
+        assertInstanceOf(LineString.class, geometry);
+        assertEquals(6, ((LineString) geometry).getCoordinates().length);
+
+        var offsets = geometryConverter.extractOffsetInformation(region);
+        assertEquals(1, offsets.getLaneWidthOffsets().size());
+        assertEquals(1, offsets.getElevationOffsets().size());
+
+        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInformation(), timMF.getMetadata());
+        var regionInfo = processedTim.getDataFrameFeatureCollection().getFeatures().get(0).getProperties().getRegionInfoList().get(0);
+        assertEquals(1, regionInfo.getElevationProfile().getNodeElevationMeters().size());
+        assertEquals(1, ((us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedPathRegionInfo) regionInfo)
+                .getLaneWidthProfile().getNodeLaneWidthMeters().size());
+    }
+
+    @Test
+    public void testAbsoluteLlNodeWithoutAnchorProducesLineString() {
+        GeographicalPath region = firstRegion();
+        region.setAnchor(null);
+        NodeOffsetPointLL delta = new NodeOffsetPointLL();
+        Node_LLmD_64b absolute = new Node_LLmD_64b();
+        absolute.setLon(new Longitude(-835566916));
+        absolute.setLat(new Latitude(422427507));
+        delta.setNode_LatLon(absolute);
+        region.getDescription().getPath().setOffset(createLlOffsetChoice(node(delta, null, null)));
+
+        Geometry geometry = geometryConverter.createGeometryFromRegion(region);
+        assertInstanceOf(LineString.class, geometry);
+        double[] coordinate = ((LineString) geometry).getCoordinates()[0];
+        assertEquals(FieldConversions.convertLong(-835566916), coordinate[0], 0.000001);
+        assertEquals(FieldConversions.convertLat(422427507), coordinate[1], 0.000001);
+    }
+
+    @Test
+    public void testRelativeLlNodeWithoutAnchorProducesNoGeometry() {
+        GeographicalPath region = firstRegion();
+        region.setAnchor(null);
+        region.getDescription().getPath().setOffset(createLlOffsetChoice(createLlNodes()[0]));
+
+        assertNull(geometryConverter.createGeometryFromRegion(region));
+    }
+
+    @Test
+    public void testMultipleClosedRegionsProduceClosedMultiPolygon() {
+        TravelerDataFrame dataFrame = travelerInformation().getDataFrames().get(3);
+        TravelerDataFrame.SequenceOfRegions regions = new TravelerDataFrame.SequenceOfRegions();
+        regions.add(dataFrame.getRegions().getFirst());
+        regions.add(dataFrame.getRegions().getFirst());
+        dataFrame.setRegions(regions);
+
+        Geometry geometry = geometryConverter.createGeometryFromDataFrame(dataFrame);
+        assertInstanceOf(MultiPolygon.class, geometry);
+        double[][][][] coordinates = ((MultiPolygon) geometry).getCoordinates();
+        assertEquals(2, coordinates.length);
+        for (double[][][] polygon : coordinates) {
+            double[] first = polygon[0][0];
+            double[] last = polygon[0][polygon[0].length - 1];
+            assertEquals(first[0], last[0], 0.000001);
+            assertEquals(first[1], last[1], 0.000001);
+        }
+    }
+
+    private TravelerInformation travelerInformation() {
+        return ((TravelerInformationMessageFrame) timMF.getPayload().getData()).getValue();
+    }
+
+    private GeographicalPath firstRegion() {
+        return travelerInformation().getDataFrames().getFirst().getRegions().getFirst();
+    }
+
+    private OffsetSystem.OffsetChoice createLlOffsetChoice(NodeLL... nodes) {
+        NodeSetLL nodeSet = new NodeSetLL();
+        for (NodeLL node : nodes) {
+            nodeSet.add(node);
+        }
+        NodeListLL nodeList = new NodeListLL();
+        nodeList.setNodes(nodeSet);
+        OffsetSystem.OffsetChoice offsetChoice = new OffsetSystem.OffsetChoice();
+        offsetChoice.setLl(nodeList);
+        return offsetChoice;
+    }
+
+    private NodeLL[] createLlNodes() {
+        NodeOffsetPointLL ll1 = new NodeOffsetPointLL();
+        Node_LL_24B ll1Value = new Node_LL_24B();
+        ll1Value.setLon(new OffsetLL_B12(1));
+        ll1Value.setLat(new OffsetLL_B12(1));
+        ll1.setNode_LL1(ll1Value);
+
+        NodeOffsetPointLL ll2 = new NodeOffsetPointLL();
+        Node_LL_28B ll2Value = new Node_LL_28B();
+        ll2Value.setLon(new OffsetLL_B14(1));
+        ll2Value.setLat(new OffsetLL_B14(1));
+        ll2.setNode_LL2(ll2Value);
+
+        NodeOffsetPointLL ll3 = new NodeOffsetPointLL();
+        Node_LL_32B ll3Value = new Node_LL_32B();
+        ll3Value.setLon(new OffsetLL_B16(1));
+        ll3Value.setLat(new OffsetLL_B16(1));
+        ll3.setNode_LL3(ll3Value);
+
+        NodeOffsetPointLL ll4 = new NodeOffsetPointLL();
+        Node_LL_36B ll4Value = new Node_LL_36B();
+        ll4Value.setLon(new OffsetLL_B18(1));
+        ll4Value.setLat(new OffsetLL_B18(1));
+        ll4.setNode_LL4(ll4Value);
+
+        NodeOffsetPointLL ll5 = new NodeOffsetPointLL();
+        Node_LL_44B ll5Value = new Node_LL_44B();
+        ll5Value.setLon(new OffsetLL_B22(1));
+        ll5Value.setLat(new OffsetLL_B22(1));
+        ll5.setNode_LL5(ll5Value);
+
+        NodeOffsetPointLL ll6 = new NodeOffsetPointLL();
+        Node_LL_48B ll6Value = new Node_LL_48B();
+        ll6Value.setLon(new OffsetLL_B24(1));
+        ll6Value.setLat(new OffsetLL_B24(1));
+        ll6.setNode_LL6(ll6Value);
+
+        return new NodeLL[] {node(ll1, 1L, 1L), node(ll2, null, null), node(ll3, null, null),
+                node(ll4, null, null), node(ll5, null, null), node(ll6, null, null)};
+    }
+
+    private NodeLL node(NodeOffsetPointLL delta, Long laneWidthOffset, Long elevationOffset) {
+        NodeLL node = new NodeLL();
+        node.setDelta(delta);
+        if (laneWidthOffset != null || elevationOffset != null) {
+            NodeAttributeSetLL attributes = new NodeAttributeSetLL();
+            if (laneWidthOffset != null) {
+                attributes.setDWidth(new Offset_B10(laneWidthOffset));
+            }
+            if (elevationOffset != null) {
+                attributes.setDElevation(new Offset_B10(elevationOffset));
+            }
+            node.setAttributes(attributes);
+        }
+        return node;
     }
 }
