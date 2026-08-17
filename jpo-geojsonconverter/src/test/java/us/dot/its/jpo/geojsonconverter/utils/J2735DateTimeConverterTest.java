@@ -90,6 +90,37 @@ public class J2735DateTimeConverterTest {
     }
 
     @Test
+    public void testGenerateUTCTimestampUsesPreviousYearForLateMoyReceivedOnNewYearsDay() {
+        ZonedDateTime odeReceivedAt = ZonedDateTime.of(2025, 1, 1, 0, 0, 5, 0, ZoneOffset.UTC);
+        MinuteOfTheYear moy = new MinuteOfTheYear(527_039);
+        DSecond dSecond = new DSecond(59_000);
+
+        ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, odeReceivedAt);
+
+        assertEquals(Instant.parse("2024-12-31T23:59:59Z"), result.toInstant());
+    }
+
+    @Test
+    public void testGenerateUTCTimestampKeepsCurrentYearForEarlyMoyOnNewYearsDay() {
+        ZonedDateTime odeReceivedAt = ZonedDateTime.of(2025, 1, 1, 0, 0, 5, 0, ZoneOffset.UTC);
+        MinuteOfTheYear moy = new MinuteOfTheYear(60);
+
+        ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, null, odeReceivedAt);
+
+        assertEquals(Instant.parse("2025-01-01T01:00:05Z"), result.toInstant());
+    }
+
+    @Test
+    public void testGenerateUTCTimestampKeepsExplicitYearAtNewYearBoundary() {
+        ZonedDateTime odeReceivedAt = ZonedDateTime.of(2025, 1, 1, 0, 0, 5, 0, ZoneOffset.UTC);
+        MinuteOfTheYear moy = new MinuteOfTheYear(525_599);
+
+        ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, null, odeReceivedAt, 2026);
+
+        assertEquals(2026, result.getYear());
+    }
+
+    @Test
     public void testGenerateUTCTimestampThreeParameterOverload() {
         // Test the 3-parameter overload
         MinuteOfTheYear moy = new MinuteOfTheYear(2000);

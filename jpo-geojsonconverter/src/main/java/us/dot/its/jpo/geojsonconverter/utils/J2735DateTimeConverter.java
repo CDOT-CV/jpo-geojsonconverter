@@ -14,12 +14,15 @@ import us.dot.its.jpo.asn.j2735.r2024.SPAT.TimeMark;
 @Slf4j
 public class J2735DateTimeConverter {
 
+    private static final int MINUTES_PER_DAY = 24 * 60;
+    private static final int LAST_OR_SECOND_TO_LAST_DAY_OF_YEAR = 365;
+
     /**
      * Generate UTC timestamp from Minute of Year (MOY) and optional DSecond values.
      * 
      * @param moy Minute of Year (minutes from beginning of year)
      * @param dSecond Optional DSecond value (milliseconds in current minute)
-     * @param odeTimestamp ODE received timestamp as fallback
+     * @param odeDate ODE received timestamp as fallback
      * @return ZonedDateTime in UTC
      */
     public static ZonedDateTime generateUTCTimestamp(MinuteOfTheYear moy, DSecond dSecond, ZonedDateTime odeDate,
@@ -28,6 +31,9 @@ public class J2735DateTimeConverter {
         try {
             if (year == null) {
                 year = odeDate.getYear();
+                if (moy != null && isPreviousYearMinuteOfYear(moy, odeDate)) {
+                    year--;
+                }
             }
             String dateString;
             long milliseconds;
@@ -61,23 +67,35 @@ public class J2735DateTimeConverter {
     }
 
     /**
+     * Identifies a message created late in the previous year but received shortly after midnight on New Year's Day.
+     *
+     * <p>J2735 minute-of-year values do not include a year. Treat a value from the last day of a non-leap year (or
+     * either of the final two days of a leap year) as belonging to the previous year when the ODE timestamp is on
+     * January 1. This matches the established {@code FieldConversions.convertMinuteOfYear} behavior.
+     */
+    private static boolean isPreviousYearMinuteOfYear(MinuteOfTheYear moy, ZonedDateTime odeDate) {
+        ZonedDateTime utcOdeDate = odeDate.withZoneSameInstant(ZoneOffset.UTC);
+        long dayOfYear = moy.getValue() / MINUTES_PER_DAY + 1;
+        return utcOdeDate.getDayOfYear() == 1 && dayOfYear >= LAST_OR_SECOND_TO_LAST_DAY_OF_YEAR;
+    }
+
+    /**
      * Generate UTC timestamp from Minute of Year (MOY) and optional DSecond values.
      * 
      * @param moy Minute of Year (minutes from beginning of year)
      * @param dSecond Optional DSecond value (milliseconds in current minute)
-     * @param odeTimestamp ODE received timestamp as fallback
+     * @param odeDate ODE received timestamp as fallback
      * @return ZonedDateTime in UTC
      */
     public static ZonedDateTime generateUTCTimestamp(MinuteOfTheYear moy, DSecond dSecond, ZonedDateTime odeDate) {
-        Integer year = odeDate.getYear();
-        return generateUTCTimestamp(moy, dSecond, odeDate, year);
+        return generateUTCTimestamp(moy, dSecond, odeDate, null);
     }
 
     /**
      * Generate UTC timestamp from optional Minute of Year (MOY) and ODE received timestamp.
      * 
      * @param moy Minute of Year (minutes from beginning of year)
-     * @param odeTimestamp ODE received timestamp as fallback
+     * @param odeDate ODE received timestamp as fallback
      * @return ZonedDateTime in UTC
      */
     public static ZonedDateTime generateUTCTimestamp(MinuteOfTheYear moy, ZonedDateTime odeDate) {
@@ -85,8 +103,7 @@ public class J2735DateTimeConverter {
             return odeDate;
         }
 
-        Integer year = odeDate.getYear();
-        return generateUTCTimestamp(moy, null, odeDate, year);
+        return generateUTCTimestamp(moy, null, odeDate, null);
     }
 
     /**
