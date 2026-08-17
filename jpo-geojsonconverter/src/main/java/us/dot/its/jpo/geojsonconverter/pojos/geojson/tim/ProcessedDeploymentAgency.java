@@ -33,7 +33,6 @@ public enum ProcessedDeploymentAgency {
 
     // roadSignage = STATE_OR_LOCAL_AGENCY
     // commercialSignage = COMMERCIAL_AGENCY
-    @JsonCreator
     public static ProcessedDeploymentAgency fromValue(TravelerInfoType value) {
         if (value == TravelerInfoType.ROADSIGNAGE) {
             return ProcessedDeploymentAgency.STATE_OR_LOCAL;

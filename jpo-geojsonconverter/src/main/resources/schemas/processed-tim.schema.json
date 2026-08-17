@@ -68,6 +68,41 @@
         }
       }
     },
+    "ProcessedCircleRegionInfo-1" : {
+      "type" : "object",
+      "properties" : {
+        "anchorPoint" : {
+          "$ref" : "#/$defs/ProcessedAnchorPoint"
+        },
+        "directionInfo" : {
+          "anyOf" : [ {
+            "$ref" : "#/$defs/ProcessedDirectionalityDirectionInfo-2"
+          }, {
+            "$ref" : "#/$defs/ProcessedHeadingDirectionInfo-2"
+          } ]
+        },
+        "elevationProfile" : {
+          "$ref" : "#/$defs/ProcessedElevationProfile"
+        },
+        "radius" : {
+          "type" : "number",
+          "format" : "double"
+        },
+        "regionType" : {
+          "$ref" : "#/$defs/ProcessedRegionType"
+        }
+      }
+    },
+    "ProcessedCircleRegionInfo-2" : {
+      "$ref" : "#/$defs/ProcessedCircleRegionInfo-1",
+      "type" : "object",
+      "properties" : {
+        "regionType" : {
+          "const" : "CIRCLE"
+        }
+      },
+      "required" : [ "regionType" ]
+    },
     "ProcessedContentType" : {
       "type" : "string",
       "enum" : [ "ADVISORY", "ROAD_SIGNAGE", "COMMERCIAL_SIGNAGE" ]
@@ -76,17 +111,34 @@
       "type" : "string",
       "enum" : [ "STATE_OR_LOCAL", "COMMERCIAL", "UNKNOWN" ]
     },
-    "ProcessedDirectionInfoBase" : {
+    "ProcessedDirectionType" : {
+      "type" : "string",
+      "enum" : [ "DIRECTIONALITY", "HEADING" ]
+    },
+    "ProcessedDirectionality" : {
+      "type" : "string",
+      "enum" : [ "forward", "reverse", "both", "unavailable", "unknown" ]
+    },
+    "ProcessedDirectionalityDirectionInfo-1" : {
       "type" : "object",
       "properties" : {
         "directionType" : {
           "$ref" : "#/$defs/ProcessedDirectionType"
+        },
+        "directionality" : {
+          "$ref" : "#/$defs/ProcessedDirectionality"
         }
       }
     },
-    "ProcessedDirectionType" : {
-      "type" : "string",
-      "enum" : [ "DIRECTIONALITY", "HEADING" ]
+    "ProcessedDirectionalityDirectionInfo-2" : {
+      "$ref" : "#/$defs/ProcessedDirectionalityDirectionInfo-1",
+      "type" : "object",
+      "properties" : {
+        "directionType" : {
+          "const" : "DIRECTIONALITY"
+        }
+      },
+      "required" : [ "directionType" ]
     },
     "ProcessedElevationProfile" : {
       "type" : "object",
@@ -104,14 +156,105 @@
         }
       }
     },
-    "ProcessedRegionInfoBase" : {
+    "ProcessedHeading" : {
+      "type" : "object",
+      "properties" : {
+        "heading" : {
+          "type" : "number",
+          "format" : "double"
+        },
+        "range" : {
+          "type" : "number",
+          "format" : "double"
+        }
+      }
+    },
+    "ProcessedHeadingDirectionInfo-1" : {
+      "type" : "object",
+      "properties" : {
+        "directionType" : {
+          "$ref" : "#/$defs/ProcessedDirectionType"
+        },
+        "headingList" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ProcessedHeading"
+          }
+        }
+      }
+    },
+    "ProcessedHeadingDirectionInfo-2" : {
+      "$ref" : "#/$defs/ProcessedHeadingDirectionInfo-1",
+      "type" : "object",
+      "properties" : {
+        "directionType" : {
+          "const" : "HEADING"
+        }
+      },
+      "required" : [ "directionType" ]
+    },
+    "ProcessedLaneWidthProfile" : {
+      "type" : "object",
+      "properties" : {
+        "defaultWidthMeters" : {
+          "type" : "number",
+          "format" : "double"
+        },
+        "nodeLaneWidthMeters" : {
+          "type" : "array",
+          "items" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        }
+      }
+    },
+    "ProcessedPathRegionInfo-1" : {
       "type" : "object",
       "properties" : {
         "anchorPoint" : {
           "$ref" : "#/$defs/ProcessedAnchorPoint"
         },
         "directionInfo" : {
-          "$ref" : "#/$defs/ProcessedDirectionInfoBase"
+          "anyOf" : [ {
+            "$ref" : "#/$defs/ProcessedDirectionalityDirectionInfo-2"
+          }, {
+            "$ref" : "#/$defs/ProcessedHeadingDirectionInfo-2"
+          } ]
+        },
+        "elevationProfile" : {
+          "$ref" : "#/$defs/ProcessedElevationProfile"
+        },
+        "laneWidthProfile" : {
+          "$ref" : "#/$defs/ProcessedLaneWidthProfile"
+        },
+        "regionType" : {
+          "$ref" : "#/$defs/ProcessedRegionType"
+        }
+      }
+    },
+    "ProcessedPathRegionInfo-2" : {
+      "$ref" : "#/$defs/ProcessedPathRegionInfo-1",
+      "type" : "object",
+      "properties" : {
+        "regionType" : {
+          "const" : "PATH"
+        }
+      },
+      "required" : [ "regionType" ]
+    },
+    "ProcessedPolygonRegionInfo-1" : {
+      "type" : "object",
+      "properties" : {
+        "anchorPoint" : {
+          "$ref" : "#/$defs/ProcessedAnchorPoint"
+        },
+        "directionInfo" : {
+          "anyOf" : [ {
+            "$ref" : "#/$defs/ProcessedDirectionalityDirectionInfo-2"
+          }, {
+            "$ref" : "#/$defs/ProcessedHeadingDirectionInfo-2"
+          } ]
         },
         "elevationProfile" : {
           "$ref" : "#/$defs/ProcessedElevationProfile"
@@ -120,6 +263,16 @@
           "$ref" : "#/$defs/ProcessedRegionType"
         }
       }
+    },
+    "ProcessedPolygonRegionInfo-2" : {
+      "$ref" : "#/$defs/ProcessedPolygonRegionInfo-1",
+      "type" : "object",
+      "properties" : {
+        "regionType" : {
+          "const" : "POLYGON"
+        }
+      },
+      "required" : [ "regionType" ]
     },
     "ProcessedRegionType" : {
       "type" : "string",
@@ -214,13 +367,55 @@
         "regionInfoList" : {
           "type" : "array",
           "items" : {
-            "$ref" : "#/$defs/ProcessedRegionInfoBase"
+            "anyOf" : [ {
+              "$ref" : "#/$defs/ProcessedPathRegionInfo-2"
+            }, {
+              "$ref" : "#/$defs/ProcessedPolygonRegionInfo-2"
+            }, {
+              "$ref" : "#/$defs/ProcessedCircleRegionInfo-2"
+            }, {
+              "$ref" : "#/$defs/ProcessedUnknownRegionInfo-2"
+            } ]
           }
         },
         "validityPeriod" : {
           "$ref" : "#/$defs/ProcessedValidityPeriod"
         }
       }
+    },
+    "ProcessedUnknownRegionInfo-1" : {
+      "type" : "object",
+      "properties" : {
+        "anchorPoint" : {
+          "$ref" : "#/$defs/ProcessedAnchorPoint"
+        },
+        "directionInfo" : {
+          "anyOf" : [ {
+            "$ref" : "#/$defs/ProcessedDirectionalityDirectionInfo-2"
+          }, {
+            "$ref" : "#/$defs/ProcessedHeadingDirectionInfo-2"
+          } ]
+        },
+        "elevationProfile" : {
+          "$ref" : "#/$defs/ProcessedElevationProfile"
+        },
+        "laneWidthProfile" : {
+          "$ref" : "#/$defs/ProcessedLaneWidthProfile"
+        },
+        "regionType" : {
+          "$ref" : "#/$defs/ProcessedRegionType"
+        }
+      }
+    },
+    "ProcessedUnknownRegionInfo-2" : {
+      "$ref" : "#/$defs/ProcessedUnknownRegionInfo-1",
+      "type" : "object",
+      "properties" : {
+        "regionType" : {
+          "const" : "UNKNOWN"
+        }
+      },
+      "required" : [ "regionType" ]
     },
     "ProcessedValidationMessage" : {
       "type" : "object",

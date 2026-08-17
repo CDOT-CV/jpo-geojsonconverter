@@ -25,8 +25,9 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.Geometry;
 @Slf4j
 public class ProcessedTimFeature<G extends Geometry> extends BaseFeature<Integer, G, ProcessedTimProperties> {
 
-    public ProcessedTimFeature(@JsonProperty("id") Integer id, @JsonProperty("geometry") G geometry,
+    @SuppressWarnings("unchecked")
+    public ProcessedTimFeature(@JsonProperty("id") Integer id, @JsonProperty("geometry") Geometry geometry,
             @JsonProperty("properties") ProcessedTimProperties properties) {
-        super(id, geometry, properties);
+        super(id, (G) geometry, properties);
     }
 }

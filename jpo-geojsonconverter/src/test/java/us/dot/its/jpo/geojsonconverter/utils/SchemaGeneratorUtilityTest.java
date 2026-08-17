@@ -45,6 +45,13 @@ public class SchemaGeneratorUtilityTest {
         assertEquals("date-time", utcTimeStampTs.path("format").asText());
         assertFalse(properties.has("getUtcTimeStampTS()"));
         assertFalse(properties.has("class()"));
+
+        File timSchemaFile = outputDir.resolve("processed-tim.schema.json").toFile();
+        assertTrue(timSchemaFile.exists());
+        JsonNode timSchema = mapper.readTree(timSchemaFile);
+        JsonNode directionalityValues = timSchema.path("$defs").path("ProcessedDirectionality").path("enum");
+        assertEquals("forward", directionalityValues.get(0).asText());
+        assertEquals("unknown", directionalityValues.get(4).asText());
     }
 
     @Test
