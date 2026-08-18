@@ -520,6 +520,14 @@ public class TimGeometryConverterTest {
     }
 
     @Test
+    public void testAnchorIsNotTreatedAsPathNodeOffsetInformation() {
+        GeographicalPath region = firstRegion();
+        region.getDescription().getPath().setOffset(createLlOffsetChoice());
+
+        assertNull(geometryConverter.extractOffsetInformation(region));
+    }
+
+    @Test
     public void testAbsoluteLlNodeWithoutAnchorProducesLineString() {
         GeographicalPath region = firstRegion();
         region.setAnchor(null);

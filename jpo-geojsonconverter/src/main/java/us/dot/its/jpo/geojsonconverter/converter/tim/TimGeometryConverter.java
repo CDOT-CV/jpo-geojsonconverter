@@ -139,13 +139,13 @@ public class TimGeometryConverter {
     /**
      * Calculate a representative location from all valid region anchors in the TIM message.
      *
-     * <p>This point is intended for coarse geospatial indexing. It is not the centroid of the
-     * complete TIM geometry, and callers should use the feature geometries for intersection or
-     * roadway-traversal queries.
+     * <p>
+     * This point is intended for coarse geospatial indexing. It is not the centroid of the complete TIM geometry, and
+     * callers should use the feature geometries for intersection or roadway-traversal queries.
      *
      * @param travelerInfo The ASN.1 TravelerInformation object
-     * @return JTS Point representing the average region-anchor location, or {@code null} when no
-     *         valid anchors are available
+     * @return JTS Point representing the average region-anchor location, or {@code null} when no valid anchors are
+     *         available
      */
     public Point calculateCenterLocationFromRegionAnchors(TravelerInformation travelerInfo) {
         List<List<Double>> coordinates = new ArrayList<>();
@@ -183,8 +183,8 @@ public class TimGeometryConverter {
         }
 
         // Create Point geometry using JTS GeometryFactory
-        return new GeometryFactory().createPoint(new Coordinate(averageLongitude.getAsDouble(),
-                averageLatitude.getAsDouble()));
+        return new GeometryFactory()
+                .createPoint(new Coordinate(averageLongitude.getAsDouble(), averageLatitude.getAsDouble()));
     }
 
     /**
@@ -504,7 +504,7 @@ public class TimGeometryConverter {
     }
 
     /**
-     * Process offset path and return both coordinates and offset information.
+     * Process offset path nodes and return their coordinates and offset information.
      * 
      * @param region The geographical path region
      * @param path The offset system path
@@ -524,8 +524,6 @@ public class TimGeometryConverter {
         }
 
         List<PathNodeData> pathData = new ArrayList<>();
-        // Add anchor point with no offsets
-        pathData.add(new PathNodeData(Arrays.asList(anchorLon, anchorLat), null, null));
 
         if (path.getOffset() != null) {
             double[] currentCoords = {anchorLon, anchorLat};
@@ -601,7 +599,8 @@ public class TimGeometryConverter {
                             hasCurrentCoordinates = true;
                             coordinates.add(Arrays.asList(currentCoords[0], currentCoords[1]));
                         } else if (!missingAnchorLogged) {
-                            log.warn("Skipping TIM LL offset nodes because the region has no anchor or preceding absolute LatLon node");
+                            log.warn(
+                                    "Skipping TIM LL offset nodes because the region has no anchor or preceding absolute LatLon node");
                             missingAnchorLogged = true;
                         }
                     }

@@ -108,6 +108,9 @@ public class TimConverterTest {
         assertNotNull(regionInfo.getAnchorPoint());
         assertNotNull(regionInfo.getAnchorPoint().getLatitude());
         assertNotNull(regionInfo.getAnchorPoint().getLongitude());
+        assertNotNull(regionInfo.getAnchorPoint().getElevationMeters());
+        assertEquals(regionInfo.getAnchorPoint().getElevationMeters(),
+                regionInfo.getElevationProfile().getDefaultElevationMeters());
 
         assertInstanceOf(ProcessedDirectionalityDirectionInfo.class, regionInfo.getDirectionInfo());
         ProcessedDirectionalityDirectionInfo directionInfo =
