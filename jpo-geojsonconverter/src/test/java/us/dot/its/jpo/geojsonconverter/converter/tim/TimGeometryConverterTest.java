@@ -509,13 +509,13 @@ public class TimGeometryConverterTest {
         assertEquals(6, ((LineString) geometry).getCoordinates().length);
 
         var offsets = geometryConverter.extractOffsetInformation(region);
-        assertEquals(1, offsets.getLaneWidthOffsets().size());
-        assertEquals(1, offsets.getElevationOffsets().size());
+        assertEquals(6, offsets.getLaneWidthOffsets().size());
+        assertEquals(6, offsets.getElevationOffsets().size());
 
         ProcessedTim processedTim = timConverter.createProcessedTim(travelerInformation(), timMF.getMetadata());
         var regionInfo = processedTim.getDataFrameFeatureCollection().getFeatures().get(0).getProperties().getRegionInfoList().get(0);
-        assertEquals(1, regionInfo.getElevationProfile().getNodeElevationMeters().size());
-        assertEquals(1, ((us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedPathRegionInfo) regionInfo)
+        assertEquals(6, regionInfo.getElevationProfile().getNodeElevationMeters().size());
+        assertEquals(6, ((us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedPathRegionInfo) regionInfo)
                 .getLaneWidthProfile().getNodeLaneWidthMeters().size());
     }
 

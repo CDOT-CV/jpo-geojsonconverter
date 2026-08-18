@@ -3,7 +3,7 @@
     "messageType": "TIM",
     "odeReceivedAt": "2025-10-07T21:40:19.711Z",
     "originIp": "172.27.0.1",
-    "asn1": "001f81b17015e5d818d4a500000d7ba1330f775d9b220200003f4b157e7d004011e94ed2a473397c14bb1e6005dc800c22df18a1bf6ffea39bfe5b85977ecc2d76ca4266715b18b95a86c78278538f4a76952399cbe0a5d8f3002ee4006116f8c50dfb7ff51cdff2dc2cbbf6616bb65213338ad8c5cad4363c13c29c000146a3e1e200fad004306232221040400007e962afcfa008003529da5931e72f88b6a3cc00bb80081e506a76326ebec84432e6c22d467c21fdeb640ce1c9a211d70d90d8b27a20b1607c174641c000146a341e200fad004306232221040400007e962f70fa004003529da59af672f839e83ce805b843c03d4ed2cd7b397c1cf417263e94000041b040a808d4050100001fa58bdc3e801000dca76971269cbdfc3e8f3a016e81e00008b78daf64c53ba67f7f2c071aa5f17106a0690000043608140b40400007e962afcfa008023d29da548e672f829763cc00bb9001845be31437edffd4737fcb70b2efd985aed9484cce2b63172b50d8f04f0a71e94ed2a473397c14bb1e6005dc800c22df18a1bf6ffea39bfe5b85977ecc2d76ca4266715b18b95a86c7827853800028d47c3c401f5a00860c46444200",
+    "asn1": "001f81bc7015e5d818d4a500000d7ba1330f775d9b220200003f4b157e7d004011e94ed2a473397c14bb1e6005dc800c22df18a5bf6ffea0d1959039bfe5b85977ecc2d76ca4666715b1834646a0b95a86c78278538f4a76952399cbe0a5d8f3002ee4006116f8c50dfb7ff55cdff2dc04ce0b2efd985aed9484cce2b63572b50d823ce3c13c29c000146a3e1e200fad004306232221040400007e962afcfa008003529da5931e72f88b6a3cc00bb80081e506a76326ebec84432e6c22d467c21fdeb640ce1c9a211d70d90d8b27a20b1607c174641c000146a341e200fad004306232221040400007e962f70fa004003529da59af672f839e83ce805b843c03d4ed2cd7b397c1cf417263e94000041b040a808d4050100001fa58bdc3e801000dca76971269cbdfc3e8f3a016e81e00008b78daf64c53ba67f7f2c071aa5f17106a0690000043608140b40400007e962afcfa008023d29da548e672f829763cc00bb9001845be31437edffd4737fcb70b2efd985aed9484cce2b63172b50d8f04f0a71e94ed2a473397c14bb1e6005dc800c22df18a1bf6ffea39bfe5b85977ecc2d76ca4266715b18b95a86c7827853800028d47c3c401f5a00860c4644420",
     "msgCnt": 1,
     "timeStamp": "2025-09-26T10:00:19.711Z",
     "packetId": "18D4A500000D7BA133",
@@ -111,7 +111,17 @@
                         {
                             "regionType": "PATH",
                             "elevationProfile": {
-                                "defaultElevationMeters": 368.0
+                                "defaultElevationMeters": 368.0,
+                                "nodeElevationMeters": [
+                                    368.0,
+                                    370.0,
+                                    370.0,
+                                    370.0,
+                                    370.0,
+                                    367.0,
+                                    367.0,
+                                    367.0
+                                ]
                             },
                             "anchorPoint": {
                                 "latitude": 42.2427507,
@@ -123,13 +133,33 @@
                                 "directionality": "forward"
                             },
                             "laneWidthProfile": {
-                                "defaultWidthMeters": 7.5
+                                "defaultWidthMeters": 7.5,
+                                "nodeLaneWidthMeters": [
+                                    7.5,
+                                    8.0,
+                                    8.0,
+                                    8.0,
+                                    8.0,
+                                    8.5,
+                                    8.5,
+                                    8.5
+                                ]
                             }
                         },
                         {
                             "regionType": "PATH",
                             "elevationProfile": {
-                                "defaultElevationMeters": 368.0
+                                "defaultElevationMeters": 368.0,
+                                "nodeElevationMeters": [
+                                    368.0,
+                                    368.0,
+                                    367.0,
+                                    367.0,
+                                    367.0,
+                                    367.0,
+                                    367.0,
+                                    367.0
+                                ]
                             },
                             "anchorPoint": {
                                 "latitude": 42.2427507,
@@ -141,7 +171,17 @@
                                 "directionality": "forward"
                             },
                             "laneWidthProfile": {
-                                "defaultWidthMeters": 7.5
+                                "defaultWidthMeters": 7.5,
+                                "nodeLaneWidthMeters": [
+                                    7.5,
+                                    7.5,
+                                    7.5,
+                                    7.5,
+                                    7.5,
+                                    7.5,
+                                    7.25,
+                                    7.25
+                                ]
                             }
                         }
                     ],

@@ -13,9 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Represents an elevation profile for a TIM region.
  * <p>
- * defaultElevation - The default elevation
+ * defaultElevationMeters - The default elevation
  * <p>
- * segments - List of elevation segments with offsets
+ * nodeElevationMeters - List of calculated elevations for each path node. A null entry means that the absolute
+ * elevation is unknown for that node.
  */
 @Data
 @Generated

@@ -5,7 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * Data structure to hold elevation and lane width offset information.
+ * Data structure to hold elevation and lane width offset information. When present, each list has one entry per path
+ * node; a null entry means that the node does not change that value.
  */
 @Data
 @AllArgsConstructor

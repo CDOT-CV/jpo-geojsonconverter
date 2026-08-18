@@ -108,7 +108,7 @@ public class TimGeometryConverter {
      * Extract elevation and lane width offset information from a region's path.
      *
      * @param region The geographical path region
-     * @return OffsetInformation containing elevation and lane width offsets, or null if no path
+     * @return OffsetInformation containing node-aligned elevation and lane width offsets, or null if no path
      */
     public OffsetInformation extractOffsetInformation(GeographicalPath region) {
         if (region.getDescription() == null || region.getDescription().getPath() == null) {
@@ -120,20 +120,22 @@ public class TimGeometryConverter {
             return null;
         }
 
-        List<Long> elevationOffsets = new ArrayList<>();
-        List<Long> laneWidthOffsets = new ArrayList<>();
+        List<Long> elevationOffsets = new ArrayList<>(pathData.size());
+        List<Long> laneWidthOffsets = new ArrayList<>(pathData.size());
+        boolean hasElevationOffset = false;
+        boolean hasLaneWidthOffset = false;
 
         for (PathNodeData nodeData : pathData) {
-            if (nodeData.getDelevationOffset() != null) {
-                elevationOffsets.add(nodeData.getDelevationOffset());
-            }
-            if (nodeData.getDwidthOffset() != null) {
-                laneWidthOffsets.add(nodeData.getDwidthOffset());
-            }
+            Long elevationOffset = nodeData.getDelevationOffset();
+            Long laneWidthOffset = nodeData.getDwidthOffset();
+            elevationOffsets.add(elevationOffset);
+            laneWidthOffsets.add(laneWidthOffset);
+            hasElevationOffset |= elevationOffset != null;
+            hasLaneWidthOffset |= laneWidthOffset != null;
         }
 
-        return new OffsetInformation(elevationOffsets.isEmpty() ? null : elevationOffsets,
-                laneWidthOffsets.isEmpty() ? null : laneWidthOffsets);
+        return new OffsetInformation(hasElevationOffset ? elevationOffsets : null,
+                hasLaneWidthOffset ? laneWidthOffsets : null);
     }
 
     /**
@@ -332,19 +334,16 @@ public class TimGeometryConverter {
      * @param node The node to extract offsets from
      * @return Array containing [dwidthOffset, delevationOffset] or null if no attributes
      */
-    private long[] extractNodeOffsets(NodeLL node) {
+    private Long[] extractNodeOffsets(NodeLL node) {
         if (node.getAttributes() != null) {
-            long dwidthOffset = 0;
-            long delevationOffset = 0;
+            Long dwidthOffset = node.getAttributes().getDWidth() != null
+                    ? node.getAttributes().getDWidth().getValue()
+                    : null;
+            Long delevationOffset = node.getAttributes().getDElevation() != null
+                    ? node.getAttributes().getDElevation().getValue()
+                    : null;
 
-            if (node.getAttributes().getDWidth() != null) {
-                dwidthOffset = node.getAttributes().getDWidth().getValue();
-            }
-            if (node.getAttributes().getDElevation() != null) {
-                delevationOffset = node.getAttributes().getDElevation().getValue();
-            }
-
-            return new long[] {dwidthOffset, delevationOffset};
+            return new Long[] {dwidthOffset, delevationOffset};
         }
         return null;
     }
@@ -355,19 +354,16 @@ public class TimGeometryConverter {
      * @param node The node to extract offsets from
      * @return Array containing [dwidthOffset, delevationOffset] or null if no attributes
      */
-    private long[] extractNodeOffsets(NodeXY node) {
+    private Long[] extractNodeOffsets(NodeXY node) {
         if (node.getAttributes() != null) {
-            long dwidthOffset = 0;
-            long delevationOffset = 0;
+            Long dwidthOffset = node.getAttributes().getDWidth() != null
+                    ? node.getAttributes().getDWidth().getValue()
+                    : null;
+            Long delevationOffset = node.getAttributes().getDElevation() != null
+                    ? node.getAttributes().getDElevation().getValue()
+                    : null;
 
-            if (node.getAttributes().getDWidth() != null) {
-                dwidthOffset = node.getAttributes().getDWidth().getValue();
-            }
-            if (node.getAttributes().getDElevation() != null) {
-                delevationOffset = node.getAttributes().getDElevation().getValue();
-            }
-
-            return new long[] {dwidthOffset, delevationOffset};
+            return new Long[] {dwidthOffset, delevationOffset};
         }
         return null;
     }
@@ -534,7 +530,7 @@ public class TimGeometryConverter {
                 for (var node : path.getOffset().getLl().getNodes()) {
                     if (node.getDelta() != null) {
                         processLLNode(node.getDelta(), zoomFactor, currentCoords);
-                        long[] offsets = extractNodeOffsets(node);
+                        Long[] offsets = extractNodeOffsets(node);
                         Long dwidthOffset = offsets != null ? offsets[0] : null;
                         Long delevationOffset = offsets != null ? offsets[1] : null;
                         pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,
@@ -547,7 +543,7 @@ public class TimGeometryConverter {
                 for (var node : path.getOffset().getXy().getNodes()) {
                     if (node.getDelta() != null) {
                         processXYNode(node.getDelta(), zoomFactor, currentCoords);
-                        long[] offsets = extractNodeOffsets(node);
+                        Long[] offsets = extractNodeOffsets(node);
                         Long dwidthOffset = offsets != null ? offsets[0] : null;
                         Long delevationOffset = offsets != null ? offsets[1] : null;
                         pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,

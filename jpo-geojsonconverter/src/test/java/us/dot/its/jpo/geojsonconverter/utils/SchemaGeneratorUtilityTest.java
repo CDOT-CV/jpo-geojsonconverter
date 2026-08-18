@@ -52,6 +52,14 @@ public class SchemaGeneratorUtilityTest {
         JsonNode directionalityValues = timSchema.path("$defs").path("ProcessedDirectionality").path("enum");
         assertEquals("forward", directionalityValues.get(0).asText());
         assertEquals("unknown", directionalityValues.get(4).asText());
+        JsonNode elevationTypes = timSchema.path("$defs")
+                .path("ProcessedElevationProfile")
+                .path("properties")
+                .path("nodeElevationMeters")
+                .path("items")
+                .path("type");
+        assertEquals("number", elevationTypes.get(0).asText());
+        assertEquals("null", elevationTypes.get(1).asText());
     }
 
     @Test

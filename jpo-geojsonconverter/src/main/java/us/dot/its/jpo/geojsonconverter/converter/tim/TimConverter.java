@@ -377,21 +377,17 @@ public class TimConverter {
 
         // Populate elevation profile with offset-calculated values
         if (elevationOffsets != null && !elevationOffsets.isEmpty()) {
-            List<Double> nodeElevationMeters = new ArrayList<>();
-            Double defaultElevation = elevationProfile.getDefaultElevationMeters();
+            List<Double> nodeElevationMeters = new ArrayList<>(elevationOffsets.size());
+            Double currentElevation = elevationProfile.getDefaultElevationMeters();
 
             for (Long offset : elevationOffsets) {
-                if (defaultElevation != null) {
-                    Double calculatedElevation = FieldConversions.calculateElevationOffset(defaultElevation, offset);
-                    if (calculatedElevation != null) {
-                        nodeElevationMeters.add(calculatedElevation);
-                    }
+                if (currentElevation != null && offset != null) {
+                    currentElevation = FieldConversions.calculateElevationOffset(currentElevation, offset);
                 }
+                nodeElevationMeters.add(currentElevation);
             }
 
-            if (!nodeElevationMeters.isEmpty()) {
-                elevationProfile.setNodeElevationMeters(nodeElevationMeters);
-            }
+            elevationProfile.setNodeElevationMeters(nodeElevationMeters);
         }
     }
 
@@ -410,21 +406,17 @@ public class TimConverter {
 
         // Populate lane width profile with offset-calculated values
         if (laneWidthOffsets != null && !laneWidthOffsets.isEmpty()) {
-            List<Double> nodeLaneWidthMeters = new ArrayList<>();
-            Double defaultWidth = laneWidthProfile.getDefaultWidthMeters();
+            List<Double> nodeLaneWidthMeters = new ArrayList<>(laneWidthOffsets.size());
+            Double currentWidth = laneWidthProfile.getDefaultWidthMeters();
 
             for (Long offset : laneWidthOffsets) {
-                if (defaultWidth != null) {
-                    Double calculatedWidth = FieldConversions.calculateLaneWidthOffset(defaultWidth, offset);
-                    if (calculatedWidth != null) {
-                        nodeLaneWidthMeters.add(calculatedWidth);
-                    }
+                if (currentWidth != null && offset != null) {
+                    currentWidth = FieldConversions.calculateLaneWidthOffset(currentWidth, offset);
                 }
+                nodeLaneWidthMeters.add(currentWidth);
             }
 
-            if (!nodeLaneWidthMeters.isEmpty()) {
-                laneWidthProfile.setNodeLaneWidthMeters(nodeLaneWidthMeters);
-            }
+            laneWidthProfile.setNodeLaneWidthMeters(nodeLaneWidthMeters);
         }
     }
 
