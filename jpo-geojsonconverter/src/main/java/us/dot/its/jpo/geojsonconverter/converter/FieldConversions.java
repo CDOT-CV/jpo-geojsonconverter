@@ -559,7 +559,8 @@ public class FieldConversions {
 
     /**
      * Parse heading sectors as ranges from Asn1Bitstring, merging adjacent sectors into continuous ranges. Each bit
-     * represents a 22.5-degree sector starting from North (0°) and moving clockwise.
+     * represents a 22.5-degree sector starting from North (0°) and moving clockwise. Sectors that wrap across north
+     * (bits 15 and 0) are merged into one range whose start bit is greater than its end bit.
      *
      * @param directionBitstring The Asn1Bitstring direction field
      * @return Array of heading ranges, where each range is represented as [startBit, endBit] (inclusive)
@@ -593,6 +594,16 @@ public class FieldConversions {
         // Add the last range
         ranges.add(new int[] {rangeStart, rangeEnd});
 
+        if (ranges.size() > 1) {
+            int[] firstRange = ranges.getFirst();
+            int[] lastRange = ranges.getLast();
+            if (firstRange[0] == 0 && lastRange[1] == MAX_HEADING_SECTORS - 1) {
+                ranges.removeLast();
+                ranges.removeFirst();
+                ranges.addFirst(new int[] {lastRange[0], firstRange[1]});
+            }
+        }
+
         return ranges.toArray(new int[0][]);
     }
 
@@ -611,19 +622,18 @@ public class FieldConversions {
      * Convert a range of sector bits to heading degrees and range.
      *
      * @param startBit The starting sector bit position (0-15)
-     * @param endBit The ending sector bit position (0-15, inclusive)
+     * @param endBit The ending sector bit position (0-15, inclusive). When {@code startBit > endBit} the range wraps
+     *        across north.
      * @return Array containing [heading, range] in degrees
      */
     public static double[] sectorRangeToHeadingAndRange(int startBit, int endBit) {
         double startHeading = sectorBitToHeading(startBit);
-        double endHeading = sectorBitToHeading(endBit);
-
-        // Calculate the center heading of the range
-        double centerHeading = (startHeading + endHeading) / 2.0;
-
-        // Calculate the total range (number of sectors * 22.5 degrees)
-        int numberOfSectors = endBit - startBit + 1;
+        boolean wrapsAcrossNorth = startBit > endBit;
+        int numberOfSectors =
+                wrapsAcrossNorth ? (MAX_HEADING_SECTORS - startBit) + (endBit + 1) : endBit - startBit + 1;
         double totalRange = numberOfSectors * HEADING_SECTOR_DEGREES;
+        double centerHeading = wrapsAcrossNorth ? (startHeading + totalRange / 2.0) % 360.0
+                : (startHeading + sectorBitToHeading(endBit)) / 2.0;
 
         return new double[] {centerHeading, totalRange};
     }

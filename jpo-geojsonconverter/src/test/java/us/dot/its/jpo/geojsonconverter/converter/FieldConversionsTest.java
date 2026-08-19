@@ -758,6 +758,27 @@ public class FieldConversionsTest {
         assertThat(result.length, equalTo(0));
     }
 
+    @Test
+    public void testParseHeadingSectorsAsRangesWrapsAcrossNorth() {
+        HeadingSlice wrapAcrossNorth = mock(HeadingSlice.class);
+        when(wrapAcrossNorth.size()).thenReturn(16);
+        when(wrapAcrossNorth.get(0)).thenReturn(true);
+        when(wrapAcrossNorth.get(1)).thenReturn(true);
+        when(wrapAcrossNorth.get(15)).thenReturn(true);
+        for (int i = 2; i < 15; i++) {
+            when(wrapAcrossNorth.get(i)).thenReturn(false);
+        }
+
+        int[][] result = FieldConversions.parseHeadingSectorsAsRanges(wrapAcrossNorth);
+        assertThat(result.length, equalTo(1));
+        assertThat(result[0][0], equalTo(15));
+        assertThat(result[0][1], equalTo(1));
+
+        double[] headingAndRange = FieldConversions.sectorRangeToHeadingAndRange(result[0][0], result[0][1]);
+        assertThat(headingAndRange[0], equalTo(11.25));
+        assertThat(headingAndRange[1], equalTo(67.5));
+    }
+
     // ========== Minute of Year Conversion Tests (with year parameter) ==========
 
     @Test
