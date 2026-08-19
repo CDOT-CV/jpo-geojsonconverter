@@ -669,14 +669,14 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
 
 3. **Region Geometry Processing**: Regions within each data frame are converted to GeoJSON geometries based on their type:
    - **PATH**: Converted to `LineString` geometry from LL/XY offsets or explicit LL latitude/longitude nodes
-   - **CIRCLE**: Converted to `Polygon` geometry using UTM coordinate transformations for accurate geodetic calculations. The circle is approximated with an adaptive number of points based on diameter (12-64 points)
+   - **CIRCLE**: Converted to a WGS84 geodesic `Polygon`, preserving the encoded radius across UTM-zone boundaries. The circle is approximated with an adaptive number of vertices based on diameter (12-64 vertices)
    - **POLYGON**: Converted to `Polygon` geometry from closed paths
-   - If a data frame contains multiple regions, they are combined into `MultiLineString` or `MultiPolygon` geometries
+   - If a data frame contains multiple regions, they are combined in source-region order into `MultiLineString`, `MultiPolygon`, or `GeometryCollection` geometries
 
 4. **Path Processing**: For PATH regions, coordinates are calculated using:
    - An anchor point (absolute lat/lon) as the starting coordinate when one is present
    - LL or XY offset nodes accumulated from an anchor; LL offsets may also follow an explicit absolute LL node
-   - Explicit LL latitude/longitude nodes, which can establish a path without an anchor
+   - Explicit latitude/longitude nodes in LL or XY node lists, which can establish a path without an anchor
    - Zoom scaling factors (2^scale) applied to offset calculations
    - Computed lanes and legacy `oldRegion` definitions are not currently supported
 
@@ -698,6 +698,7 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
    - **Elevation Profile**: Default elevation from anchor point, plus node-level elevation offsets
    - **Lane Width Profile**: Default width from region, plus node-level width offsets (for PATH regions only)
    - **Direction Information**: Either directionality (forward/backward/both) or heading sectors (bitstring converted to heading ranges)
+   - **Geometry Index**: Zero-based position of the region in the feature geometry. For `Multi*` geometries it indexes the corresponding coordinate component; for `GeometryCollection` it indexes `geometries`. It is omitted when a region cannot be converted.
 
 8. **Representative Location Calculation**: The `location` field is the simple average of all valid region anchors across the data frames. It supports coarse containment or proximity filtering only; it may fall outside the rendered TIM geometry, so consumers must use `dataFrameFeatureCollection` for geometry intersection or roadway-traversal queries. The field is omitted when no valid anchors are available.
 

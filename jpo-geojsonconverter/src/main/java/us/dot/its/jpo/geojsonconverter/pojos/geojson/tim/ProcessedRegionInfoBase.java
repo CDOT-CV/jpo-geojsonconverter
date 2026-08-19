@@ -20,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
  * anchorPoint - The anchor point for the region
  * <p>
  * directionInfo - Information about the direction and heading for this region
+ * <p>
+ * geometryIndex - Zero-based index of this region in the feature geometry, or null when no geometry was produced
  */
 @Data
 @Generated
@@ -38,4 +40,5 @@ public abstract class ProcessedRegionInfoBase {
     private ProcessedElevationProfile elevationProfile;
     private ProcessedAnchorPoint anchorPoint;
     private ProcessedDirectionInfoBase directionInfo;
+    private Integer geometryIndex;
 }

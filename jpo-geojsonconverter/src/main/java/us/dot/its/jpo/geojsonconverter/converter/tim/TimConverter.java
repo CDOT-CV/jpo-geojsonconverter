@@ -30,7 +30,6 @@ import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.WorkZoneSequence;
 import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
 import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
 import us.dot.its.jpo.geojsonconverter.pojos.common.Ieee1609Dot2SignedDataMetadata;
-import us.dot.its.jpo.geojsonconverter.pojos.geojson.Geometry;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.*;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.OffsetInformation;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTimCompliance;
@@ -234,12 +233,31 @@ public class TimConverter {
             TravelerDataFrame dataFrame, int featureId) {
         try {
             ProcessedTimProperties properties = createProcessedTimProperties(dataFrame, odeDate);
-            Geometry geometry = geometryProcessor.createGeometryFromDataFrame(dataFrame);
+            TimGeometryResult geometryResult = geometryProcessor.createGeometryResultFromDataFrame(dataFrame);
+            applyRegionGeometryIndices(properties, geometryResult.regionGeometryIndices());
 
-            return new ProcessedTimFeature<>(featureId, geometry, properties);
+            return new ProcessedTimFeature<>(featureId, geometryResult.geometry(), properties);
         } catch (Exception e) {
             log.error("Error creating TIM feature from ASN.1 data: {}", e.getMessage(), e);
             return null;
+        }
+    }
+
+    /** Apply zero-based geometry component indexes to region metadata in source-region order. */
+    private void applyRegionGeometryIndices(ProcessedTimProperties properties, List<Integer> geometryIndices) {
+        List<ProcessedRegionInfoBase> regionInfoList = properties.getRegionInfoList();
+        if (regionInfoList == null) {
+            return;
+        }
+
+        int mappedRegionCount = Math.min(regionInfoList.size(), geometryIndices.size());
+        for (int regionIndex = 0; regionIndex < mappedRegionCount; regionIndex++) {
+            regionInfoList.get(regionIndex).setGeometryIndex(geometryIndices.get(regionIndex));
+        }
+
+        if (regionInfoList.size() != geometryIndices.size()) {
+            log.warn("TIM region metadata count {} does not match geometry mapping count {}", regionInfoList.size(),
+                    geometryIndices.size());
         }
     }
 

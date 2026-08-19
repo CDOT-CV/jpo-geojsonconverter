@@ -3,6 +3,7 @@ package us.dot.its.jpo.geojsonconverter.converter.tim;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,6 +15,7 @@ import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.GeographicalPath;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerDataFrame;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformation;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformationMessageFrame;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.ValidRegion;
 import us.dot.its.jpo.asn.j2735.r2024.ITIS.ITIScodes;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.ITIStextPhrase;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.SpeedLimit;
@@ -198,8 +200,8 @@ public class TimConverterTest {
         GeographicalPath circleRegion = circleFrame.getRegions().get(0);
 
         TravelerDataFrame.SequenceOfRegions mixedRegions = new TravelerDataFrame.SequenceOfRegions();
-        mixedRegions.add(pathRegion);
         mixedRegions.add(circleRegion);
+        mixedRegions.add(pathRegion);
         pathFrame.setRegions(mixedRegions);
 
         // Keep a single data frame for a focused assertion
@@ -216,9 +218,37 @@ public class TimConverterTest {
 
         GeometryCollection collection = (GeometryCollection) feature.getGeometry();
         assertEquals(2, collection.getGeometries().length);
-        assertTrue(collection.getGeometries()[0] instanceof LineString
-                || collection.getGeometries()[1] instanceof LineString);
-        assertTrue(collection.getGeometries()[0] instanceof Polygon || collection.getGeometries()[1] instanceof Polygon);
+        assertInstanceOf(Polygon.class, collection.getGeometries()[0]);
+        assertInstanceOf(LineString.class, collection.getGeometries()[1]);
+        assertInstanceOf(ProcessedCircleRegionInfo.class, feature.getProperties().getRegionInfoList().get(0));
+        assertInstanceOf(ProcessedPathRegionInfo.class, feature.getProperties().getRegionInfoList().get(1));
+        assertEquals(0, feature.getProperties().getRegionInfoList().get(0).getGeometryIndex());
+        assertEquals(1, feature.getProperties().getRegionInfoList().get(1).getGeometryIndex());
+    }
+
+    @Test
+    public void testUnconvertibleRegionRetainsMetadataWithNullGeometryIndex() {
+        TravelerDataFrame pathFrame = findDataFrameWithRegionType(ProcessedRegionType.PATH);
+        GeographicalPath pathRegion = pathFrame.getRegions().getFirst();
+        GeographicalPath unsupportedRegion = new GeographicalPath();
+        GeographicalPath.DescriptionChoice description = new GeographicalPath.DescriptionChoice();
+        description.setOldRegion(new ValidRegion());
+        unsupportedRegion.setDescription(description);
+
+        TravelerDataFrame.SequenceOfRegions regions = new TravelerDataFrame.SequenceOfRegions();
+        regions.add(unsupportedRegion);
+        regions.add(pathRegion);
+        pathFrame.setRegions(regions);
+        while (travelerInfo.getDataFrames().size() > 1) {
+            travelerInfo.getDataFrames().removeLast();
+        }
+
+        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, timMF.getMetadata());
+        ProcessedTimFeature<?> feature = processedTim.getDataFrameFeatureCollection().getFeatures().getFirst();
+        assertInstanceOf(LineString.class, feature.getGeometry());
+        assertEquals(2, feature.getProperties().getRegionInfoList().size());
+        assertNull(feature.getProperties().getRegionInfoList().get(0).getGeometryIndex());
+        assertEquals(0, feature.getProperties().getRegionInfoList().get(1).getGeometryIndex());
     }
 
     @Test

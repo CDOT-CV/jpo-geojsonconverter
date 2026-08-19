@@ -8,17 +8,16 @@ import us.dot.its.jpo.geojsonconverter.pojos.tim.OffsetInformation;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.PathNodeData;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.*;
 import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
-import us.dot.its.jpo.geojsonconverter.utils.*;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.geotools.referencing.GeodeticCalculator;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.util.GeometricShapeFactory;
-import org.locationtech.proj4j.CoordinateTransform;
-import org.locationtech.proj4j.ProjCoordinate;
 
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -93,15 +92,37 @@ public class TimGeometryConverter {
      * @return Appropriate geometry object or null
      */
     public Geometry createGeometryFromDataFrame(TravelerDataFrame dataFrame) {
+        return createGeometryResultFromDataFrame(dataFrame).geometry();
+    }
+
+    /**
+     * Create geometry for a data frame and retain the mapping from each source region to its emitted geometry
+     * component. Regions are converted independently and aggregated in source order.
+     *
+     * @param dataFrame The data frame containing region information
+     * @return Geometry and one component-index entry per source region
+     */
+    TimGeometryResult createGeometryResultFromDataFrame(TravelerDataFrame dataFrame) {
         if (dataFrame.getRegions() == null || dataFrame.getRegions().isEmpty()) {
-            return null;
+            return new TimGeometryResult(null, List.of());
         }
 
-        if (dataFrame.getRegions().size() == 1) {
-            return createGeometryFromRegion(dataFrame.getRegions().get(0));
-        } else {
-            return createMultiGeometryFromRegions(dataFrame.getRegions());
+        List<Geometry> geometries = new ArrayList<>();
+        List<Integer> regionGeometryIndices = new ArrayList<>(dataFrame.getRegions().size());
+
+        for (int regionIndex = 0; regionIndex < dataFrame.getRegions().size(); regionIndex++) {
+            Geometry geometry = createGeometryFromRegion(dataFrame.getRegions().get(regionIndex));
+            if (geometry == null) {
+                regionGeometryIndices.add(null);
+                log.warn("No geometry was produced for TIM region index {}", regionIndex);
+                continue;
+            }
+
+            regionGeometryIndices.add(geometries.size());
+            geometries.add(geometry);
         }
+
+        return new TimGeometryResult(aggregateRegionGeometries(geometries), regionGeometryIndices);
     }
 
     /**
@@ -246,71 +267,32 @@ public class TimGeometryConverter {
         };
     }
 
-    /**
-     * Create MultiLineString, MultiPolygon, or GeometryCollection from multiple regions.
-     * <p>
-     * ITWG best-practice examples may place a path and circle in the same data frame; those are emitted as a
-     * {@link GeometryCollection} rather than a corrupt MultiPolygon of open paths.
-     */
-    private Geometry createMultiGeometryFromRegions(List<GeographicalPath> regions) {
-        List<List<List<Double>>> pathCoordinates = new ArrayList<>();
-        List<List<List<Double>>> polygonCoordinates = new ArrayList<>();
-
-        for (GeographicalPath region : regions) {
-            List<List<Double>> coordinates = extractCoordinatesFromRegion(region);
-            if (coordinates.isEmpty()) {
-                continue;
-            }
-
-            ProcessedRegionType regionType = determineRegionType(region);
-            if (regionType == ProcessedRegionType.CIRCLE || regionType == ProcessedRegionType.POLYGON) {
-                polygonCoordinates.add(coordinates);
-            } else {
-                pathCoordinates.add(coordinates);
-            }
-        }
-
-        boolean hasPaths = !pathCoordinates.isEmpty();
-        boolean hasPolygons = !polygonCoordinates.isEmpty();
-
-        if (!hasPaths && !hasPolygons) {
+    /** Aggregate already-converted region geometries without changing source order. */
+    private Geometry aggregateRegionGeometries(List<Geometry> geometries) {
+        if (geometries.isEmpty()) {
             return null;
         }
-
-        if (hasPaths && hasPolygons) {
-            List<Geometry> geometries = new ArrayList<>();
-            for (List<List<Double>> path : pathCoordinates) {
-                Geometry line = createLineStringFromCoordinates(path);
-                if (line != null) {
-                    geometries.add(line);
-                }
-            }
-            for (List<List<Double>> polygon : polygonCoordinates) {
-                Geometry poly = createPolygonFromCoordinates(polygon);
-                if (poly != null) {
-                    geometries.add(poly);
-                }
-            }
-            if (geometries.isEmpty()) {
-                return null;
-            }
-            if (geometries.size() == 1) {
-                return geometries.get(0);
-            }
-            return new GeometryCollection(geometries.toArray(new Geometry[0]));
+        if (geometries.size() == 1) {
+            return geometries.getFirst();
         }
 
-        if (hasPolygons) {
-            if (polygonCoordinates.size() == 1) {
-                return createPolygonFromCoordinates(polygonCoordinates.get(0));
+        if (geometries.stream().allMatch(LineString.class::isInstance)) {
+            double[][][] coordinates = new double[geometries.size()][][];
+            for (int i = 0; i < geometries.size(); i++) {
+                coordinates[i] = ((LineString) geometries.get(i)).getCoordinates();
             }
-            return createMultiPolygonFromCoordinates(polygonCoordinates);
+            return new MultiLineString(coordinates);
         }
 
-        if (pathCoordinates.size() == 1) {
-            return createLineStringFromCoordinates(pathCoordinates.get(0));
+        if (geometries.stream().allMatch(Polygon.class::isInstance)) {
+            double[][][][] coordinates = new double[geometries.size()][][][];
+            for (int i = 0; i < geometries.size(); i++) {
+                coordinates[i] = ((Polygon) geometries.get(i)).getCoordinates();
+            }
+            return new MultiPolygon(coordinates);
         }
-        return createMultiLineStringFromCoordinates(pathCoordinates);
+
+        return new GeometryCollection(geometries.toArray(new Geometry[0]));
     }
 
     /**
@@ -438,15 +420,15 @@ public class TimGeometryConverter {
     }
 
     /**
-     * Process XY (Cartesian) node and update current coordinates. Note: XY nodes are always offsets and require a valid
-     * starting point (anchor).
+     * Process an XY node and update the current coordinates. Relative XY node variants require a current reference
+     * point; {@code node-LatLon} supplies an absolute point and establishes that reference itself.
      * 
      * @param node The node to process
      * @param zoomFactor Zoom scaling factor
-     * @param currentCoords Current coordinates [lon, lat] to update. Must be initialized with anchor coordinates.
+     * @param currentCoords Current coordinates [lon, lat] to update
      */
     private void processXYNode(NodeOffsetPointXY node, double zoomFactor, double[] currentCoords) {
-        // XY nodes require a starting point for offset calculations
+        // The coordinate array also carries an absolute node-LatLon value back to the caller.
         if (currentCoords == null || currentCoords.length < 2) {
             log.warn("Cannot process XY node: currentCoords is null or invalid");
             return;
@@ -492,6 +474,14 @@ public class TimGeometryConverter {
                     currentLat, zoomFactor);
             currentLon += offsets[0];
             currentLat += offsets[1];
+        } else if (node.getNode_LatLon() != null) {
+            var nodeLatLon = node.getNode_LatLon();
+            Double absoluteLon = FieldConversions.convertLong(nodeLatLon.getLon().getValue());
+            Double absoluteLat = FieldConversions.convertLat(nodeLatLon.getLat().getValue());
+            if (absoluteLon != null && absoluteLat != null) {
+                currentLon = absoluteLon;
+                currentLat = absoluteLat;
+            }
         }
 
         // Update coordinates array
@@ -507,47 +497,63 @@ public class TimGeometryConverter {
      * @return List of PathNodeData containing coordinates and offset information
      */
     private List<PathNodeData> processOffsetPathWithOffsets(GeographicalPath region, OffsetSystem path) {
-        if (path == null || region.getAnchor() == null) {
+        if (path == null || path.getOffset() == null) {
             return new ArrayList<>();
         }
 
-        Position3D anchor = region.getAnchor();
-        Double anchorLat = FieldConversions.convertLat(anchor.getLat().getValue());
-        Double anchorLon = FieldConversions.convertLong(anchor.getLong_().getValue());
-        if (anchorLat == null || anchorLon == null) {
-            log.warn("Cannot process offset path: unavailable anchor lat/lon");
-            return new ArrayList<>();
+        Double anchorLat = null;
+        Double anchorLon = null;
+        if (region.getAnchor() != null && region.getAnchor().getLat() != null
+                && region.getAnchor().getLong_() != null) {
+            anchorLat = FieldConversions.convertLat(region.getAnchor().getLat().getValue());
+            anchorLon = FieldConversions.convertLong(region.getAnchor().getLong_().getValue());
         }
 
         List<PathNodeData> pathData = new ArrayList<>();
+        boolean hasAnchor = anchorLat != null && anchorLon != null;
+        double[] currentCoords = hasAnchor ? new double[] {anchorLon, anchorLat} : new double[2];
+        boolean hasCurrentCoordinates = hasAnchor;
+        boolean missingReferenceLogged = false;
+        double zoomFactor = calculateZoomFactor(path);
 
-        if (path.getOffset() != null) {
-            double[] currentCoords = {anchorLon, anchorLat};
-            double zoomFactor = calculateZoomFactor(path);
-
-            // Handle LL (Latitude/Longitude) coordinates
-            if (path.getOffset().getLl() != null && path.getOffset().getLl().getNodes() != null) {
-                for (var node : path.getOffset().getLl().getNodes()) {
-                    if (node.getDelta() != null) {
+        // Handle LL (Latitude/Longitude) coordinates
+        if (path.getOffset().getLl() != null && path.getOffset().getLl().getNodes() != null) {
+            for (var node : path.getOffset().getLl().getNodes()) {
+                if (node.getDelta() != null) {
+                    boolean isAbsoluteNode = node.getDelta().getNode_LatLon() != null;
+                    if (hasCurrentCoordinates || isAbsoluteNode) {
                         processLLNode(node.getDelta(), zoomFactor, currentCoords);
+                        hasCurrentCoordinates = true;
                         Long[] offsets = extractNodeOffsets(node);
                         Long dwidthOffset = offsets != null ? offsets[0] : null;
                         Long delevationOffset = offsets != null ? offsets[1] : null;
                         pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,
                                 delevationOffset));
+                    } else if (!missingReferenceLogged) {
+                        log.warn(
+                                "Skipping TIM LL offset attributes because the region has no anchor or preceding absolute LatLon node");
+                        missingReferenceLogged = true;
                     }
                 }
             }
-            // Handle XY (Cartesian) coordinates
-            else if (path.getOffset().getXy() != null && path.getOffset().getXy().getNodes() != null) {
-                for (var node : path.getOffset().getXy().getNodes()) {
-                    if (node.getDelta() != null) {
+        }
+        // Handle XY (Cartesian) coordinates
+        else if (path.getOffset().getXy() != null && path.getOffset().getXy().getNodes() != null) {
+            for (var node : path.getOffset().getXy().getNodes()) {
+                if (node.getDelta() != null) {
+                    boolean isAbsoluteNode = node.getDelta().getNode_LatLon() != null;
+                    if (hasCurrentCoordinates || isAbsoluteNode) {
                         processXYNode(node.getDelta(), zoomFactor, currentCoords);
+                        hasCurrentCoordinates = true;
                         Long[] offsets = extractNodeOffsets(node);
                         Long dwidthOffset = offsets != null ? offsets[0] : null;
                         Long delevationOffset = offsets != null ? offsets[1] : null;
                         pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,
                                 delevationOffset));
+                    } else if (!missingReferenceLogged) {
+                        log.warn(
+                                "Skipping TIM XY offset attributes because the region has no anchor or preceding absolute LatLon node");
+                        missingReferenceLogged = true;
                     }
                 }
             }
@@ -568,7 +574,8 @@ public class TimGeometryConverter {
         Double anchorLon = null;
         boolean hasAnchor = false;
 
-        if (region.getAnchor() != null) {
+        if (region.getAnchor() != null && region.getAnchor().getLat() != null
+                && region.getAnchor().getLong_() != null) {
             Position3D anchor = region.getAnchor();
             anchorLat = FieldConversions.convertLat(anchor.getLat().getValue());
             anchorLon = FieldConversions.convertLong(anchor.getLong_().getValue());
@@ -602,18 +609,25 @@ public class TimGeometryConverter {
                     }
                 }
             }
-            // Handle XY (Cartesian) coordinates - require anchor for offset calculations
+            // Handle XY coordinates. Absolute LatLon nodes may establish a path without an anchor.
             else if (path.getOffset().getXy() != null && path.getOffset().getXy().getNodes() != null) {
-                if (hasAnchor) {
-                    double[] currentCoords = {anchorLon, anchorLat};
-                    for (var node : path.getOffset().getXy().getNodes()) {
-                        if (node.getDelta() != null) {
+                double[] currentCoords = hasAnchor ? new double[] {anchorLon, anchorLat} : new double[2];
+                boolean hasCurrentCoordinates = hasAnchor;
+                boolean missingAnchorLogged = false;
+
+                for (var node : path.getOffset().getXy().getNodes()) {
+                    if (node.getDelta() != null) {
+                        boolean isLatLonNode = node.getDelta().getNode_LatLon() != null;
+                        if (hasCurrentCoordinates || isLatLonNode) {
                             processXYNode(node.getDelta(), zoomFactor, currentCoords);
+                            hasCurrentCoordinates = true;
                             coordinates.add(Arrays.asList(currentCoords[0], currentCoords[1]));
+                        } else if (!missingAnchorLogged) {
+                            log.warn(
+                                    "Skipping TIM XY offset nodes because the region has no anchor or preceding absolute LatLon node");
+                            missingAnchorLogged = true;
                         }
                     }
-                } else {
-                    log.warn("Skipping TIM XY offset path because the region has no valid anchor");
                 }
             }
         }
@@ -656,8 +670,8 @@ public class TimGeometryConverter {
     }
 
     /**
-     * Create circle points using UTM coordinates for accurate geodetic calculations. Circle is generated in UTM space
-     * and then converted back to WGS84 using ProjectionUtils for coordinate transformations.
+     * Create circle points geodesically on WGS84. This avoids UTM zone-boundary and polar distortion while preserving
+     * the source radius at every generated vertex.
      * 
      * @param centerLon Center longitude in degrees
      * @param centerLat Center latitude in degrees
@@ -667,58 +681,54 @@ public class TimGeometryConverter {
     private List<List<Double>> createCirclePoints(double centerLon, double centerLat, double radiusMeters) {
         List<List<Double>> coordinates = new ArrayList<>();
 
-        // Validate center coordinates
-        if (centerLon < -180.0 || centerLon > 180.0 || centerLat < -90.0 || centerLat > 90.0) {
-            log.error("Invalid circle center coordinates: lon={}, lat={}", centerLon, centerLat);
+        if (!Double.isFinite(centerLon) || !Double.isFinite(centerLat) || !Double.isFinite(radiusMeters)
+                || centerLon < -180.0 || centerLon > 180.0 || centerLat < -90.0 || centerLat > 90.0
+                || radiusMeters < 0.0) {
+            log.error("Invalid circle parameters: center=({}, {}), radius={}m", centerLon, centerLat, radiusMeters);
             return coordinates;
         }
 
         try {
-            // Get UTM CRS code for the location
-            String utmCrsCode = ProjectionUtils.getUtmCrsCode(centerLon, centerLat);
-            int utmZone = ProjectionUtils.getUtmZone(centerLon);
-
-            // Create coordinate transforms using ProjectionUtils
-            CoordinateTransform wgsToUtm = ProjectionUtils.createTransform("EPSG:4326", utmCrsCode);
-            CoordinateTransform utmToWgs = ProjectionUtils.createTransform(utmCrsCode, "EPSG:4326");
-
-            if (wgsToUtm == null || utmToWgs == null) {
-                log.error("Failed to create coordinate transforms for UTM zone {}", utmZone);
-                return coordinates; // Return empty coordinates if transforms fail
-            }
-
-            // Transform center point to UTM using ProjectionUtils
-            ProjCoordinate centerUTM =
-                    ProjectionUtils.transformCoordinate("EPSG:4326", utmCrsCode, centerLon, centerLat);
-
-            // Calculate adaptive number of points based on diameter
             double diameterMeters = radiusMeters * 2.0;
             int adaptivePoints = calculateAdaptiveCirclePoints(diameterMeters);
+            GeodeticCalculator calculator = new GeodeticCalculator(DefaultGeographicCRS.WGS84);
+            calculator.setStartingGeographicPoint(centerLon, centerLat);
 
-            // Create circle in UTM using JTS GeometricShapeFactory
-            GeometricShapeFactory shapeFactory = new GeometricShapeFactory(new GeometryFactory());
-            shapeFactory.setCentre(new Coordinate(centerUTM.x, centerUTM.y));
-            shapeFactory.setSize(diameterMeters);
-            shapeFactory.setNumPoints(adaptivePoints);
-
-            org.locationtech.jts.geom.Polygon circleUTM = shapeFactory.createCircle();
-            Coordinate[] circleCoordsUTM = circleUTM.getExteriorRing().getCoordinates();
-
-            // Transform circle coordinates from UTM back to WGS84 using ProjectionUtils
-            for (Coordinate coordUTM : circleCoordsUTM) {
-                ProjCoordinate coordWGS84 = new ProjCoordinate();
-                utmToWgs.transform(new ProjCoordinate(coordUTM.x, coordUTM.y), coordWGS84);
-                coordinates.add(Arrays.asList(coordWGS84.x, coordWGS84.y));
+            // Start east of the center and proceed counter-clockwise to retain GeoJSON exterior-ring orientation.
+            for (int pointIndex = 0; pointIndex < adaptivePoints; pointIndex++) {
+                double azimuthDegrees = 90.0 - (360.0 * pointIndex / adaptivePoints);
+                calculator.setDirection(azimuthDegrees, radiusMeters);
+                Point2D destination = calculator.getDestinationGeographicPoint();
+                double longitude = normalizeLongitude(destination.getX());
+                double latitude = destination.getY();
+                if (!Double.isFinite(longitude) || !Double.isFinite(latitude)) {
+                    log.error("Geodesic circle calculation produced a non-finite coordinate");
+                    return new ArrayList<>();
+                }
+                coordinates.add(Arrays.asList(longitude, latitude));
             }
 
-            log.debug("Created UTM-based circle with {} points, center=({}, {}), radius={}m, diameter={}m, UTM zone={}",
-                    adaptivePoints, centerLon, centerLat, radiusMeters, diameterMeters, utmZone);
+            // GeoJSON polygon rings repeat the first point as the final point.
+            coordinates.add(new ArrayList<>(coordinates.getFirst()));
 
+            log.debug("Created geodesic circle with {} vertices, center=({}, {}), radius={}m", adaptivePoints,
+                    centerLon, centerLat, radiusMeters);
         } catch (Exception e) {
-            log.error("Error creating UTM-based circle: {}", e.getMessage(), e);
+            log.error("Error creating geodesic circle: {}", e.getMessage(), e);
+            coordinates.clear();
         }
 
         return coordinates;
+    }
+
+    private double normalizeLongitude(double longitude) {
+        double normalized = longitude % 360.0;
+        if (normalized > 180.0) {
+            normalized -= 360.0;
+        } else if (normalized < -180.0) {
+            normalized += 360.0;
+        }
+        return normalized;
     }
 
     private LineString createLineStringFromCoordinates(List<List<Double>> coordinates) {
@@ -765,59 +775,4 @@ public class TimGeometryConverter {
         return new Polygon(coordinateArray);
     }
 
-    private MultiLineString createMultiLineStringFromCoordinates(List<List<List<Double>>> allCoordinates) {
-        if (allCoordinates == null || allCoordinates.isEmpty()) {
-            return null;
-        }
-
-        double[][][] coordinateArray = new double[allCoordinates.size()][][];
-        for (int i = 0; i < allCoordinates.size(); i++) {
-            List<List<Double>> lineString = allCoordinates.get(i);
-            if (lineString != null && !lineString.isEmpty()) {
-                coordinateArray[i] = new double[lineString.size()][2];
-                for (int j = 0; j < lineString.size(); j++) {
-                    List<Double> coord = lineString.get(j);
-                    if (coord.size() >= 2) {
-                        coordinateArray[i][j][0] = coord.get(0); // longitude
-                        coordinateArray[i][j][1] = coord.get(1); // latitude
-                    }
-                }
-            }
-        }
-
-        return new MultiLineString(coordinateArray);
-    }
-
-    private MultiPolygon createMultiPolygonFromCoordinates(List<List<List<Double>>> allCoordinates) {
-        if (allCoordinates == null || allCoordinates.isEmpty()) {
-            return null;
-        }
-
-        double[][][][] coordinateArray = new double[allCoordinates.size()][][][];
-        for (int i = 0; i < allCoordinates.size(); i++) {
-            List<List<Double>> polygon = allCoordinates.get(i);
-            if (polygon != null && !polygon.isEmpty()) {
-                // Ensure the polygon is closed
-                List<List<Double>> closedPolygon = new ArrayList<>(polygon);
-                if (closedPolygon.size() > 2) {
-                    List<Double> first = closedPolygon.get(0);
-                    List<Double> last = closedPolygon.get(closedPolygon.size() - 1);
-                    if (!first.equals(last)) {
-                        closedPolygon.add(new ArrayList<>(first));
-                    }
-                }
-
-                coordinateArray[i] = new double[1][closedPolygon.size()][2];
-                for (int j = 0; j < closedPolygon.size(); j++) {
-                    List<Double> coord = closedPolygon.get(j);
-                    if (coord.size() >= 2) {
-                        coordinateArray[i][0][j][0] = coord.get(0); // longitude
-                        coordinateArray[i][0][j][1] = coord.get(1); // latitude
-                    }
-                }
-            }
-        }
-
-        return new MultiPolygon(coordinateArray);
-    }
 }

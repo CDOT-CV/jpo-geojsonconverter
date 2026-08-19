@@ -46,6 +46,8 @@ class TimSerializationTest {
             MultiLineString geometry = assertInstanceOf(MultiLineString.class,
                     processedTim.getDataFrameFeatureCollection().getFeatures().getFirst().getGeometry());
             assertEquals(8, geometry.getCoordinates()[0].length);
+            assertEquals(0, processedTim.getDataFrameFeatureCollection().getFeatures().getFirst().getProperties()
+                    .getRegionInfoList().getFirst().getGeometryIndex());
         }
     }
 }

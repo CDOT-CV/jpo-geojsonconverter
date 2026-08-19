@@ -16,6 +16,10 @@ import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.*;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Latitude;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Longitude;
+import us.dot.its.jpo.asn.j2735.r2024.Common.NodeListXY;
+import us.dot.its.jpo.asn.j2735.r2024.Common.NodeOffsetPointXY;
+import us.dot.its.jpo.asn.j2735.r2024.Common.NodeSetXY;
+import us.dot.its.jpo.asn.j2735.r2024.Common.NodeXY;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Node_LLmD_64b;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Offset_B10;
 import us.dot.its.jpo.asn.j2735.r2024.Common.OffsetLL_B18;
@@ -350,6 +354,32 @@ public class TimGeometryConverterTest {
     }
 
     @Test
+    public void testCircleAtPositiveAntimeridianPreservesRadius() {
+        GeographicalPath region = travelerInformation().getDataFrames().get(2).getRegions().getFirst();
+        Circle circle = region.getDescription().getGeometry().getCircle();
+        circle.getCenter().setLong_(new Longitude(1800000000));
+        circle.getCenter().setLat(new Latitude(400000000));
+        circle.setRadius(new Radius_B12(1000));
+        circle.setUnits(DistanceUnits.METER);
+
+        Polygon polygon = assertInstanceOf(Polygon.class, geometryConverter.createGeometryFromRegion(region));
+        double[][] ring = polygon.getCoordinates()[0];
+        double[] firstPoint = ring[0];
+
+        GeodeticCalculator calculator = new GeodeticCalculator(DefaultGeographicCRS.WGS84);
+        calculator.setStartingGeographicPoint(180.0, 40.0);
+        calculator.setDestinationGeographicPoint(firstPoint[0], firstPoint[1]);
+        assertEquals(1000.0, calculator.getOrthodromicDistance(), 0.05);
+        assertEquals(ring[0][0], ring[ring.length - 1][0], 0.000001);
+        assertEquals(ring[0][1], ring[ring.length - 1][1], 0.000001);
+
+        for (double[] coordinate : ring) {
+            assertTrue(coordinate[0] >= -180.0 && coordinate[0] <= 180.0);
+            assertTrue(coordinate[1] >= -90.0 && coordinate[1] <= 90.0);
+        }
+    }
+
+    @Test
     public void testNullAnchorWithLatLonNodes() {
         // Extract ASN.1 data - search for a dataframe with null anchor and LatLon nodes
         TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
@@ -536,13 +566,54 @@ public class TimGeometryConverterTest {
         absolute.setLon(new Longitude(-835566916));
         absolute.setLat(new Latitude(422427507));
         delta.setNode_LatLon(absolute);
-        region.getDescription().getPath().setOffset(createLlOffsetChoice(node(delta, null, null)));
+        region.getDescription().getPath().setOffset(createLlOffsetChoice(node(delta, 10L, 5L)));
 
         Geometry geometry = geometryConverter.createGeometryFromRegion(region);
         assertInstanceOf(LineString.class, geometry);
         double[] coordinate = ((LineString) geometry).getCoordinates()[0];
         assertEquals(FieldConversions.convertLong(-835566916), coordinate[0], 0.000001);
         assertEquals(FieldConversions.convertLat(422427507), coordinate[1], 0.000001);
+
+        var offsets = geometryConverter.extractOffsetInformation(region);
+        assertNotNull(offsets);
+        assertEquals(10L, offsets.getLaneWidthOffsets().getFirst());
+        assertEquals(5L, offsets.getElevationOffsets().getFirst());
+
+        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInformation(), timMF.getMetadata());
+        var pathInfo = (us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedPathRegionInfo) processedTim
+                .getDataFrameFeatureCollection().getFeatures().getFirst().getProperties().getRegionInfoList().getFirst();
+        double expectedWidth = FieldConversions.convertLaneWidth(region.getLaneWidth()) + 0.1;
+        assertEquals(expectedWidth, pathInfo.getLaneWidthProfile().getNodeLaneWidthMeters().getFirst(), 0.000001);
+    }
+
+    @Test
+    public void testAbsoluteXyLatLonNodeProducesGeometryWithOrWithoutAnchor() {
+        GeographicalPath region = firstRegion();
+        Node_LLmD_64b absolute = new Node_LLmD_64b();
+        absolute.setLon(new Longitude(-1040000000));
+        absolute.setLat(new Latitude(410000000));
+        NodeOffsetPointXY delta = new NodeOffsetPointXY();
+        delta.setNode_LatLon(absolute);
+        NodeXY node = new NodeXY();
+        node.setDelta(delta);
+        NodeSetXY nodes = new NodeSetXY();
+        nodes.add(node);
+        NodeListXY nodeList = new NodeListXY();
+        nodeList.setNodes(nodes);
+        OffsetSystem.OffsetChoice offset = new OffsetSystem.OffsetChoice();
+        offset.setXy(nodeList);
+        region.getDescription().getPath().setOffset(offset);
+
+        LineString withAnchor = assertInstanceOf(LineString.class,
+                geometryConverter.createGeometryFromRegion(region));
+        assertEquals(-104.0, withAnchor.getCoordinates()[0][0], 0.000001);
+        assertEquals(41.0, withAnchor.getCoordinates()[0][1], 0.000001);
+
+        region.setAnchor(null);
+        LineString withoutAnchor = assertInstanceOf(LineString.class,
+                geometryConverter.createGeometryFromRegion(region));
+        assertEquals(-104.0, withoutAnchor.getCoordinates()[0][0], 0.000001);
+        assertEquals(41.0, withoutAnchor.getCoordinates()[0][1], 0.000001);
     }
 
     @Test
