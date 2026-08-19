@@ -131,6 +131,7 @@ public class JsonConverterServiceController {
             var timTopology = TimTopology.build(geojsonProps.getKafkaTopicOdeTimJson(),
                     geojsonProps.getKafkaTopicProcessedTim(), timJsonValidator, timConverter);
             var timStreams = new KafkaStreams(timTopology, geojsonProps.createStreamProperties("processedtimjson"));
+            timStreams.setUncaughtExceptionHandler(new StreamsExceptionHandler("TimStream"));
             Runtime.getRuntime().addShutdownHook(Thread.ofVirtual().unstarted(() -> {
                 try {
                     // Workaround to close streams in a finally block to satisfy sonar
