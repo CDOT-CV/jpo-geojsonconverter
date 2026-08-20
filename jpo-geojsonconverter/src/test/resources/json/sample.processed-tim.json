@@ -422,12 +422,8 @@
                                 "directionType": "HEADING",
                                 "headingList": [
                                     {
-                                        "heading": 33.75,
-                                        "range": 90.0
-                                    },
-                                    {
-                                        "heading": 303.75,
-                                        "range": 90.0
+                                        "heading": 0.0,
+                                        "range": 180.0
                                     }
                                 ]
                             },
