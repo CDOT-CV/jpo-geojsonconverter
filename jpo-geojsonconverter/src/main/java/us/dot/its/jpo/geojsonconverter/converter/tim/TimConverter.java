@@ -526,14 +526,17 @@ public class TimConverter {
         switch (regionType) {
             case PATH:
                 regionInfo = new ProcessedPathRegionInfo();
-                // Set lane width profile for path regions
+                ProcessedLaneWidthProfile laneWidthProfile = new ProcessedLaneWidthProfile();
                 if (region.getLaneWidth() != null) {
-                    ProcessedLaneWidthProfile laneWidthProfile = new ProcessedLaneWidthProfile();
                     laneWidthProfile.setDefaultWidthMeters(FieldConversions.convertLaneWidth(region.getLaneWidth()));
+                }
 
-                    // Populate lane width profile with offset-calculated values
-                    populateLaneWidthProfileWithOffsets(region, laneWidthProfile);
+                // Preserve node alignment when offsets exist without a base width. In
+                // that case, the calculated absolute widths are unknown (null).
+                populateLaneWidthProfileWithOffsets(region, laneWidthProfile);
 
+                if (laneWidthProfile.getDefaultWidthMeters() != null
+                        || laneWidthProfile.getNodeLaneWidthMeters() != null) {
                     ((ProcessedPathRegionInfo) regionInfo).setLaneWidthProfile(laneWidthProfile);
                 }
                 break;

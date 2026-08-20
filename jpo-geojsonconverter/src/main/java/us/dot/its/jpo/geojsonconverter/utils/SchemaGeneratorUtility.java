@@ -76,6 +76,7 @@ public class SchemaGeneratorUtility {
                 if (ProcessedTim.class.equals(targetClass)) {
                     schema = ensureProcessedTimDirectionalityValues(schema);
                     schema = allowNullProcessedTimNodeElevations(schema);
+                    schema = allowNullProcessedTimNodeLaneWidths(schema);
                 }
 
                 // Create the schema file in the resources/schemas directory
@@ -129,6 +130,26 @@ public class SchemaGeneratorUtility {
                 .path("ProcessedElevationProfile")
                 .path("properties")
                 .path("nodeElevationMeters")
+                .path("items");
+        if (!(itemsNode instanceof ObjectNode items)) {
+            return schema;
+        }
+
+        ArrayNode types = items.putArray("type");
+        types.add("number");
+        types.add("null");
+        return schemaObject;
+    }
+
+    private static JsonNode allowNullProcessedTimNodeLaneWidths(JsonNode schema) {
+        if (!(schema instanceof ObjectNode schemaObject)) {
+            return schema;
+        }
+
+        JsonNode itemsNode = schemaObject.path("$defs")
+                .path("ProcessedLaneWidthProfile")
+                .path("properties")
+                .path("nodeLaneWidthMeters")
                 .path("items");
         if (!(itemsNode instanceof ObjectNode items)) {
             return schema;

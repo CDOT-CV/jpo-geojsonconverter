@@ -18,8 +18,8 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * defaultWidthMeters - The default lane width set in the TIM
  * <p>
- * nodeLaneWidthMeters - List of calculated actual lane widths (including any offset) for each node represented in the
- * TIM
+ * nodeLaneWidthMeters - List of calculated actual lane widths (including any offset) for each path node. A null entry
+ * means that the absolute lane width is unknown for that node.
  */
 @Data
 @Generated

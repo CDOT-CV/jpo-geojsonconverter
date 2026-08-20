@@ -60,6 +60,14 @@ public class SchemaGeneratorUtilityTest {
                 .path("type");
         assertEquals("number", elevationTypes.get(0).asText());
         assertEquals("null", elevationTypes.get(1).asText());
+        JsonNode laneWidthTypes = timSchema.path("$defs")
+                .path("ProcessedLaneWidthProfile")
+                .path("properties")
+                .path("nodeLaneWidthMeters")
+                .path("items")
+                .path("type");
+        assertEquals("number", laneWidthTypes.get(0).asText());
+        assertEquals("null", laneWidthTypes.get(1).asText());
         JsonNode geometryIndex = timSchema.path("$defs").path("ProcessedPathRegionInfo-1").path("properties")
                 .path("geometryIndex");
         assertEquals("integer", geometryIndex.path("type").asText());

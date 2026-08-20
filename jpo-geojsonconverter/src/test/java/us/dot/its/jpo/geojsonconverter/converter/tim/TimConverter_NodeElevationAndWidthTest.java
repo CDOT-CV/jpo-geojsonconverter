@@ -39,6 +39,26 @@ public class TimConverter_NodeElevationAndWidthTest {
         testElevationAndWidthProfileNumberOfNodes(loadResource(TIM_WITH_NODE_ELEVATION_AND_WIDTH_TWO_REGIONS));
     }
 
+    @Test
+    public void testLaneWidthOffsetsWithoutDefaultProduceUnknownNodeWidths() throws IOException {
+        var mapper = DateJsonMapper.getInstance();
+        TravelerInformation tim = mapper.readValue(loadResource(TIM_WITH_NODE_ELEVATION_AND_WIDTH),
+                TravelerInformation.class);
+        GeographicalPath path = tim.getDataFrames().get(0).getRegions().get(0);
+        path.setLaneWidth(null);
+
+        TimConverter timConverter = new TimConverter(new TimGeometryConverter());
+        ProcessedTim processedTim = timConverter.createProcessedTim(tim, new OdeMessageFrameMetadata());
+        ProcessedPathRegionInfo pathRegionInfo = (ProcessedPathRegionInfo) processedTim.getDataFrameFeatureCollection()
+                .getFeatures().get(0).getProperties().getRegionInfoList().get(0);
+
+        ProcessedLaneWidthProfile widthProfile = pathRegionInfo.getLaneWidthProfile();
+        assertThat(widthProfile, notNullValue());
+        assertThat(widthProfile.getDefaultWidthMeters(), nullValue());
+        assertThat(widthProfile.getNodeLaneWidthMeters(),
+                equalTo(Arrays.<Double>asList(null, null, null, null, null, null, null, null, null)));
+    }
+
     private void testElevationAndWidthProfileNumberOfNodes(String travelerInformationJson)
             throws JsonProcessingException {
         var mapper = DateJsonMapper.getInstance();

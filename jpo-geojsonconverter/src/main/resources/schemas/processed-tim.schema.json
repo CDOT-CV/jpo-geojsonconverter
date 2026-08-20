@@ -207,7 +207,7 @@
         "nodeLaneWidthMeters" : {
           "type" : "array",
           "items" : {
-            "type" : "number",
+            "type" : [ "number", "null" ],
             "format" : "double"
           }
         }
