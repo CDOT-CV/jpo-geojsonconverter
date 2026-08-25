@@ -113,9 +113,8 @@ public class TimTransformerTest {
 
         // Verify failure processing
         ProcessedTim processedTim = result.value;
-        assertNotNull(processedTim.getCompliance());
-        assertTrue(processedTim.getCompliance().size() > 0);
-        assertTrue(!processedTim.getCompliance().get(0).isCompliant());
+        assertNotNull(processedTim.getValidationMessages());
+        assertTrue(!processedTim.getValidationMessages().isEmpty());
     }
 
     @Test

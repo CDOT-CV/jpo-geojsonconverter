@@ -32,7 +32,6 @@ import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
 import us.dot.its.jpo.geojsonconverter.pojos.common.Ieee1609Dot2SignedDataMetadata;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.*;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.OffsetInformation;
-import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTimCompliance;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
 import us.dot.its.jpo.geojsonconverter.utils.J2735DateTimeConverter;
 import us.dot.its.jpo.geojsonconverter.validator.JsonValidatorResult;
@@ -83,7 +82,6 @@ public class TimConverter {
         ZonedDateTime odeDate = Instant.parse(metadata.getOdeReceivedAt()).atZone(ZoneId.of(UTC_ZONE_ID));
         ProcessedTim processedTim = initializeProcessedTim(metadata, travelerInfo, odeDate, signedDataMetadata);
 
-        setComplianceInformation(processedTim);
         setBasicTimProperties(processedTim, travelerInfo);
         setFeatureCollection(processedTim, travelerInfo, odeDate);
         setLocation(processedTim, travelerInfo);
@@ -99,9 +97,10 @@ public class TimConverter {
      */
     public ProcessedTim createFailureProcessedTim(String message) {
         ProcessedTim processedTim = new ProcessedTim();
-
-        setFailureCompliance(processedTim);
         processedTim.setTimeStamp(ZonedDateTime.now(ZoneOffset.UTC));
+        if (message != null && !message.isEmpty()) {
+            processedTim.addValidationMessage(message);
+        }
 
         return processedTim;
     }
@@ -123,21 +122,6 @@ public class TimConverter {
         processedTim.setTimeStamp(creationTimestamp);
 
         return processedTim;
-    }
-
-    /**
-     * Set compliance information for the processed TIM.
-     */
-    private void setComplianceInformation(ProcessedTim processedTim) {
-        // Initialize structural ITWG compliance. jsonValidation(...) records schema failures below.
-        // TODO: Add content-level ITWG/CTW best-practice validation in the planned TIM validator.
-        List<ProcessedTimCompliance> complianceList = new ArrayList<>();
-        ProcessedTimCompliance compliance = new ProcessedTimCompliance();
-        compliance.setStandard(ProcessedTimCompliance.Standard.ITWG);
-        compliance.setCompliant(true);
-        compliance.setValidationMessages(new ArrayList<>());
-        complianceList.add(compliance);
-        processedTim.setCompliance(complianceList);
     }
 
     /**
@@ -192,19 +176,6 @@ public class TimConverter {
             log.error("Error calculating center location: {}", e.getMessage(), e);
             // Location will remain null if calculation fails
         }
-    }
-
-    /**
-     * Set compliance information for failure cases.
-     */
-    private void setFailureCompliance(ProcessedTim processedTim) {
-        List<ProcessedTimCompliance> complianceList = new ArrayList<>();
-        ProcessedTimCompliance compliance = new ProcessedTimCompliance();
-        compliance.setStandard(ProcessedTimCompliance.Standard.ITWG);
-        compliance.setCompliant(false);
-        compliance.setValidationMessages(new ArrayList<>());
-        complianceList.add(compliance);
-        processedTim.setCompliance(complianceList);
     }
 
     /**
@@ -747,24 +718,17 @@ public class TimConverter {
 
     /**
      * Add JSON schema validation results for J2735 and Metadata validation.
-     * 
+     *
      * @param processedTim The processed TIM object to add validation messages to
      * @param validatorResult the schema validator result
      */
     public void jsonValidation(ProcessedTim processedTim, JsonValidatorResult validatorResult) {
-        if (processedTim.getCompliance() == null || processedTim.getCompliance().isEmpty()) {
-            // Initialize compliance if not already set
-            setComplianceInformation(processedTim);
-        }
-
-        // Get the first compliance object (ITWG standard)
-        ProcessedTimCompliance compliance = processedTim.getCompliance().getFirst();
-
+        var messages = new ArrayList<ProcessedValidationMessage>();
         for (Exception exception : validatorResult.getExceptions()) {
             var msg = new ProcessedValidationMessage();
             msg.setMessage(exception.getMessage());
             msg.setException(Arrays.toString(exception.getStackTrace()));
-            compliance.getValidationMessages().add(msg);
+            messages.add(msg);
         }
         for (Error vm : validatorResult.getValidationMessages()) {
             var msg = new ProcessedValidationMessage();
@@ -779,8 +743,8 @@ public class TimConverter {
             if (evaluationPath != null) {
                 msg.setJsonPath(evaluationPath.toString());
             }
-            compliance.getValidationMessages().add(msg);
+            messages.add(msg);
         }
-        compliance.setCompliant(compliance.getValidationMessages().isEmpty());
+        processedTim.addValidationMessages(messages);
     }
 }

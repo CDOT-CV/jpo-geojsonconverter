@@ -660,7 +660,7 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
    - A `dataFrameFeatureCollection` containing GeoJSON Feature objects, one for each dataframe within the incoming TIM.
    - A `location` field containing a representative region-anchor point for coarse MongoDB 2dsphere indexing
    - Optional IEEE 1609.2 signed-message metadata, including certificate validity timestamps when supplied by the ODE
-   - Compliance information for validation tracking.
+   - `validationMessages` for J2735/ODE JSON schema issues
 
 2. **Data Frame to Feature Conversion**: Each `TravelerDataFrame` in the TIM message becomes a GeoJSON Feature in the `dataFrameFeatureCollection`:
    - Each data frame within a TIM is assigned a sequential feature ID (0, 1, 2, ...)
@@ -702,11 +702,7 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
 
 8. **Representative Location Calculation**: The `location` field is the simple average of all valid region anchors across the data frames. It supports coarse containment or proximity filtering only; it may fall outside the rendered TIM geometry, so consumers must use `dataFrameFeatureCollection` for geometry intersection or roadway-traversal queries. The field is omitted when no valid anchors are available.
 
-9. **Compliance Information**: Structural schema-compliance tracking includes:
-   - Standard type (currently ITWG, with CTW planned for future)
-   - Compliance status (true if no validation messages)
-   - List of validation messages if any issues are found
-   - Full content-level ITWG/CTW best-practice checking is not yet implemented
+9. **Validation Messages**: ODE TIMs are structurally validated against the TIM JSON schema. Schema failures are recorded in a root-level `validationMessages` list, matching ProcessedBsm/ProcessedPsm/ProcessedSrm/ProcessedSsm. Content-level Interoperability Technical Working Group (ITWG) or Connecting The West (CTW) best-practice checking is planned for a follow-up that pulls in the TIM validator library.
 
 10. **Kafka Key Generation**: ProcessedTim messages have an `RsuTimKey` containing:
     - RSU IP address (originIp)
@@ -737,13 +733,7 @@ Example `ProcessedTim` message:
    33.7569813
   ]
  },
- "compliance": [
-  {
-   "standard": "ITWG",
-   "compliant": true,
-   "validationMessages": []
-  }
- ],
+ "validationMessages": [],
  "dataFrameFeatureCollection": {
   "features": [
    {

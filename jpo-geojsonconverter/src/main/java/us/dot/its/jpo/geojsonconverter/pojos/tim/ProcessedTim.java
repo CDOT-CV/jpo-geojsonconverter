@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +16,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import us.dot.its.jpo.geojsonconverter.DateJsonMapper;
+import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
 import us.dot.its.jpo.geojsonconverter.pojos.common.Ieee1609Dot2SignedDataMetadata;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedTimFeatureCollection;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
@@ -44,7 +46,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
  * <p>
  * location - GeoJSON Point representing the center location for MongoDB 2D sphere indexing
  * <p>
- * compliance - List of compliance validation results
+ * validationMessages - J2735/ODE JSON schema validation messages
  * <p>
  * dataFrameFeatureCollection - GeoJSON FeatureCollection containing the TIM data frames
  */
@@ -67,8 +69,28 @@ public class ProcessedTim {
     private ZonedDateTime timeStamp;
     private String packetId;
     private Point location;
-    private List<ProcessedTimCompliance> compliance;
+    private List<ProcessedValidationMessage> validationMessages = new ArrayList<>();
     private ProcessedTimFeatureCollection dataFrameFeatureCollection;
+
+    public void addValidationMessage(ProcessedValidationMessage message) {
+        if (validationMessages == null) {
+            validationMessages = new ArrayList<ProcessedValidationMessage>();
+        }
+        validationMessages.add(message);
+    }
+
+    public void addValidationMessages(List<ProcessedValidationMessage> messages) {
+        if (validationMessages == null) {
+            validationMessages = new ArrayList<>();
+        }
+        validationMessages.addAll(messages);
+    }
+
+    public void addValidationMessage(String message) {
+        var validationMessage = new ProcessedValidationMessage();
+        validationMessage.setMessage(message);
+        addValidationMessage(validationMessage);
+    }
 
     @JsonProperty("isCertPresent")
     public boolean isCertPresent() {

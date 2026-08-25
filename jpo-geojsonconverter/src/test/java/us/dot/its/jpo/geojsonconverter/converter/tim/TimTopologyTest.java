@@ -50,7 +50,7 @@ class TimTopologyTest {
             assertEquals(1, result.key.getMsgCnt());
             assertNotNull(result.value);
             assertEquals("TIM", result.value.getMessageType());
-            assertTrue(result.value.getCompliance().getFirst().getValidationMessages().isEmpty());
+            assertTrue(result.value.getValidationMessages().isEmpty());
         }
     }
 
@@ -69,7 +69,7 @@ class TimTopologyTest {
             List<KeyValue<RsuTimKey, ProcessedTim>> results = outputTopic.readKeyValuesToList();
             assertEquals(1, results.size());
             assertEquals("ERROR", results.getFirst().key.getRsuId());
-            assertTrue(!results.getFirst().value.getCompliance().getFirst().isCompliant());
+            assertTrue(!results.getFirst().value.getValidationMessages().isEmpty());
         }
     }
 

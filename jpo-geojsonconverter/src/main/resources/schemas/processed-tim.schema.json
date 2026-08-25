@@ -290,23 +290,6 @@
       "type" : "string",
       "enum" : [ "PATH", "POLYGON", "CIRCLE", "UNKNOWN" ]
     },
-    "ProcessedTimCompliance" : {
-      "type" : "object",
-      "properties" : {
-        "compliant" : {
-          "type" : "boolean"
-        },
-        "standard" : {
-          "$ref" : "#/$defs/Standard"
-        },
-        "validationMessages" : {
-          "type" : "array",
-          "items" : {
-            "$ref" : "#/$defs/ProcessedValidationMessage"
-          }
-        }
-      }
-    },
     "ProcessedTimContent" : {
       "type" : "object",
       "properties" : {
@@ -463,10 +446,6 @@
         }
       }
     },
-    "Standard" : {
-      "type" : "string",
-      "enum" : [ "ITWG", "CTW", "J2735" ]
-    },
     "TimContentItemType" : {
       "type" : "string",
       "enum" : [ "ITIS_CODE", "PLAIN_TEXT" ]
@@ -476,12 +455,6 @@
   "properties" : {
     "asn1" : {
       "type" : "string"
-    },
-    "compliance" : {
-      "type" : "array",
-      "items" : {
-        "$ref" : "#/$defs/ProcessedTimCompliance"
-      }
     },
     "dataFrameFeatureCollection" : {
       "$ref" : "#/$defs/ProcessedTimFeatureCollection"
@@ -518,6 +491,12 @@
     "timeStamp" : {
       "type" : "string",
       "format" : "date-time"
+    },
+    "validationMessages" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/$defs/ProcessedValidationMessage"
+      }
     }
   }
 }

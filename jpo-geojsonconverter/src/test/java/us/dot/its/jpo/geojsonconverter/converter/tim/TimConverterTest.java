@@ -37,6 +37,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedRegionType;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedTimFeature;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
 import us.dot.its.jpo.geojsonconverter.serialization.deserializers.JsonDeserializer;
+import us.dot.its.jpo.geojsonconverter.validator.JsonValidatorResult;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 
 public class TimConverterTest {
@@ -74,9 +75,8 @@ public class TimConverterTest {
         assertEquals(1, processedTim.getMsgCnt().intValue());
         assertEquals("18D4A500000D7BA133", processedTim.getPacketId());
 
-        assertNotNull(processedTim.getCompliance());
-        assertTrue(processedTim.getCompliance().size() > 0);
-        assertTrue(processedTim.getCompliance().get(0).isCompliant());
+        assertNotNull(processedTim.getValidationMessages());
+        assertTrue(processedTim.getValidationMessages().isEmpty());
 
         assertNotNull(processedTim.getDataFrameFeatureCollection());
         assertNotNull(processedTim.getDataFrameFeatureCollection().getFeatures());
@@ -259,9 +259,22 @@ public class TimConverterTest {
 
         assertNotNull(processedTim);
         assertNotNull(processedTim.getTimeStamp());
-        assertNotNull(processedTim.getCompliance());
-        assertTrue(processedTim.getCompliance().size() > 0);
-        assertTrue(!processedTim.getCompliance().get(0).isCompliant());
+        assertNotNull(processedTim.getValidationMessages());
+        assertEquals(1, processedTim.getValidationMessages().size());
+        assertEquals(failureMessage, processedTim.getValidationMessages().get(0).getMessage());
+    }
+
+    @Test
+    public void testJsonValidationMapsSchemaFailures() {
+        ProcessedTim processedTim = new ProcessedTim();
+        JsonValidatorResult validatorResult = new JsonValidatorResult();
+        validatorResult.addException(new Exception("schema parse failure"));
+
+        timConverter.jsonValidation(processedTim, validatorResult);
+
+        assertEquals(1, processedTim.getValidationMessages().size());
+        assertEquals("schema parse failure", processedTim.getValidationMessages().get(0).getMessage());
+        assertNotNull(processedTim.getValidationMessages().get(0).getException());
     }
 
     @Test

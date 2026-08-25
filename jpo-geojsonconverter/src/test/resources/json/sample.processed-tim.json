@@ -14,13 +14,7 @@
             42.243262671428575
         ]
     },
-    "compliance": [
-        {
-            "standard": "ITWG",
-            "compliant": true,
-            "validationMessages": []
-        }
-    ],
+    "validationMessages": [],
     "dataFrameFeatureCollection": {
         "features": [
             {
