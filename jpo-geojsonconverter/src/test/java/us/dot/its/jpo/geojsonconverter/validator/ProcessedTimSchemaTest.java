@@ -12,4 +12,9 @@ class ProcessedTimSchemaTest extends AbstractJsonValidatorTest {
     void sampleProcessedTimValidatesAgainstProcessedTimSchema() {
         testJson(validator, new ClassPathResource("json/sample.processed-tim.json"), true);
     }
+
+    @Test
+    void sampleProcessedTimWithCertificatePresentValidatesAgainstProcessedTimSchema() {
+        testJson(validator, new ClassPathResource("json/sample.processed-tim-cert-present.json"), true);
+    }
 }

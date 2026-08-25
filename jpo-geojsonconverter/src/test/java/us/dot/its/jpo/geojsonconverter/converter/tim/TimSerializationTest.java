@@ -3,14 +3,18 @@ package us.dot.its.jpo.geojsonconverter.converter.tim;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static us.dot.its.jpo.geojsonconverter.TestResourceUtil.loadResource;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 
 import org.junit.jupiter.api.Test;
 
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformationMessageFrame;
+import us.dot.its.jpo.geojsonconverter.pojos.common.Ieee1609Dot2SignedDataMetadata;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.MultiLineString;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
 import us.dot.its.jpo.geojsonconverter.serialization.deserializers.JsonDeserializer;
@@ -48,6 +52,24 @@ class TimSerializationTest {
             assertEquals(8, geometry.getCoordinates()[0].length);
             assertEquals(0, processedTim.getDataFrameFeatureCollection().getFeatures().getFirst().getProperties()
                     .getRegionInfoList().getFirst().getGeometryIndex());
+        }
+    }
+
+    @Test
+    void deserializesCertificatePresentProcessedTimWithValidityTimestamps() throws IOException {
+        String certPresentProcessedTimJson = loadResource("classpath:json/sample.processed-tim-cert-present.json");
+
+        try (JsonDeserializer<ProcessedTim> deserializer = new JsonDeserializer<>(ProcessedTim.class)) {
+            ProcessedTim processedTim = deserializer.deserialize("test-topic",
+                    certPresentProcessedTimJson.getBytes(StandardCharsets.UTF_8));
+
+            assertTrue(processedTim.isCertPresent());
+            Ieee1609Dot2SignedDataMetadata signedDataMetadata = processedTim.getSignedDataMetadata();
+            assertNotNull(signedDataMetadata);
+            assertEquals(131, signedDataMetadata.getPsid());
+            assertEquals(Instant.parse("2026-06-10T23:59:05.885Z"), signedDataMetadata.getGenerationTime());
+            assertEquals(Instant.parse("2026-06-04T19:42:18Z"), signedDataMetadata.getCertificateValidityStart());
+            assertEquals(Instant.parse("2026-06-11T20:42:18Z"), signedDataMetadata.getCertificateValidityEnd());
         }
     }
 }
