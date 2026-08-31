@@ -213,7 +213,7 @@ public class TimGeometryConverter {
     /**
      * Determine the region type from ASN.1 data.
      */
-    private ProcessedRegionType determineRegionType(GeographicalPath region) {
+    ProcessedRegionType determineRegionType(GeographicalPath region) {
         if (region.getDescription() == null) {
             return ProcessedRegionType.UNKNOWN;
         }
@@ -406,8 +406,10 @@ public class TimGeometryConverter {
             // node_LatLon contains absolute coordinates, not offsets - doesn't require anchor
             Double absLon = FieldConversions.convertLong(nodeLatLon.getLon().getValue());
             Double absLat = FieldConversions.convertLat(nodeLatLon.getLat().getValue());
-            if (absLon != null) currentLon = absLon;
-            if (absLat != null) currentLat = absLat;
+            if (absLon != null && absLat != null) {
+                currentLon = absLon;
+                currentLat = absLat;
+            }
         }
 
         // Update coordinates array (ensure it's initialized)

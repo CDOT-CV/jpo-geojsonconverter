@@ -111,6 +111,53 @@ public class J2735DateTimeConverterTest {
     }
 
     @Test
+    public void testGenerateUTCTimestampUsesPreviousYearForNonLeapLastDayReceivedOnNewYearsDay() {
+        // 525599 is the last minute of day 365, which is Dec 31 in a non-leap year.
+        ZonedDateTime odeReceivedAt = ZonedDateTime.of(2024, 1, 1, 0, 0, 5, 0, ZoneOffset.UTC);
+        MinuteOfTheYear moy = new MinuteOfTheYear(525_599);
+        DSecond dSecond = new DSecond(59_000);
+
+        ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, odeReceivedAt);
+
+        assertEquals(Instant.parse("2023-12-31T23:59:59Z"), result.toInstant());
+    }
+
+    @Test
+    public void testGenerateUTCTimestampUsesPreviousYearForLeapYearSecondToLastDayReceivedOnNewYearsDay() {
+        // 525599 is still day 365; in a leap year that is Dec 30, the second-to-last day.
+        ZonedDateTime odeReceivedAt = ZonedDateTime.of(2025, 1, 1, 0, 0, 5, 0, ZoneOffset.UTC);
+        MinuteOfTheYear moy = new MinuteOfTheYear(525_599);
+        DSecond dSecond = new DSecond(59_000);
+
+        ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, odeReceivedAt);
+
+        assertEquals(Instant.parse("2024-12-30T23:59:59Z"), result.toInstant());
+    }
+
+    @Test
+    public void testGenerateUTCTimestampKeepsCurrentYearForDay364MoyReceivedOnNewYearsDay() {
+        // 524159 is the last minute of day 364, just below the >= 365 threshold.
+        ZonedDateTime odeReceivedAt = ZonedDateTime.of(2025, 1, 1, 0, 0, 5, 0, ZoneOffset.UTC);
+        MinuteOfTheYear moy = new MinuteOfTheYear(524_159);
+        DSecond dSecond = new DSecond(59_000);
+
+        ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, odeReceivedAt);
+
+        assertEquals(Instant.parse("2025-12-30T23:59:59Z"), result.toInstant());
+    }
+
+    @Test
+    public void testGenerateUTCTimestampFallsBackToOdeDateForInvalidMoy() {
+        ZonedDateTime odeReceivedAt = ZonedDateTime.of(2025, 6, 15, 15, 30, 45, 0, ZoneOffset.UTC);
+        MinuteOfTheYear moy = new MinuteOfTheYear(527_040L);
+        DSecond dSecond = new DSecond(3_000);
+
+        ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, odeReceivedAt);
+
+        assertEquals(ZonedDateTime.of(2025, 6, 15, 15, 30, 3, 0, ZoneOffset.UTC), result);
+    }
+
+    @Test
     public void testGenerateUTCTimestampKeepsExplicitYearAtNewYearBoundary() {
         ZonedDateTime odeReceivedAt = ZonedDateTime.of(2025, 1, 1, 0, 0, 5, 0, ZoneOffset.UTC);
         MinuteOfTheYear moy = new MinuteOfTheYear(525_599);

@@ -26,6 +26,12 @@ public class RsuTimPartitioner<K, V> implements StreamPartitioner<K, V> {
             partitionBytes = JSON_SERIALIZER.serialize(topic, key);
         }
 
+        // JsonSerializer swallows JsonProcessingException and returns null; murmur2 cannot accept that.
+        if (partitionBytes == null) {
+            String fallback = key != null ? String.valueOf(key) : topic;
+            partitionBytes = fallback.getBytes(StandardCharsets.UTF_8);
+        }
+
         return Utils.toPositive(Utils.murmur2(partitionBytes)) % numPartitions;
     }
 }

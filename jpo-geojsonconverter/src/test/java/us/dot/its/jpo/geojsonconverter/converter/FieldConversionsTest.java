@@ -520,6 +520,10 @@ public class FieldConversionsTest {
         // Test with zero offset
         result = FieldConversions.calculateLaneWidthOffset(3.5, 0L);
         assertThat(result, equalTo(3.5));
+
+        // Test with null lane width meter (should return null)
+        result = FieldConversions.calculateLaneWidthOffset(null, 50L);
+        assertThat(result, nullValue());
     }
 
     @Test

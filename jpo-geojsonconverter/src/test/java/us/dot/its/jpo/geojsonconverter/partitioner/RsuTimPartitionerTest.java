@@ -2,6 +2,8 @@ package us.dot.its.jpo.geojsonconverter.partitioner;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.nio.charset.StandardCharsets;
+
 import org.apache.kafka.common.utils.Utils;
 import org.junit.jupiter.api.Test;
 
@@ -31,5 +33,22 @@ public class RsuTimPartitionerTest {
         var partitioner = new RsuTimPartitioner<RsuTimKey, Object>();
 
         assertEquals(expectedPartition, partitioner.partition(TOPIC, key, null, NUM_PARTITIONS));
+    }
+
+    @Test
+    public void testUnserializableKeyDoesNotThrow() {
+        Object unserializableKey = new UnserializableKey();
+        var partitioner = new RsuTimPartitioner<Object, Object>();
+
+        int partition = partitioner.partition(TOPIC, unserializableKey, null, NUM_PARTITIONS);
+        int expected = Utils.toPositive(
+                Utils.murmur2(String.valueOf(unserializableKey).getBytes(StandardCharsets.UTF_8))) % NUM_PARTITIONS;
+        assertEquals(expected, partition);
+    }
+
+    private static final class UnserializableKey {
+        public String getValue() {
+            throw new IllegalStateException("cannot serialize");
+        }
     }
 }

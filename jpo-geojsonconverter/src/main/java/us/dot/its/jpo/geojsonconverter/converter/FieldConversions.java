@@ -511,7 +511,9 @@ public class FieldConversions {
      */
     public static Double calculateLaneWidthOffset(Double laneWidthMeter, long laneWidthOffsetCm) {
         Double returnValue = null;
-        returnValue = laneWidthMeter + (laneWidthOffsetCm * CENTIMETERS_TO_METERS);
+        if (laneWidthMeter != null) {
+            returnValue = laneWidthMeter + (laneWidthOffsetCm * CENTIMETERS_TO_METERS);
+        }
         return returnValue;
     }
 

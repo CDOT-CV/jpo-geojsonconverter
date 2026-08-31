@@ -16,6 +16,7 @@ public class J2735DateTimeConverter {
 
     private static final int MINUTES_PER_DAY = 24 * 60;
     private static final int LAST_OR_SECOND_TO_LAST_DAY_OF_YEAR = 365;
+    private static final long MINUTE_OF_YEAR_INVALID = 527040L;
 
     /**
      * Generate UTC timestamp from Minute of Year (MOY) and optional DSecond values.
@@ -29,15 +30,16 @@ public class J2735DateTimeConverter {
             Integer year) {
         ZonedDateTime date = null;
         try {
+            boolean usableMoy = moy != null && moy.getValue() != MINUTE_OF_YEAR_INVALID;
             if (year == null) {
                 year = odeDate.getYear();
-                if (moy != null && isPreviousYearMinuteOfYear(moy, odeDate)) {
+                if (usableMoy && isPreviousYearMinuteOfYear(moy, odeDate)) {
                     year--;
                 }
             }
             String dateString;
             long milliseconds;
-            if (moy != null) {
+            if (usableMoy) {
                 long minutes = moy.getValue();
                 if (dSecond != null) {
                     milliseconds = dSecond.getValue();
@@ -69,9 +71,10 @@ public class J2735DateTimeConverter {
     /**
      * Identifies a message created late in the previous year but received shortly after midnight on New Year's Day.
      *
-     * <p>J2735 minute-of-year values do not include a year. Treat a value from the last day of a non-leap year (or
-     * either of the final two days of a leap year) as belonging to the previous year when the ODE timestamp is on
-     * January 1. This matches the established {@code FieldConversions.convertMinuteOfYear} behavior.
+     * <p>J2735 minute-of-year values do not include a year. Day-of-year is {@code moy / 1440 + 1}. A threshold of
+     * {@code >= 365} covers the last day of a non-leap year and both of the final two days of a leap year, so no
+     * separate {@code Year.isLeap} branch is required. When the ODE timestamp is January 1, those values are treated as
+     * belonging to the previous year. This matches {@code FieldConversions.convertMinuteOfYear}.
      */
     private static boolean isPreviousYearMinuteOfYear(MinuteOfTheYear moy, ZonedDateTime odeDate) {
         ZonedDateTime utcOdeDate = odeDate.withZoneSameInstant(ZoneOffset.UTC);

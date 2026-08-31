@@ -332,7 +332,7 @@ public class TimConverter {
      * Create processed region info from ASN.1 data.
      */
     private ProcessedRegionInfoBase createProcessedRegionInfoFromAsnData(GeographicalPath region) {
-        ProcessedRegionType regionType = determineRegionType(region);
+        ProcessedRegionType regionType = geometryProcessor.determineRegionType(region);
         ProcessedElevationProfile elevationProfile = new ProcessedElevationProfile();
 
         // Set anchor point and elevation from anchor
@@ -438,27 +438,6 @@ public class TimConverter {
         timContent.setSentence(combinedMessage);
 
         return timContent;
-    }
-
-    private ProcessedRegionType determineRegionType(GeographicalPath region) {
-        if (region.getDescription() == null) {
-            return ProcessedRegionType.UNKNOWN;
-        }
-
-        boolean isClosedPath = region.getClosedPath() != null && region.getClosedPath().getValue();
-        boolean isCircle = region.getDescription().getGeometry() != null
-                && region.getDescription().getGeometry().getCircle() != null;
-        boolean hasPath = region.getDescription().getPath() != null;
-
-        if (isCircle) {
-            return ProcessedRegionType.CIRCLE;
-        } else if (isClosedPath) {
-            return ProcessedRegionType.POLYGON;
-        } else if (hasPath) {
-            return ProcessedRegionType.PATH;
-        } else {
-            return ProcessedRegionType.UNKNOWN;
-        }
     }
 
     private ProcessedAnchorPoint setAnchorPointAndElevation(GeographicalPath region,
