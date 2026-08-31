@@ -1,5 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.partitioner;
 
+import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.utils.Utils;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 import us.dot.its.jpo.geojsonconverter.serialization.serializers.JsonSerializer;
@@ -26,10 +27,10 @@ public class RsuTimPartitioner<K, V> implements StreamPartitioner<K, V> {
             partitionBytes = JSON_SERIALIZER.serialize(topic, key);
         }
 
-        // JsonSerializer swallows JsonProcessingException and returns null; murmur2 cannot accept that.
+        // JsonSerializer logs JsonProcessingException and returns null. A processed-message key must remain
+        // serializable so that partition selection and the key written to Kafka use the same logical value.
         if (partitionBytes == null) {
-            String fallback = key != null ? String.valueOf(key) : topic;
-            partitionBytes = fallback.getBytes(StandardCharsets.UTF_8);
+            throw new SerializationException("Unable to serialize TIM key for partitioning");
         }
 
         return Utils.toPositive(Utils.murmur2(partitionBytes)) % numPartitions;

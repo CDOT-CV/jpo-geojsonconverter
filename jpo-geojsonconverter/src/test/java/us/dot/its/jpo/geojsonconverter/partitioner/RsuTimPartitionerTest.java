@@ -1,9 +1,9 @@
 package us.dot.its.jpo.geojsonconverter.partitioner;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.nio.charset.StandardCharsets;
-
+import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.utils.Utils;
 import org.junit.jupiter.api.Test;
 
@@ -36,14 +36,12 @@ public class RsuTimPartitionerTest {
     }
 
     @Test
-    public void testUnserializableKeyDoesNotThrow() {
+    public void testUnserializableKeyThrowsSerializationException() {
         Object unserializableKey = new UnserializableKey();
         var partitioner = new RsuTimPartitioner<Object, Object>();
 
-        int partition = partitioner.partition(TOPIC, unserializableKey, null, NUM_PARTITIONS);
-        int expected = Utils.toPositive(
-                Utils.murmur2(String.valueOf(unserializableKey).getBytes(StandardCharsets.UTF_8))) % NUM_PARTITIONS;
-        assertEquals(expected, partition);
+        assertThrows(SerializationException.class,
+                () -> partitioner.partition(TOPIC, unserializableKey, null, NUM_PARTITIONS));
     }
 
     private static final class UnserializableKey {
