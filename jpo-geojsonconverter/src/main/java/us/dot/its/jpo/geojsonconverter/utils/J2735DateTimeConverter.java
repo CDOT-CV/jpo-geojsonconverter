@@ -71,10 +71,10 @@ public class J2735DateTimeConverter {
     /**
      * Identifies a message created late in the previous year but received shortly after midnight on New Year's Day.
      *
-     * <p>J2735 minute-of-year values do not include a year. Day-of-year is {@code moy / 1440 + 1}. A threshold of
-     * {@code >= 365} covers the last day of a non-leap year and both of the final two days of a leap year, so no
-     * separate {@code Year.isLeap} branch is required. When the ODE timestamp is January 1, those values are treated as
-     * belonging to the previous year. This matches {@code FieldConversions.convertMinuteOfYear}.
+     * <p>
+     * J2735 minute-of-year values do not include a year. Day-of-year is {@code moy / 1440 + 1}. A threshold of
+     * {@code >= 365} covers the last day of a non-leap year and both of the final two days of a leap year. When the ODE
+     * timestamp is January 1, those values are treated as belonging to the previous year.
      */
     private static boolean isPreviousYearMinuteOfYear(MinuteOfTheYear moy, ZonedDateTime odeDate) {
         ZonedDateTime utcOdeDate = odeDate.withZoneSameInstant(ZoneOffset.UTC);
@@ -125,8 +125,7 @@ public class J2735DateTimeConverter {
     public static ZonedDateTime generateOffsetUTCTimestampForTimeMark(ZonedDateTime originTimestamp,
             TimeMark timeMark) {
         try {
-            if (timeMark == null)
-                return null;
+            if (timeMark == null) return null;
 
             long value = timeMark.getValue();
 
@@ -172,8 +171,7 @@ public class J2735DateTimeConverter {
     public static ZonedDateTime generateOffsetUTCTimestampForSecMark(ZonedDateTime odeReceivedAt, DSecond secMark) {
         try {
 
-            if (secMark == null)
-                return null;
+            if (secMark == null) return null;
 
             long secMarkValue = secMark.getValue();
             int millis = (int) (secMarkValue % 1000);
