@@ -6,7 +6,105 @@
 
 The JPO Intersection GeoJSON Converter is a real-time validator and data converter of JPO-ODE MAP and SPaT JSON based on the SAE J2735 message standard. Messages are consumed from Kafka and validated based on both the SAE J2735 standard and the more robust Connected Transportation Interoperability (CTI) Intersection Implementation Guide Message Requirements (Section 3.3.3). Message validation occurs simultaneously as the GeoJSON converter converts the JPO-ODE MAP and SPaT messages into mappable geoJSON. The JPO Intersection GeoJSON Converter outputs the resulting geoJSON onto Kafka topics. These messages contain validation information that identifies all issues encountered with validation, if any.
 
-![alt text](docs/jpo-geojsonconverter_arch_diagram.png "jpo-geojsonconverter Design Diagram")
+```mermaid
+flowchart LR
+
+%% Column 0: The Source
+subgraph COL0 ["Source"]
+    direction TB %% <-- Keep columns vertical
+    ODE["ODE (Operational Data Environment)"]
+end
+
+%% Column 1: Input Topics
+subgraph COL1 ["Kafka - Input Topics"]
+    direction TB
+    A_Map["topic.OdeMapJson"]
+    A_Spat["topic.OdeSpatJson"]
+    A_Bsm["topic.OdeBsmJson"]
+    A_Psm["topic.OdePsmJson"]
+    A_Rtcm["topic.OdeRtcmJson"]
+    A_Srm["topic.OdeSrmJson"]
+    A_Ssm["topic.OdeSsmJson"]
+    A_Tim["topic.OdeTimJson"]
+end
+
+%% Column 2: Processing
+subgraph COL2 ["Processing Service<br/>(jpo-geojsonconverter)"]
+    direction TB
+    V_Map["Validate MAP"] --> C_Map["Convert MAP"]
+    V_Spat["Validate SPaT"] --> C_Spat["Convert SPaT"]
+    V_Bsm["Validate BSM"] --> C_Bsm["Convert BSM"]
+    V_Psm["Validate PSM"] --> C_Psm["Convert PSM"]
+    V_Rtcm["Validate RTCM"] --> C_Rtcm["Convert RTCM"]
+    V_Srm["Validate SRM"] --> C_Srm["Convert SRM"]
+    V_Ssm["Validate SSM"] --> C_Ssm["Convert SSM"]
+    V_Tim["Validate TIM"] --> C_Tim["Convert TIM"]
+end
+
+%% Column 3: Output Topics
+subgraph COL3 ["Kafka - Output Topics"]
+    direction TB
+    O_Map["topic.ProcessedMap"]
+    O_MapWKT["topic.ProcessedMapWKT"]
+    O_Spat["topic.ProcessedSpat"]
+    O_Bsm["topic.ProcessedBsm"]
+    O_Psm["topic.ProcessedPsm"]
+    O_Rtcm["topic.ProcessedRtcm"]
+    O_Srm["topic.ProcessedSrm"]
+    O_Ssm["topic.ProcessedSsm"]
+    O_Tim["topic.ProcessedTim"]
+end
+
+%% ------------------------
+%% Wiring: ODE → Input
+%% ------------------------
+ODE --> A_Map
+ODE --> A_Spat
+ODE --> A_Bsm
+ODE --> A_Psm
+ODE --> A_Rtcm
+ODE --> A_Srm
+ODE --> A_Ssm
+ODE --> A_Tim
+
+%% ------------------------
+%% Wiring: Input → Validator
+%% ------------------------
+A_Map --> V_Map
+A_Spat --> V_Spat
+A_Bsm --> V_Bsm
+A_Psm --> V_Psm
+A_Rtcm --> V_Rtcm
+A_Srm --> V_Srm
+A_Ssm --> V_Ssm
+A_Tim --> V_Tim
+
+%% ------------------------
+%% Wiring: Converter → Output
+%% ------------------------
+C_Map --> O_Map
+C_Map --> O_MapWKT
+C_Spat --> O_Spat
+C_Bsm --> O_Bsm
+C_Psm --> O_Psm
+C_Rtcm --> O_Rtcm
+C_Srm --> O_Srm
+C_Ssm --> O_Ssm
+C_Tim --> O_Tim
+
+%% ------------------------
+%% Node Coloring
+%% ------------------------
+classDef odeStyle fill:#ff9800,stroke:#e65100,color:#000,stroke-width:2px;
+classDef kafka fill:#9c27b0,stroke:#6a1b9a,color:#fff,stroke-width:2px;
+classDef val fill:#000,stroke:#ff9800,color:#fff,stroke-width:2px;
+classDef conv fill:#2196f3,stroke:#1565c0,color:#fff,stroke-width:2px;
+
+class ODE odeStyle
+class A_Map,A_Spat,A_Bsm,A_Psm,A_Rtcm,A_Srm,A_Ssm,A_Tim,O_Map,O_MapWKT,O_Spat,O_Bsm,O_Psm,O_Rtcm,O_Srm,O_Ssm,O_Tim kafka
+class V_Map,V_Spat,V_Bsm,V_Psm,V_Rtcm,V_Srm,V_Ssm,V_Tim val
+class C_Map,C_Spat,C_Bsm,C_Psm,C_Rtcm,C_Srm,C_Ssm,C_Tim conv
+```
 
 The message validation has been included in the jpo-geojsonconverter in order to prevent too many small microservices from being created. The extent of the current validation that occurs is surface level and is supported by simple verification against a schema that is based on J2735 and the CTI Intersection Implementation Guide. There may be reason to eventually break this feature out into a new, separate repository if more complex validation must be performed.
 
@@ -69,143 +167,143 @@ Example ProcessedSpat message:
 
 ```json
 {
-	"schemaVersion": 2,
-	"messageType": "SPAT",
-	"odeReceivedAt": "2025-07-16T22:55:40.636Z",
-	"originIp": "172.18.0.1",
-	"asn1": "0381004003807C00134700081132000000E437070010434257925790010232119A11CE800C10D095E495E400808684AF24AF20050434257925790030232119A11CE801C10D095E495E401008684AF24AF200",
-	"validationMessages": [
-		{
-			"message": "CTI-4501 conformance issue: the SPAT 'timeStamp' DE_MinuteOfTheYear is missing"
-		},
-		{
-			"message": "CTI-4501 conformance issue: the intersections 'id.region' DE_RoadRegulatorID is missing"
-		},
-		{
-			"message": "CTI-4501 conformance issue: the state-time-speed 'timing.startTime' DE_TimeMark is missing"
-		},
-		{
-			"message": "CTI-4501 conformance issue: the state-time-speed 'timing.nextTime' DE_TimeMark is missing"
-		}
-	],
-	"intersectionId": 8804,
-	"cti4501Conformant": false,
-	"revision": 0,
-	"status": {
-		"manualControlIsEnabled": false,
-		"stopTimeIsActivated": false,
-		"failureFlash": false,
-		"preemptIsActive": false,
-		"signalPriorityIsActive": false,
-		"fixedTimeOperation": false,
-		"trafficDependentOperation": false,
-		"standbyOperation": false,
-		"failureMode": false,
-		"off": false,
-		"recentMAPmessageUpdate": false,
-		"recentChangeInMAPassignedLanesIDsUsed": false,
-		"noValidMAPisAvailableAtThisTime": false,
-		"noValidSPATisAvailableAtThisTime": false
-	},
-	"utcTimeStamp": "2025-07-16T22:55:58.423Z",
-	"states": [
-		{
-			"signalGroup": 1,
-			"stateTimeSpeed": [
-				{
-					"eventState": "stop-And-Remain",
-					"timing": {
-						"minEndTime": "2025-07-16T22:31:58.6Z",
-						"maxEndTime": "2025-07-16T22:31:58.6Z"
-					}
-				}
-			]
-		},
-		{
-			"signalGroup": 2,
-			"stateTimeSpeed": [
-				{
-					"eventState": "protected-Movement-Allowed",
-					"timing": {
-						"minEndTime": "2025-07-16T22:30:02.4Z",
-						"maxEndTime": "2025-07-16T22:30:23.4Z"
-					}
-				}
-			]
-		},
-		{
-			"signalGroup": 3,
-			"stateTimeSpeed": [
-				{
-					"eventState": "stop-And-Remain",
-					"timing": {
-						"minEndTime": "2025-07-16T22:31:58.6Z",
-						"maxEndTime": "2025-07-16T22:31:58.6Z"
-					}
-				}
-			]
-		},
-		{
-			"signalGroup": 4,
-			"stateTimeSpeed": [
-				{
-					"eventState": "stop-And-Remain",
-					"timing": {
-						"minEndTime": "2025-07-16T22:31:58.6Z",
-						"maxEndTime": "2025-07-16T22:31:58.6Z"
-					}
-				}
-			]
-		},
-		{
-			"signalGroup": 5,
-			"stateTimeSpeed": [
-				{
-					"eventState": "stop-And-Remain",
-					"timing": {
-						"minEndTime": "2025-07-16T22:31:58.6Z",
-						"maxEndTime": "2025-07-16T22:31:58.6Z"
-					}
-				}
-			]
-		},
-		{
-			"signalGroup": 6,
-			"stateTimeSpeed": [
-				{
-					"eventState": "protected-Movement-Allowed",
-					"timing": {
-						"minEndTime": "2025-07-16T22:30:02.4Z",
-						"maxEndTime": "2025-07-16T22:30:23.4Z"
-					}
-				}
-			]
-		},
-		{
-			"signalGroup": 7,
-			"stateTimeSpeed": [
-				{
-					"eventState": "stop-And-Remain",
-					"timing": {
-						"minEndTime": "2025-07-16T22:31:58.6Z",
-						"maxEndTime": "2025-07-16T22:31:58.6Z"
-					}
-				}
-			]
-		},
-		{
-			"signalGroup": 8,
-			"stateTimeSpeed": [
-				{
-					"eventState": "stop-And-Remain",
-					"timing": {
-						"minEndTime": "2025-07-16T22:31:58.6Z",
-						"maxEndTime": "2025-07-16T22:31:58.6Z"
-					}
-				}
-			]
-		}
-	]
+ "schemaVersion": 2,
+ "messageType": "SPAT",
+ "odeReceivedAt": "2025-07-16T22:55:40.636Z",
+ "originIp": "172.18.0.1",
+ "asn1": "0381004003807C00134700081132000000E437070010434257925790010232119A11CE800C10D095E495E400808684AF24AF20050434257925790030232119A11CE801C10D095E495E401008684AF24AF200",
+ "validationMessages": [
+  {
+   "message": "CTI-4501 conformance issue: the SPAT 'timeStamp' DE_MinuteOfTheYear is missing"
+  },
+  {
+   "message": "CTI-4501 conformance issue: the intersections 'id.region' DE_RoadRegulatorID is missing"
+  },
+  {
+   "message": "CTI-4501 conformance issue: the state-time-speed 'timing.startTime' DE_TimeMark is missing"
+  },
+  {
+   "message": "CTI-4501 conformance issue: the state-time-speed 'timing.nextTime' DE_TimeMark is missing"
+  }
+ ],
+ "intersectionId": 8804,
+ "cti4501Conformant": false,
+ "revision": 0,
+ "status": {
+  "manualControlIsEnabled": false,
+  "stopTimeIsActivated": false,
+  "failureFlash": false,
+  "preemptIsActive": false,
+  "signalPriorityIsActive": false,
+  "fixedTimeOperation": false,
+  "trafficDependentOperation": false,
+  "standbyOperation": false,
+  "failureMode": false,
+  "off": false,
+  "recentMAPmessageUpdate": false,
+  "recentChangeInMAPassignedLanesIDsUsed": false,
+  "noValidMAPisAvailableAtThisTime": false,
+  "noValidSPATisAvailableAtThisTime": false
+ },
+ "utcTimeStamp": "2025-07-16T22:55:58.423Z",
+ "states": [
+  {
+   "signalGroup": 1,
+   "stateTimeSpeed": [
+    {
+     "eventState": "stop-And-Remain",
+     "timing": {
+      "minEndTime": "2025-07-16T22:31:58.6Z",
+      "maxEndTime": "2025-07-16T22:31:58.6Z"
+     }
+    }
+   ]
+  },
+  {
+   "signalGroup": 2,
+   "stateTimeSpeed": [
+    {
+     "eventState": "protected-Movement-Allowed",
+     "timing": {
+      "minEndTime": "2025-07-16T22:30:02.4Z",
+      "maxEndTime": "2025-07-16T22:30:23.4Z"
+     }
+    }
+   ]
+  },
+  {
+   "signalGroup": 3,
+   "stateTimeSpeed": [
+    {
+     "eventState": "stop-And-Remain",
+     "timing": {
+      "minEndTime": "2025-07-16T22:31:58.6Z",
+      "maxEndTime": "2025-07-16T22:31:58.6Z"
+     }
+    }
+   ]
+  },
+  {
+   "signalGroup": 4,
+   "stateTimeSpeed": [
+    {
+     "eventState": "stop-And-Remain",
+     "timing": {
+      "minEndTime": "2025-07-16T22:31:58.6Z",
+      "maxEndTime": "2025-07-16T22:31:58.6Z"
+     }
+    }
+   ]
+  },
+  {
+   "signalGroup": 5,
+   "stateTimeSpeed": [
+    {
+     "eventState": "stop-And-Remain",
+     "timing": {
+      "minEndTime": "2025-07-16T22:31:58.6Z",
+      "maxEndTime": "2025-07-16T22:31:58.6Z"
+     }
+    }
+   ]
+  },
+  {
+   "signalGroup": 6,
+   "stateTimeSpeed": [
+    {
+     "eventState": "protected-Movement-Allowed",
+     "timing": {
+      "minEndTime": "2025-07-16T22:30:02.4Z",
+      "maxEndTime": "2025-07-16T22:30:23.4Z"
+     }
+    }
+   ]
+  },
+  {
+   "signalGroup": 7,
+   "stateTimeSpeed": [
+    {
+     "eventState": "stop-And-Remain",
+     "timing": {
+      "minEndTime": "2025-07-16T22:31:58.6Z",
+      "maxEndTime": "2025-07-16T22:31:58.6Z"
+     }
+    }
+   ]
+  },
+  {
+   "signalGroup": 8,
+   "stateTimeSpeed": [
+    {
+     "eventState": "stop-And-Remain",
+     "timing": {
+      "minEndTime": "2025-07-16T22:31:58.6Z",
+      "maxEndTime": "2025-07-16T22:31:58.6Z"
+     }
+    }
+   ]
+  }
+ ]
 }
 ```
 
@@ -227,57 +325,57 @@ When an OdeBsmJson message is processed through the jpo-geojsonconverter, a Proc
 
 ```json
 {
-	"type": "Feature",
-	"geometry": {
-		"type": "Point",
-		"coordinates": [
-			-105.0317754,
-			40.5659938
-		]
-	},
-	"properties": {
-		"schemaVersion": 2,
-		"messageType": "BSM",
-		"odeReceivedAt": "2025-07-15T12:25:38.620Z",
-		"timeStamp": "2025-07-15T12:25:25.399Z",
-		"originIp": "172.18.0.1",
-		"asn1": "001480B8494C4C950CD8CDE6E9651116579F22A424DD78FFFFF00761E4FD7EB7D07F7FFF80005F11D1020214C1C0FFC7C016AFF4017A0FF65403B0FD204C20FFCCC04F8FE40C420FFE6404CEFE60E9A10133408FCFDE1438103AB4138F00E1EEC1048EC160103E237410445C171104E26BC103DC4154305C2C84103B1C1C8F0A82F42103F34262D1123198103DAC25FB12034CE10381C259F12038CA103574251B10E3B2210324C23AD0F23D8EFFFE0000209340D10000004264BF00",
-		"validationMessages": [],
-		"accelSet": {
-			"accelLat": 0.0,
-			"accelLong": 0.27,
-			"accelVert": 0.0,
-			"accelYaw": 0.0
-		},
-		"accuracy": {
-			"semiMajor": 9.3,
-			"semiMinor": 12.05
-		},
-		"brakes": {
-			"wheelBrakes": {
-				"unavailable": true,
-				"leftFront": false,
-				"leftRear": false,
-				"rightFront": false,
-				"rightRear": false
-			},
-			"traction": "unavailable",
-			"abs": "unavailable",
-			"scs": "unavailable",
-			"brakeBoost": "unavailable",
-			"auxBrakes": "unavailable"
-		},
-		"heading": 313.25,
-		"id": "31325433",
-		"msgCnt": 37,
-		"secMark": 25399,
-		"size": {
-			"width": 190,
-			"length": 570
-		},
-		"speed": 0.28,
-		"transmission": "unavailable"
-	}
+ "type": "Feature",
+ "geometry": {
+  "type": "Point",
+  "coordinates": [
+   -105.0317754,
+   40.5659938
+  ]
+ },
+ "properties": {
+  "schemaVersion": 2,
+  "messageType": "BSM",
+  "odeReceivedAt": "2025-07-15T12:25:38.620Z",
+  "timeStamp": "2025-07-15T12:25:25.399Z",
+  "originIp": "172.18.0.1",
+  "asn1": "001480B8494C4C950CD8CDE6E9651116579F22A424DD78FFFFF00761E4FD7EB7D07F7FFF80005F11D1020214C1C0FFC7C016AFF4017A0FF65403B0FD204C20FFCCC04F8FE40C420FFE6404CEFE60E9A10133408FCFDE1438103AB4138F00E1EEC1048EC160103E237410445C171104E26BC103DC4154305C2C84103B1C1C8F0A82F42103F34262D1123198103DAC25FB12034CE10381C259F12038CA103574251B10E3B2210324C23AD0F23D8EFFFE0000209340D10000004264BF00",
+  "validationMessages": [],
+  "accelSet": {
+   "accelLat": 0.0,
+   "accelLong": 0.27,
+   "accelVert": 0.0,
+   "accelYaw": 0.0
+  },
+  "accuracy": {
+   "semiMajor": 9.3,
+   "semiMinor": 12.05
+  },
+  "brakes": {
+   "wheelBrakes": {
+    "unavailable": true,
+    "leftFront": false,
+    "leftRear": false,
+    "rightFront": false,
+    "rightRear": false
+   },
+   "traction": "unavailable",
+   "abs": "unavailable",
+   "scs": "unavailable",
+   "brakeBoost": "unavailable",
+   "auxBrakes": "unavailable"
+  },
+  "heading": 313.25,
+  "id": "31325433",
+  "msgCnt": 37,
+  "secMark": 25399,
+  "size": {
+   "width": 190,
+   "length": 570
+  },
+  "speed": 0.28,
+  "transmission": "unavailable"
+ }
 }
 ```
 
@@ -307,29 +405,29 @@ Example ProcessedPsm message:
 
 ```json
 {
-	"type": "Feature",
-	"geometry": {
-		"type": "Point",
-		"coordinates": [
-			-74.27614369999999,
-			40.2397377
-		]
-	},
-	"properties": {
-		"schemaVersion": 2,
-		"messageType": "PSM",
-		"odeReceivedAt": "2025-07-25T10:09:36.120Z",
-		"timeStamp": "2025-07-25T10:09:03.564Z",
-		"originIp": "172.18.0.1",
-		"asn1": "00201A0000021BD86891DE75F84DA101C13F042E2214141FFF00022C2000270000000163B2CC79860100",
-		"validationMessages": [],
-		"basicType": "aPEDESTRIAN",
-		"id": "24779D7E",
-		"msgCnt": 26,
-		"secMark": 3564,
-		"speed": 0.0,
-		"heading": 111.22500000000001
-	}
+ "type": "Feature",
+ "geometry": {
+  "type": "Point",
+  "coordinates": [
+   -74.27614369999999,
+   40.2397377
+  ]
+ },
+ "properties": {
+  "schemaVersion": 2,
+  "messageType": "PSM",
+  "odeReceivedAt": "2025-07-25T10:09:36.120Z",
+  "timeStamp": "2025-07-25T10:09:03.564Z",
+  "originIp": "172.18.0.1",
+  "asn1": "00201A0000021BD86891DE75F84DA101C13F042E2214141FFF00022C2000270000000163B2CC79860100",
+  "validationMessages": [],
+  "basicType": "aPEDESTRIAN",
+  "id": "24779D7E",
+  "msgCnt": 26,
+  "secMark": 3564,
+  "speed": 0.0,
+  "heading": 111.22500000000001
+ }
 }
 ```
 
@@ -341,21 +439,21 @@ Validation with reference to the [CTI-4501 specification](https://www.ite.org/IT
 
 The RTCM decoding functionality can be configured with the `rtcm.full.decode` setting in `application.yaml`.
 
-* If `rtcm.full.decode=true`, the app uses the native `gpsd-client` library to fully decode the RTCM payloads.
-* If `rtcm.full.decode=false`, it uses pure Java methods to partially decode the payload.  In partial mode it is only capable of extracting the message types and station IDs for RTCM rev 3 messages.
+- If `rtcm.full.decode=true`, the app uses the native `gpsd-client` library to fully decode the RTCM payloads.
+- If `rtcm.full.decode=false`, it uses pure Java methods to partially decode the payload.  In partial mode it is only capable of extracting the message types and station IDs for RTCM rev 3 messages.
 
 `ProcessedRtcm` fields:
 
-* *type* - Always 'Feature'
-* *geometry* - Point geometry, location of the station from the `FullPositionVector` frame.
-* *properties* - Selected properties from the message frame, and decoded from the binary RTCM messages, including:
-  * *msgCnt* - Message count
-  * *rev* - Must equal "rtcmRev3" to be CTI-4501 compliant, although it is possible to decode rev 2 messages in full decode mode.
-  * *messageTypes* - A list of message types from the decoded messages.
-  * *stationId* - The station ID from the decoded messages.
-  * *messages* - A list of fully or partially decoded messages.  
-    * *hex* - The hex-encoded raw RTCM message.
-    * *decodedMessage* - The decoded message in JSON format. There are numerous message types, and the structure of this node varies depending on type.
+- *type* - Always 'Feature'
+- *geometry* - Point geometry, location of the station from the `FullPositionVector` frame.
+- *properties* - Selected properties from the message frame, and decoded from the binary RTCM messages, including:
+  - *msgCnt* - Message count
+  - *rev* - Must equal "rtcmRev3" to be CTI-4501 compliant, although it is possible to decode rev 2 messages in full decode mode.
+  - *messageTypes* - A list of message types from the decoded messages.
+  - *stationId* - The station ID from the decoded messages.
+  - *messages* - A list of fully or partially decoded messages.  
+    - *hex* - The hex-encoded raw RTCM message.
+    - *decodedMessage* - The decoded message in JSON format. There are numerous message types, and the structure of this node varies depending on type.
 
 Example `ProcessedRtcm` message:
 
@@ -494,7 +592,6 @@ Example `ProcessedSrm` message:
 }
 ```
 
-
 ### ProcessedSsm
 
 The GeoJSON Converter produces `ProcessedSsm` messages from `SignalStatusMessage` (SSM) message frames received from the ODE.
@@ -548,14 +645,217 @@ Example `ProcessedSsm` message:
 }
 ```
 
+### ProcessedTim
 
-[Back to top](#toc)
+The GeoJSON Converter produces `ProcessedTim` messages from `TravelerInformationMessage` (TIM) message frames received from the ODE.
 
-<!--
-#########################################
-############# Configuration #############
-#########################################
- -->
+ODE TIMs are structurally validated against the TIM JSON schema. Content-level validation against Interoperability Technical Working Group (ITWG) or Connecting The West (CTW) best practices is planned for a follow-up work item.
+
+#### Transformation Process
+
+When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `ProcessedTim` message is created through the following transformation steps:
+
+1. **Message Structure**: The `ProcessedTim` is a single JSON object containing:
+   - Root-level metadata (message type, timestamps, origin IP, ASN.1 data, etc.)
+   - A `dataFrameFeatureCollection` containing GeoJSON Feature objects, one for each dataframe within the incoming TIM.
+   - A `location` field containing a representative region-anchor point for coarse MongoDB 2dsphere indexing
+   - Optional IEEE 1609.2 signed-message metadata, including certificate validity timestamps when supplied by the ODE
+   - `validationMessages` for J2735/ODE JSON schema issues
+
+2. **Data Frame to Feature Conversion**: Each `TravelerDataFrame` in the TIM message becomes a GeoJSON Feature in the `dataFrameFeatureCollection`:
+   - Each data frame within a TIM is assigned a sequential feature ID (0, 1, 2, ...)
+   - The geometry is derived from the regions defined in the data frame
+   - Properties are extracted from the data frame metadata and content
+
+3. **Region Geometry Processing**: Regions within each data frame are converted to GeoJSON geometries based on their type:
+   - **PATH**: Converted to `LineString` geometry from LL/XY offsets or explicit LL latitude/longitude nodes
+   - **CIRCLE**: Converted to a WGS84 geodesic `Polygon`, preserving the encoded radius across UTM-zone boundaries. The circle is approximated with an adaptive number of vertices based on diameter (12-64 vertices)
+   - **POLYGON**: Converted to `Polygon` geometry from closed paths
+   - If a data frame contains multiple regions, they are combined in source-region order into `MultiLineString`, `MultiPolygon`, or `GeometryCollection` geometries
+
+4. **Path Processing**: For PATH regions, coordinates are calculated using:
+   - An anchor point (absolute lat/lon) as the starting coordinate when one is present
+   - LL or XY offset nodes accumulated from an anchor; LL offsets may also follow an explicit absolute LL node
+   - Explicit latitude/longitude nodes in LL or XY node lists, which can establish a path without an anchor
+   - Zoom scaling factors (2^scale) applied to offset calculations
+   - Computed lanes and legacy `oldRegion` definitions are not currently supported
+
+5. **Content Processing**: The content field is processed to extract:
+   - **ITIS Codes**: Converted to both numeric codes and human-readable phrases using the generated J2735 `ITIScodes` POJO from `jpo-asn-pojos`
+   - **Unknown ITIS Codes**: Preserved numerically and assigned the phrase `unknown`; new standard codes are added by updating the J2735 ASN.1 bundle in `jpo-asn-pojos`
+   - **Text Content**: Plain text items are preserved as-is
+   - **Content Type**: Determined from the frame type (ADVISORY, ROAD_SIGNAGE, or COMMERCIAL_SIGNAGE)
+   - **Combined Sentence**: All content items are concatenated in order to form a readable sentence
+
+6. **Validity Period Calculation**: The validity period is calculated from:
+   - Start time: Derived from `startYear` and `startTime` (MinuteOfTheYear), or defaults to ODE receive time
+   - End time: Calculated by adding `durationTime` (in minutes) to the start time
+   - Infinite duration: If `durationTime` equals 32000, the validity period is marked as infinite with an end time of 9999-12-31T23:59:59Z
+   - This period describes TIM applicability, not certificate validity. When present, signature generation time and certificate validity are reported separately in root-level `signedDataMetadata`; `isCertPresent` records whether the incoming message included the certificate.
+
+7. **Region Information Extraction**: For each region, the following information is extracted:
+   - **Region Type**: Determined by checking for circle geometry, closed path flag, or path existence
+   - **Elevation Profile**: Default elevation from anchor point, plus node-level elevation offsets
+   - **Lane Width Profile**: Default width from region, plus node-level width offsets (for PATH regions only)
+   - **Direction Information**: Either directionality (forward/backward/both) or heading sectors (bitstring converted to heading ranges)
+   - **Geometry Index**: Zero-based position of the region in the feature geometry. For `Multi*` geometries it indexes the corresponding coordinate component; for `GeometryCollection` it indexes `geometries`. It is omitted when a region cannot be converted.
+
+8. **Representative Location Calculation**: The `location` field is the average of all valid region anchors across the data frames. Longitudes are unwrapped around the first anchor before averaging so dateline-spanning TIMs stay near ±180 instead of averaging to 0. It supports coarse containment or proximity filtering only; it may fall outside the rendered TIM geometry, so consumers must use `dataFrameFeatureCollection` for geometry intersection or roadway-traversal queries. The field is omitted when no valid anchors are available.
+
+9. **Validation Messages**: ODE TIMs are structurally validated against the TIM JSON schema. Schema failures are recorded in a root-level `validationMessages` list, matching ProcessedBsm/ProcessedPsm/ProcessedSrm/ProcessedSsm. Content-level Interoperability Technical Working Group (ITWG) or Connecting The West (CTW) best-practice checking is planned for a follow-up that pulls in the TIM validator library.
+
+10. **Kafka Key Generation**: ProcessedTim messages have an `RsuTimKey` containing:
+    - RSU IP address (originIp)
+    - Packet ID (from the TIM message)
+    - Message count (msgCnt)
+    and are partitioned using the `RsuTimPartitioner` as follows:
+    - If the RSU ID/origin IP is present, messages are grouped by that value
+    - If the RSU ID is missing, the complete serialized key is distributed with Kafka's Murmur2 hash; Packet ID is not used alone because it is unique per TIM and provides no useful grouping
+
+[ProcessedTim schema can be found here.](<jpo-geojsonconverter/src/main/resources/schemas/processed-tim.schema.json>)
+
+Example `ProcessedTim` message:
+
+```JSON
+{
+ "schemaVersion": 1,
+ "messageType": "TIM",
+ "odeReceivedAt": "2025-10-15T20:19:28.543Z",
+ "originIp": "172.27.0.1",
+ "asn1": "001F606015120C16D30800002B8ACCEF28080000FD2A2419F4010007A5270F4454E3EBF36000002EE2000022D02890237A6C0011020086C910100001FA525E83B102000F4A4E1E88A9C7D7E6C000005DC4000045A0512046F4D80064010C188C888400",
+ "msgCnt": 1,
+ "timeStamp": "2025-08-19T18:20:28.543Z",
+ "packetId": "16D30800002B8ACCEF",
+ "location": {
+  "type": "Point",
+  "coordinates": [
+   -84.4027175,
+   33.7569813
+  ]
+ },
+ "validationMessages": [],
+ "dataFrameFeatureCollection": {
+  "features": [
+   {
+    "type": "Feature",
+    "id": 0,
+    "geometry": {
+     "type": "LineString",
+     "coordinates": [
+      [
+       -84.4027126287049,
+       33.75693611995482
+      ],
+      [
+       -84.40270505113875,
+       33.75760914062784
+      ]
+     ]
+    },
+    "properties": {
+     "deploymentAgencyType": "STATE_OR_LOCAL",
+     "validityPeriod": {
+      "startTime": "2025-08-19T18:20:28.543Z",
+      "endTime": "9999-12-31T23:59:59Z",
+      "infinite": true
+     },
+     "priority": 2,
+     "regionInfoList": [
+      {
+       "regionType": "PATH",
+       "elevationProfile": {},
+       "directionInfo": {
+        "directionType": "DIRECTIONALITY",
+        "directionality": "forward"
+       },
+       "laneWidthProfile": {
+        "defaultWidthMeters": 15.0
+       }
+      }
+     ],
+     "content": {
+      "type": "COMMERCIAL_SIGNAGE",
+      "contentItems": [
+       {
+        "type": "ITIS_CODE",
+        "itisCode": 1025,
+        "itisPhrase": "road-construction"
+       },
+       {
+        "type": "ITIS_CODE",
+        "itisCode": 6948,
+        "itisPhrase": "fines-doubled"
+       }
+      ],
+      "sentence": "road-construction fines-doubled"
+     }
+    }
+   },
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": {
+     "type": "LineString",
+     "coordinates": [
+      [
+       -84.4027126287049,
+       33.75693611995482
+      ],
+      [
+       -84.40270505113875,
+       33.75760914062784
+      ]
+     ]
+    },
+    "properties": {
+     "deploymentAgencyType": "STATE_OR_LOCAL",
+     "validityPeriod": {
+      "startTime": "2025-07-29T00:00:28.543Z",
+      "endTime": "2025-08-19T00:00:28.543Z",
+      "infinite": false
+     },
+     "priority": 2,
+     "regionInfoList": [
+      {
+       "regionType": "PATH",
+       "elevationProfile": {},
+       "directionInfo": {
+        "directionType": "DIRECTIONALITY",
+        "directionality": "forward"
+       },
+       "laneWidthProfile": {
+        "defaultWidthMeters": 15.0
+       }
+      }
+     ],
+     "content": {
+      "type": "ROAD_SIGNAGE",
+      "contentItems": [
+       {
+        "type": "ITIS_CODE",
+        "itisCode": 268,
+        "itisPhrase": "speed-limit"
+       },
+       {
+        "type": "ITIS_CODE",
+        "itisCode": 12569,
+        "itisPhrase": "n25"
+       },
+       {
+        "type": "ITIS_CODE",
+        "itisCode": 8720,
+        "itisPhrase": "mPH"
+       }
+      ],
+      "sentence": "speed-limit n25 mPH"
+     }
+    }
+   }
+  ],
+  "type": "FeatureCollection"
+ }
+}
+```
 
 <a name="configuration"/>
 
@@ -671,7 +971,7 @@ A GitHub token is required to pull artifacts from GitHub repositories. This is r
 6. Click "Generate token" and copy the token.
 7. Copy the token name and token value into your `.env` file.
 8. Create a copy of [settings.xml](jpo-geojsonconverter/settings.xml) and save it to `~/.m2/settings.xml`
-9. Update the variables in your `~/.m2/settings.xml` with the token value and target jpo-ode organization. Here is an example filled in `settings.xml` file:
+9. Set `MAVEN_GITHUB_TOKEN` to the token value and `MAVEN_GITHUB_ORG` to the organization that publishes the selected `jpo-ode` dependency. This branch uses `jpo-ode` version `7.0.0-alpha1`, which is published under `CDOT-CV`; use `usdot-jpo-ode` for versions published by the upstream organization. The repository's [settings.xml](jpo-geojsonconverter/settings.xml) reads both variables:
 
 ```XML
 <?xml version="1.0" encoding="UTF-8"?>
@@ -682,8 +982,8 @@ A GitHub token is required to pull artifacts from GitHub repositories. This is r
     <servers>
         <server>
             <id>github</id>
-            <username>jpo_geojsonconverter</username>
-            <password>ghp_token-string-value</password>
+            <username>YOUR_GITHUB_USERNAME</username>
+            <password>${env.MAVEN_GITHUB_TOKEN}</password>
         </server>
     </servers>
     <profiles>
@@ -693,7 +993,7 @@ A GitHub token is required to pull artifacts from GitHub repositories. This is r
                 <repository>
                     <id>github</id>
                     <name>GitHub Apache Maven Packages</name>
-                    <url>https://maven.pkg.github.com/usdot-jpo-ode/jpo-ode</url>
+                    <url>https://maven.pkg.github.com/${env.MAVEN_GITHUB_ORG}/jpo-ode</url>
                     <snapshots>
                         <enabled>false</enabled>
                     </snapshots>
@@ -703,6 +1003,28 @@ A GitHub token is required to pull artifacts from GitHub repositories. This is r
     </profiles>
 </settings>
 ```
+
+#### Non-Docker build and test
+
+From the `jpo-geojsonconverter` module directory, export the package credentials and run the Maven wrapper. `verify` compiles the application and runs the complete unit-test suite.
+
+Linux/macOS:
+
+```bash
+export MAVEN_GITHUB_TOKEN="YOUR_TOKEN"
+export MAVEN_GITHUB_ORG="CDOT-CV"
+./mvnw --settings settings.xml clean verify
+```
+
+Windows PowerShell:
+
+```powershell
+$env:MAVEN_GITHUB_TOKEN = "YOUR_TOKEN"
+$env:MAVEN_GITHUB_ORG = "CDOT-CV"
+.\mvnw.cmd --settings settings.xml clean verify
+```
+
+To run one test class while iterating, replace `clean verify` with `-Dtest=TimGeometryConverterTest test`.
 
 #### Step 4 - Build and run jpo-geojsonconverter application
 
@@ -884,7 +1206,7 @@ permissions and limitations under the [License](http://www.apache.org/licenses/L
 
 ## 7. Contributing
 
-Please read our [contributing guide](docs/contributing_guide.md) to learn about our development process, how to propose pull requests and improvements, and how to build and test your changes to this project.
+Please read our [contributing guide](https://github.com/usdot-jpo-ode/jpo-ode/blob/develop/docs/contributing_guide.md) to learn about our development process, how to propose pull requests and improvements, and how to build and test your changes to this project.
 
 ### Source Repositories - GitHub
 

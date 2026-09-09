@@ -26,6 +26,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.connectinglanes.*;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.map.*;
 import us.dot.its.jpo.geojsonconverter.utils.BitstringUtils;
+import us.dot.its.jpo.geojsonconverter.utils.J2735DateTimeConverter;
 import us.dot.its.jpo.geojsonconverter.utils.ProcessedSchemaVersions;
 import us.dot.its.jpo.geojsonconverter.validator.CTI4501Validator;
 import us.dot.its.jpo.geojsonconverter.validator.JsonValidatorResult;
@@ -150,7 +151,7 @@ public class MapProcessedJsonConverter
                 intersection.getLaneWidth() != null ? (int) intersection.getLaneWidth().getValue() : null);
         sharedProps.setSpeedLimits(convertSpeedLimitList(intersection.getSpeedLimits()));
         sharedProps.setMapSource(metadata.getSource());
-        sharedProps.setTimeStamp(generateUTCTimestamp(mapData.getTimeStamp(), odeDate));
+        sharedProps.setTimeStamp(J2735DateTimeConverter.generateUTCTimestamp(mapData.getTimeStamp(), null, odeDate));
         // Setting validation fields
         sharedProps.setValidationMessages(processedSpatValidationMessages);
         sharedProps.setCti4501Conformant(sharedProps.getValidationMessages().size() == 0);
@@ -159,30 +160,38 @@ public class MapProcessedJsonConverter
     }
 
     private ProcessedPosition3D convertPosition3D(Position3D p) {
-        if (p == null) return null;
+        if (p == null)
+            return null;
         ProcessedPosition3D processed = new ProcessedPosition3D();
-        processed.setLat(p.getLat() != null ? (int)p.getLat().getValue() : null);
-        processed.setLong_(p.getLong_() != null ? (int)p.getLong_().getValue() : null);
-        processed.setElevation(p.getElevation() != null ? (int)p.getElevation().getValue() : null);
+        processed.setLat(p.getLat() != null ? (int) p.getLat().getValue() : null);
+        processed.setLong_(p.getLong_() != null ? (int) p.getLong_().getValue() : null);
+        processed.setElevation(p.getElevation() != null ? (int) p.getElevation().getValue() : null);
         return processed;
     }
 
-    private ProcessedIntersectionReferenceID convertIntersectionReferenceID(IntersectionReferenceID intersectionReferenceID) {
-        if (intersectionReferenceID == null) return null;
+    private ProcessedIntersectionReferenceID convertIntersectionReferenceID(
+            IntersectionReferenceID intersectionReferenceID) {
+        if (intersectionReferenceID == null)
+            return null;
         ProcessedIntersectionReferenceID processed = new ProcessedIntersectionReferenceID();
-        processed.setId(intersectionReferenceID.getId() != null ? (int)intersectionReferenceID.getId().getValue() : null);
-        processed.setRegion(intersectionReferenceID.getRegion() != null ? (int)intersectionReferenceID.getRegion().getValue() : null);
+        processed.setId(
+                intersectionReferenceID.getId() != null ? (int) intersectionReferenceID.getId().getValue() : null);
+        processed.setRegion(
+                intersectionReferenceID.getRegion() != null ? (int) intersectionReferenceID.getRegion().getValue()
+                        : null);
         return processed;
     }
 
     private ProcessedSpeedLimitList convertSpeedLimitList(SpeedLimitList speedLimitList) {
-        if (speedLimitList == null) return null;
+        if (speedLimitList == null)
+            return null;
         ProcessedSpeedLimitList processed = new ProcessedSpeedLimitList();
         for (RegulatorySpeedLimit speedLimit : speedLimitList) {
             var processedSpeedLimit = new ProcessedRegulatorySpeedLimit();
-            processedSpeedLimit.setSpeed(speedLimit.getSpeed() != null ? (int)speedLimit.getSpeed().getValue() : null);
+            processedSpeedLimit.setSpeed(speedLimit.getSpeed() != null ? (int) speedLimit.getSpeed().getValue() : null);
             if (speedLimit.getType() != null) {
-                ProcessedSpeedLimitType processedSpeedLimitType = ProcessedSpeedLimitType.fromName(speedLimit.getType().getName());
+                ProcessedSpeedLimitType processedSpeedLimitType =
+                        ProcessedSpeedLimitType.fromName(speedLimit.getType().getName());
                 processedSpeedLimit.setType(processedSpeedLimitType);
             }
             processed.add(processedSpeedLimit);
@@ -234,7 +243,8 @@ public class MapProcessedJsonConverter
     }
 
     private ProcessedLaneTypeAttributes convertLaneTypeAttributes(LaneTypeAttributes laneTypeAttributes) {
-        if (laneTypeAttributes == null) return null;
+        if (laneTypeAttributes == null)
+            return null;
         ProcessedLaneTypeAttributes processed = new ProcessedLaneTypeAttributes();
         if (laneTypeAttributes.getVehicle() != null) {
             var processedVehicle = new ProcessedLaneAttributes_Vehicle();
@@ -273,14 +283,19 @@ public class MapProcessedJsonConverter
     }
 
     private ProcessedConnectsToList convertConnectsToList(ConnectsToList connectsToList) {
-        if (connectsToList == null) return null;
+        if (connectsToList == null)
+            return null;
         ProcessedConnectsToList processedConnectsToList = new ProcessedConnectsToList();
         for (Connection connection : connectsToList) {
             ProcessedConnection processedConnection = new ProcessedConnection();
-            processedConnection.setSignalGroup(connection.getSignalGroup() != null ? (int) connection.getSignalGroup().getValue() : null);
-            processedConnection.setUserClass(connection.getUserClass() != null ? (int) connection.getUserClass().getValue() : null);
-            processedConnection.setConnectionID(connection.getConnectionID() != null ? (int) connection.getConnectionID().getValue() : null);
-            processedConnection.setRemoteIntersection(convertIntersectionReferenceID(connection.getRemoteIntersection()));
+            processedConnection.setSignalGroup(
+                    connection.getSignalGroup() != null ? (int) connection.getSignalGroup().getValue() : null);
+            processedConnection.setUserClass(
+                    connection.getUserClass() != null ? (int) connection.getUserClass().getValue() : null);
+            processedConnection.setConnectionID(
+                    connection.getConnectionID() != null ? (int) connection.getConnectionID().getValue() : null);
+            processedConnection
+                    .setRemoteIntersection(convertIntersectionReferenceID(connection.getRemoteIntersection()));
             processedConnection.setConnectingLane(convertConnectingLane(connection.getConnectingLane()));
             processedConnectsToList.add(processedConnection);
         }
@@ -288,9 +303,11 @@ public class MapProcessedJsonConverter
     }
 
     private ProcessedConnectingLane convertConnectingLane(ConnectingLane connectingLane) {
-        if (connectingLane == null) return null;
+        if (connectingLane == null)
+            return null;
         ProcessedConnectingLane processedConnectingLane = new ProcessedConnectingLane();
-        processedConnectingLane.setLane(connectingLane.getLane() != null ?  (int) connectingLane.getLane().getValue() : null);
+        processedConnectingLane
+                .setLane(connectingLane.getLane() != null ? (int) connectingLane.getLane().getValue() : null);
         ProcessedAllowedManeuvers processedManeuvers = new ProcessedAllowedManeuvers();
         BitstringUtils.processBitstring(processedManeuvers, connectingLane.getManeuver());
         processedConnectingLane.setManeuver(processedManeuvers);
@@ -445,30 +462,6 @@ public class MapProcessedJsonConverter
         processedMapObject.setProperties(processedMapProps);
 
         return processedMapObject;
-    }
-
-    public ZonedDateTime generateUTCTimestamp(MinuteOfTheYear moy, ZonedDateTime odeDate) { // 2022-10-31T15:40:26.687292Z
-        ZonedDateTime date = null;
-        try {
-            int year = odeDate.getYear();
-            String dateString;
-            long minutes;
-            if (moy != null) {
-                minutes = moy.getValue(); // minutes from beginning of year
-                dateString = String.format("%d-01-01T00:00:00.00Z", year);
-                date = Instant.parse(dateString).atZone(ZoneId.of("UTC"));
-                date = date.plusMinutes(minutes);
-            } else {
-                date = odeDate;
-            }
-
-        } catch (Exception e) {
-            String errMsg = String.format("Failed to generateUTCTimestamp - SpatProcessedJsonConverter. Message: %s",
-                    e.getMessage());
-            logger.error(errMsg, e);
-        }
-
-        return date;
     }
 
     public List<MapNode> nodeConversionList(NodeSetXY nodeXYs) { // 2022-10-31T15:40:26.687292Z

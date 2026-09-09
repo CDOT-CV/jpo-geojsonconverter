@@ -1,13 +1,22 @@
 #General Properties
-groupId: '@project.groupId@'
-artifactId: '@project.artifactId@'
-version: '@project.version@'
+groupId: "@project.groupId@"
+artifactId: "@project.artifactId@"
+version: "@project.version@"
 
-# Don't run the Spring Boot web server
+# Run the Spring Boot web server on port 8081
 spring.main.web-application-type: servlet
+server.port: 8081
 
 # Unused feature
 spring.groovy.template.check-template-location: false
+
+# JSON Schema resource paths
+schema:
+  bsm: classpath:schemas/bsm.schema.json
+  map: classpath:schemas/map.schema.json
+  spat: classpath:schemas/spat.schema.json
+  psm: classpath:schemas/psm.schema.json
+  rtcm: classpath:schemas/rtcm.schema.json
 
 # Geometry JSON output mode (GEOJSON_ONLY or WKT)
 geometry.output.mode: GEOJSON_ONLY
@@ -36,6 +45,9 @@ kafka.topics:
     - name: topic.ProcessedRtcm
       cleanupPolicy: delete
       retentionMs: 300000
+    - name: topic.ProcessedTim
+      cleanupPolicy: delete
+      retentionMs: 300000
     - name: topic.ProcessedSrm
       cleanupPolicy: delete
       retentionMs: 300000
@@ -57,6 +69,8 @@ geojsonconverter:
   kafka-topic-processed-srm: topic.ProcessedSrm
   kafka-topic-ode-ssm-json: topic.OdeSsmJson
   kafka-topic-processed-ssm: topic.ProcessedSsm
+  kafka-topic-ode-tim-json: topic.OdeTimJson
+  kafka-topic-processed-tim: topic.ProcessedTim
   # Replication factor
   # https://kafka.apache.org/11/streams/developer-guide/config-streams/#replicationfactor
   # -1 = broker default, 1 is default, 3 recommended for prod

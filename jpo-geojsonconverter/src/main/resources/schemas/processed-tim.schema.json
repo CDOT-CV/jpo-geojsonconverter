@@ -1,0 +1,502 @@
+{
+  "$schema" : "https://json-schema.org/draft/2020-12/schema",
+  "$defs" : {
+    "Ieee1609Dot2SignedDataMetadata" : {
+      "type" : "object",
+      "properties" : {
+        "certificateValidityEnd" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "certificateValidityStart" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "generationTime" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "psid" : {
+          "type" : "integer",
+          "format" : "int32"
+        }
+      }
+    },
+    "Point-1" : {
+      "type" : "object",
+      "properties" : {
+        "bbox" : {
+          "type" : "array",
+          "items" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        },
+        "coordinates" : {
+          "type" : "array",
+          "items" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        }
+      }
+    },
+    "Point-2" : {
+      "$ref" : "#/$defs/Point-1",
+      "type" : "object",
+      "properties" : {
+        "type" : {
+          "const" : "Point"
+        }
+      },
+      "required" : [ "type" ]
+    },
+    "ProcessedAnchorPoint" : {
+      "type" : "object",
+      "properties" : {
+        "elevationMeters" : {
+          "type" : "number",
+          "format" : "double"
+        },
+        "latitude" : {
+          "type" : "number",
+          "format" : "double"
+        },
+        "longitude" : {
+          "type" : "number",
+          "format" : "double"
+        }
+      }
+    },
+    "ProcessedCircleRegionInfo-1" : {
+      "type" : "object",
+      "properties" : {
+        "anchorPoint" : {
+          "$ref" : "#/$defs/ProcessedAnchorPoint"
+        },
+        "directionInfo" : {
+          "anyOf" : [ {
+            "$ref" : "#/$defs/ProcessedDirectionalityDirectionInfo-2"
+          }, {
+            "$ref" : "#/$defs/ProcessedHeadingDirectionInfo-2"
+          } ]
+        },
+        "elevationProfile" : {
+          "$ref" : "#/$defs/ProcessedElevationProfile"
+        },
+        "geometryIndex" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "radius" : {
+          "type" : "number",
+          "format" : "double"
+        },
+        "regionType" : {
+          "$ref" : "#/$defs/ProcessedRegionType"
+        }
+      }
+    },
+    "ProcessedCircleRegionInfo-2" : {
+      "$ref" : "#/$defs/ProcessedCircleRegionInfo-1",
+      "type" : "object",
+      "properties" : {
+        "regionType" : {
+          "const" : "CIRCLE"
+        }
+      },
+      "required" : [ "regionType" ]
+    },
+    "ProcessedContentType" : {
+      "type" : "string",
+      "enum" : [ "ADVISORY", "ROAD_SIGNAGE", "COMMERCIAL_SIGNAGE" ]
+    },
+    "ProcessedDeploymentAgency" : {
+      "type" : "string",
+      "enum" : [ "STATE_OR_LOCAL", "COMMERCIAL", "UNKNOWN" ]
+    },
+    "ProcessedDirectionType" : {
+      "type" : "string",
+      "enum" : [ "DIRECTIONALITY", "HEADING" ]
+    },
+    "ProcessedDirectionality" : {
+      "type" : "string",
+      "enum" : [ "forward", "reverse", "both", "unavailable", "unknown" ]
+    },
+    "ProcessedDirectionalityDirectionInfo-1" : {
+      "type" : "object",
+      "properties" : {
+        "directionType" : {
+          "$ref" : "#/$defs/ProcessedDirectionType"
+        },
+        "directionality" : {
+          "$ref" : "#/$defs/ProcessedDirectionality"
+        }
+      }
+    },
+    "ProcessedDirectionalityDirectionInfo-2" : {
+      "$ref" : "#/$defs/ProcessedDirectionalityDirectionInfo-1",
+      "type" : "object",
+      "properties" : {
+        "directionType" : {
+          "const" : "DIRECTIONALITY"
+        }
+      },
+      "required" : [ "directionType" ]
+    },
+    "ProcessedElevationProfile" : {
+      "type" : "object",
+      "properties" : {
+        "defaultElevationMeters" : {
+          "type" : "number",
+          "format" : "double"
+        },
+        "nodeElevationMeters" : {
+          "type" : "array",
+          "items" : {
+            "type" : [ "number", "null" ],
+            "format" : "double"
+          }
+        }
+      }
+    },
+    "ProcessedHeading" : {
+      "type" : "object",
+      "properties" : {
+        "heading" : {
+          "type" : "number",
+          "format" : "double"
+        },
+        "range" : {
+          "type" : "number",
+          "format" : "double"
+        }
+      }
+    },
+    "ProcessedHeadingDirectionInfo-1" : {
+      "type" : "object",
+      "properties" : {
+        "directionType" : {
+          "$ref" : "#/$defs/ProcessedDirectionType"
+        },
+        "headingList" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ProcessedHeading"
+          }
+        }
+      }
+    },
+    "ProcessedHeadingDirectionInfo-2" : {
+      "$ref" : "#/$defs/ProcessedHeadingDirectionInfo-1",
+      "type" : "object",
+      "properties" : {
+        "directionType" : {
+          "const" : "HEADING"
+        }
+      },
+      "required" : [ "directionType" ]
+    },
+    "ProcessedLaneWidthProfile" : {
+      "type" : "object",
+      "properties" : {
+        "defaultWidthMeters" : {
+          "type" : "number",
+          "format" : "double"
+        },
+        "nodeLaneWidthMeters" : {
+          "type" : "array",
+          "items" : {
+            "type" : [ "number", "null" ],
+            "format" : "double"
+          }
+        }
+      }
+    },
+    "ProcessedPathRegionInfo-1" : {
+      "type" : "object",
+      "properties" : {
+        "anchorPoint" : {
+          "$ref" : "#/$defs/ProcessedAnchorPoint"
+        },
+        "directionInfo" : {
+          "anyOf" : [ {
+            "$ref" : "#/$defs/ProcessedDirectionalityDirectionInfo-2"
+          }, {
+            "$ref" : "#/$defs/ProcessedHeadingDirectionInfo-2"
+          } ]
+        },
+        "elevationProfile" : {
+          "$ref" : "#/$defs/ProcessedElevationProfile"
+        },
+        "geometryIndex" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "laneWidthProfile" : {
+          "$ref" : "#/$defs/ProcessedLaneWidthProfile"
+        },
+        "regionType" : {
+          "$ref" : "#/$defs/ProcessedRegionType"
+        }
+      }
+    },
+    "ProcessedPathRegionInfo-2" : {
+      "$ref" : "#/$defs/ProcessedPathRegionInfo-1",
+      "type" : "object",
+      "properties" : {
+        "regionType" : {
+          "const" : "PATH"
+        }
+      },
+      "required" : [ "regionType" ]
+    },
+    "ProcessedPolygonRegionInfo-1" : {
+      "type" : "object",
+      "properties" : {
+        "anchorPoint" : {
+          "$ref" : "#/$defs/ProcessedAnchorPoint"
+        },
+        "directionInfo" : {
+          "anyOf" : [ {
+            "$ref" : "#/$defs/ProcessedDirectionalityDirectionInfo-2"
+          }, {
+            "$ref" : "#/$defs/ProcessedHeadingDirectionInfo-2"
+          } ]
+        },
+        "elevationProfile" : {
+          "$ref" : "#/$defs/ProcessedElevationProfile"
+        },
+        "geometryIndex" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "regionType" : {
+          "$ref" : "#/$defs/ProcessedRegionType"
+        }
+      }
+    },
+    "ProcessedPolygonRegionInfo-2" : {
+      "$ref" : "#/$defs/ProcessedPolygonRegionInfo-1",
+      "type" : "object",
+      "properties" : {
+        "regionType" : {
+          "const" : "POLYGON"
+        }
+      },
+      "required" : [ "regionType" ]
+    },
+    "ProcessedRegionType" : {
+      "type" : "string",
+      "enum" : [ "PATH", "POLYGON", "CIRCLE", "UNKNOWN" ]
+    },
+    "ProcessedTimContent" : {
+      "type" : "object",
+      "properties" : {
+        "contentItems" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ProcessedTimContentItem"
+          }
+        },
+        "sentence" : {
+          "type" : "string"
+        },
+        "type" : {
+          "$ref" : "#/$defs/ProcessedContentType"
+        }
+      }
+    },
+    "ProcessedTimContentItem" : {
+      "type" : "object",
+      "properties" : {
+        "itisCode" : {
+          "type" : "integer",
+          "format" : "int64"
+        },
+        "itisPhrase" : {
+          "type" : "string"
+        },
+        "type" : {
+          "$ref" : "#/$defs/TimContentItemType"
+        }
+      }
+    },
+    "ProcessedTimFeature(Object)" : {
+      "type" : "object",
+      "properties" : {
+        "geometry" : { },
+        "id" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "properties" : {
+          "$ref" : "#/$defs/ProcessedTimProperties"
+        }
+      }
+    },
+    "ProcessedTimFeatureCollection" : {
+      "type" : "object",
+      "properties" : {
+        "features" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ProcessedTimFeature(Object)"
+          }
+        }
+      }
+    },
+    "ProcessedTimProperties" : {
+      "type" : "object",
+      "properties" : {
+        "content" : {
+          "$ref" : "#/$defs/ProcessedTimContent"
+        },
+        "deploymentAgencyType" : {
+          "$ref" : "#/$defs/ProcessedDeploymentAgency"
+        },
+        "priority" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "regionInfoList" : {
+          "type" : "array",
+          "items" : {
+            "anyOf" : [ {
+              "$ref" : "#/$defs/ProcessedPathRegionInfo-2"
+            }, {
+              "$ref" : "#/$defs/ProcessedPolygonRegionInfo-2"
+            }, {
+              "$ref" : "#/$defs/ProcessedCircleRegionInfo-2"
+            }, {
+              "$ref" : "#/$defs/ProcessedUnknownRegionInfo-2"
+            } ]
+          }
+        },
+        "validityPeriod" : {
+          "$ref" : "#/$defs/ProcessedValidityPeriod"
+        }
+      }
+    },
+    "ProcessedUnknownRegionInfo-1" : {
+      "type" : "object",
+      "properties" : {
+        "anchorPoint" : {
+          "$ref" : "#/$defs/ProcessedAnchorPoint"
+        },
+        "directionInfo" : {
+          "anyOf" : [ {
+            "$ref" : "#/$defs/ProcessedDirectionalityDirectionInfo-2"
+          }, {
+            "$ref" : "#/$defs/ProcessedHeadingDirectionInfo-2"
+          } ]
+        },
+        "elevationProfile" : {
+          "$ref" : "#/$defs/ProcessedElevationProfile"
+        },
+        "geometryIndex" : {
+          "type" : "integer",
+          "format" : "int32"
+        },
+        "laneWidthProfile" : {
+          "$ref" : "#/$defs/ProcessedLaneWidthProfile"
+        },
+        "regionType" : {
+          "$ref" : "#/$defs/ProcessedRegionType"
+        }
+      }
+    },
+    "ProcessedUnknownRegionInfo-2" : {
+      "$ref" : "#/$defs/ProcessedUnknownRegionInfo-1",
+      "type" : "object",
+      "properties" : {
+        "regionType" : {
+          "const" : "UNKNOWN"
+        }
+      },
+      "required" : [ "regionType" ]
+    },
+    "ProcessedValidationMessage" : {
+      "type" : "object",
+      "properties" : {
+        "exception" : {
+          "type" : "string"
+        },
+        "jsonPath" : {
+          "type" : "string"
+        },
+        "message" : {
+          "type" : "string"
+        },
+        "schemaPath" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ProcessedValidityPeriod" : {
+      "type" : "object",
+      "properties" : {
+        "endTime" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "startTime" : {
+          "type" : "string",
+          "format" : "date-time"
+        }
+      }
+    },
+    "TimContentItemType" : {
+      "type" : "string",
+      "enum" : [ "ITIS_CODE", "PLAIN_TEXT" ]
+    }
+  },
+  "type" : "object",
+  "properties" : {
+    "asn1" : {
+      "type" : "string"
+    },
+    "dataFrameFeatureCollection" : {
+      "$ref" : "#/$defs/ProcessedTimFeatureCollection"
+    },
+    "isCertPresent" : {
+      "type" : "boolean"
+    },
+    "location" : {
+      "$ref" : "#/$defs/Point-2"
+    },
+    "messageType" : {
+      "type" : "string"
+    },
+    "msgCnt" : {
+      "type" : "integer",
+      "format" : "int32"
+    },
+    "odeReceivedAt" : {
+      "type" : "string"
+    },
+    "originIp" : {
+      "type" : "string"
+    },
+    "packetId" : {
+      "type" : "string"
+    },
+    "schemaVersion" : {
+      "type" : "integer",
+      "format" : "int32"
+    },
+    "signedDataMetadata" : {
+      "$ref" : "#/$defs/Ieee1609Dot2SignedDataMetadata"
+    },
+    "timeStamp" : {
+      "type" : "string",
+      "format" : "date-time"
+    },
+    "validationMessages" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/$defs/ProcessedValidationMessage"
+      }
+    }
+  }
+}

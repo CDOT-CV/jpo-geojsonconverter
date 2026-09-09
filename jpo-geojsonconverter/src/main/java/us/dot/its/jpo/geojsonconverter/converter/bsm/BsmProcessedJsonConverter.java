@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +28,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.bsm.ProcessedBsm;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.bsm.ProcessedBsmAccelerationSet4Way;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.bsm.ProcessedBsmPositionalAccuracy;
 import us.dot.its.jpo.geojsonconverter.utils.BitstringUtils;
+import us.dot.its.jpo.geojsonconverter.utils.J2735DateTimeConverter;
 import us.dot.its.jpo.geojsonconverter.utils.ProcessedSchemaVersions;
 import us.dot.its.jpo.geojsonconverter.validator.JsonValidatorResult;
 
@@ -128,8 +128,8 @@ public class BsmProcessedJsonConverter
         ZonedDateTime odeDate = Instant.parse(metadata.getOdeReceivedAt()).atZone(ZoneId.of("UTC"));
 
         processedBsm.getProperties().setValidationMessages(processedBsmValidationMessages);
-        processedBsm.getProperties().setTimeStamp(
-                generateOffsetUTCTimestamp(odeDate, bsmMessageFrame.getValue().getCoreData().getSecMark().getValue()));
+        processedBsm.getProperties().setTimeStamp(J2735DateTimeConverter.generateOffsetUTCTimestampForSecMark(odeDate,
+                bsmMessageFrame.getValue().getCoreData().getSecMark()));
 
         return processedBsm;
     }
@@ -140,6 +140,7 @@ public class BsmProcessedJsonConverter
         List<ProcessedValidationMessage> processedBsmValidationMessages = new ArrayList<ProcessedValidationMessage>();
 
         ZonedDateTime utcDateTime = ZonedDateTime.now(ZoneOffset.UTC);
+
 
         object.setMessage(message);
         object.setException(ExceptionUtils.getStackTrace(validatorResult.getExceptions().get(0)));
@@ -181,7 +182,8 @@ public class BsmProcessedJsonConverter
         bsmProps.setSpeed(FieldConversions.convertSpeed(coreData.getSpeed().getValue()));
         if (coreData.getTransmission() != null) {
             TransmissionState transmissionState = coreData.getTransmission();
-            ProcessedTransmissionState processedTransmissionState = ProcessedTransmissionState.fromName(transmissionState.getName());
+            ProcessedTransmissionState processedTransmissionState =
+                    ProcessedTransmissionState.fromName(transmissionState.getName());
             bsmProps.setTransmission(processedTransmissionState);
         }
 
@@ -190,7 +192,9 @@ public class BsmProcessedJsonConverter
     }
 
     private ProcessedBrakeSystemStatus convertBrakeSystemStatus(BrakeSystemStatus bss) {
-        if (bss == null) return null;
+        if (bss == null) {
+            return null;
+        }
 
         ProcessedBrakeSystemStatus pbss = new ProcessedBrakeSystemStatus();
 
@@ -230,50 +234,12 @@ public class BsmProcessedJsonConverter
     }
 
     private ProcessedVehicleSize convertVehicleSize(VehicleSize vs) {
-        if (vs == null) return null;
+        if (vs == null)
+            return null;
         ProcessedVehicleSize pvs = new ProcessedVehicleSize();
-        pvs.setLength(vs.getLength() != null ? (int)vs.getLength().getValue() : null);
-        pvs.setWidth(vs.getWidth() != null ? (int)vs.getWidth().getValue() : null);
+        pvs.setLength(vs.getLength() != null ? (int) vs.getLength().getValue() : null);
+        pvs.setWidth(vs.getWidth() != null ? (int) vs.getWidth().getValue() : null);
         return pvs;
     }
 
-    public ZonedDateTime generateOffsetUTCTimestamp(ZonedDateTime odeReceivedAt, Long secMark) {
-        try {
-            if (secMark != null) {
-                int millis = (int) (secMark % 1000);
-                int seconds = (int) (secMark / 1000);
-                ZonedDateTime date = odeReceivedAt;
-                if (secMark == 65535) {
-
-                    // Return UTC time zero if the Zoned Date time is marked as unknown, UTC time zero chosen so that a
-                    // null value can represent an empty field in the BSM. But 65535, can represent an intentionally
-                    // unidentified field.
-                    return ZonedDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.of("UTC"));
-
-                } else {
-                    // If we are within 10 seconds of the next minute, and the timeMark is a large number, it probably
-                    // means that the time rolled over before reception.
-                    // In this case, subtract a minute from the odeReceivedAt so that the true time represents the
-                    // minute in the past.
-                    if (odeReceivedAt.getSecond() < 10 && secMark > 50000) {
-                        date = date.minusMinutes(1);
-                    }
-
-                    date = date.withSecond(seconds);
-                    date = date.withNano(0);
-                    date = date.plus(millis, ChronoUnit.MILLIS);
-                    return date;
-                }
-
-
-            } else {
-                return null;
-            }
-        } catch (Exception e) {
-            String errMsg = String.format(
-                    "Failed to generateOffsetUTCTimestamp - BSMProcessedJsonConverter. Message: %s", e.getMessage());
-            logger.error(errMsg, e);
-            return null;
-        }
-    }
 }

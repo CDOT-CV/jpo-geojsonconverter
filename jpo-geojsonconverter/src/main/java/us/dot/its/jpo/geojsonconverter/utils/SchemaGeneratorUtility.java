@@ -2,6 +2,7 @@ package us.dot.its.jpo.geojsonconverter.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
@@ -11,6 +12,8 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.psm.ProcessedPsm;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.rtcm.ProcessedRTCM;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.srm.ProcessedSrm;
 import us.dot.its.jpo.geojsonconverter.pojos.spat.ProcessedSpat;
+import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedDirectionality;
+import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
 import us.dot.its.jpo.geojsonconverter.pojos.ssm.ProcessedSsm;
 
 import java.io.File;
@@ -26,9 +29,8 @@ public class SchemaGeneratorUtility {
     static int run(String[] args) {
         try {
             // Define the classes for which to generate schemas
-            Class<?>[] targetClasses =
-                    {ProcessedPsm.class, ProcessedBsm.class, ProcessedMap.class, ProcessedSpat.class, ProcessedRTCM.class,
-                    ProcessedSrm.class, ProcessedSsm.class};
+            Class<?>[] targetClasses = {ProcessedPsm.class, ProcessedBsm.class, ProcessedMap.class, ProcessedSpat.class,
+                    ProcessedRTCM.class, ProcessedSrm.class, ProcessedSsm.class, ProcessedTim.class};
 
             ObjectMapper objectMapper = new ObjectMapper();
 
@@ -71,6 +73,11 @@ public class SchemaGeneratorUtility {
                 if (ProcessedSpat.class.equals(targetClass)) {
                     schema = ensureUtcTimeStampTsProperty(schema);
                 }
+                if (ProcessedTim.class.equals(targetClass)) {
+                    schema = ensureProcessedTimDirectionalityValues(schema);
+                    schema = allowNullProcessedTimNodeElevations(schema);
+                    schema = allowNullProcessedTimNodeLaneWidths(schema);
+                }
 
                 // Create the schema file in the resources/schemas directory
                 // Add hyphen after "Processed"
@@ -90,6 +97,68 @@ public class SchemaGeneratorUtility {
             e.printStackTrace();
             return 1;
         }
+    }
+
+    private static JsonNode ensureProcessedTimDirectionalityValues(JsonNode schema) {
+        if (!(schema instanceof ObjectNode schemaObject)) {
+            return schema;
+        }
+
+        JsonNode definitionsNode = schemaObject.get("$defs");
+        if (!(definitionsNode instanceof ObjectNode definitions)) {
+            return schema;
+        }
+
+        JsonNode directionalityNode = definitions.get("ProcessedDirectionality");
+        if (!(directionalityNode instanceof ObjectNode directionality)) {
+            return schema;
+        }
+
+        ArrayNode enumValues = directionality.putArray("enum");
+        for (ProcessedDirectionality directionalityValue : ProcessedDirectionality.values()) {
+            enumValues.add(directionalityValue.getValue());
+        }
+        return schemaObject;
+    }
+
+    private static JsonNode allowNullProcessedTimNodeElevations(JsonNode schema) {
+        if (!(schema instanceof ObjectNode schemaObject)) {
+            return schema;
+        }
+
+        JsonNode itemsNode = schemaObject.path("$defs")
+                .path("ProcessedElevationProfile")
+                .path("properties")
+                .path("nodeElevationMeters")
+                .path("items");
+        if (!(itemsNode instanceof ObjectNode items)) {
+            return schema;
+        }
+
+        ArrayNode types = items.putArray("type");
+        types.add("number");
+        types.add("null");
+        return schemaObject;
+    }
+
+    private static JsonNode allowNullProcessedTimNodeLaneWidths(JsonNode schema) {
+        if (!(schema instanceof ObjectNode schemaObject)) {
+            return schema;
+        }
+
+        JsonNode itemsNode = schemaObject.path("$defs")
+                .path("ProcessedLaneWidthProfile")
+                .path("properties")
+                .path("nodeLaneWidthMeters")
+                .path("items");
+        if (!(itemsNode instanceof ObjectNode items)) {
+            return schema;
+        }
+
+        ArrayNode types = items.putArray("type");
+        types.add("number");
+        types.add("null");
+        return schemaObject;
     }
 
     private static JsonNode ensureUtcTimeStampTsProperty(JsonNode schema) {

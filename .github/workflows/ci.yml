@@ -1,5 +1,5 @@
 name: CI
-on: 
+on:
   workflow_dispatch:
   pull_request:
     types: [opened, reopened, synchronize]
@@ -47,7 +47,7 @@ jobs:
         with:
           java-version: "21"
           distribution: "temurin"
-          cache: 'maven'
+          cache: "maven"
       - name: Run Sonar
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

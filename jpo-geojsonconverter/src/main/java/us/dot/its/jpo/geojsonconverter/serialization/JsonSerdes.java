@@ -5,6 +5,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.bsm.ProcessedBsm;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.rtcm.ProcessedRTCM;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.srm.ProcessedSrm;
 import us.dot.its.jpo.geojsonconverter.pojos.spat.*;
+import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.map.ProcessedMap;
@@ -37,8 +38,7 @@ public class JsonSerdes {
     }
 
     public static Serde<ProcessedSpat> ProcessedSpat() {
-        return Serdes.serdeFrom(new JsonSerializer<ProcessedSpat>(),
-                new JsonDeserializer<>(ProcessedSpat.class));
+        return Serdes.serdeFrom(new JsonSerializer<ProcessedSpat>(), new JsonDeserializer<>(ProcessedSpat.class));
     }
 
     public static Serde<ProcessedBsm<Point>> ProcessedBsm() {
@@ -52,6 +52,10 @@ public class JsonSerdes {
     public static Serde<RsuIntersectionKey> RsuIntersectionKey() {
         return Serdes.serdeFrom(new JsonSerializer<RsuIntersectionKey>(),
                 new JsonDeserializer<>(RsuIntersectionKey.class));
+    }
+
+    public static Serde<RsuTimKey> RsuTimKey() {
+        return Serdes.serdeFrom(new JsonSerializer<RsuTimKey>(), new JsonDeserializer<>(RsuTimKey.class));
     }
 
     public static Serde<RsuLogKey> RsuLogKey() {
@@ -68,6 +72,10 @@ public class JsonSerdes {
 
     public static Serde<ProcessedRTCM> ProcessedRTCM() {
         return Serdes.serdeFrom(new JsonSerializer<>(), new JsonDeserializer<>(ProcessedRTCM.class));
+    }
+
+    public static Serde<ProcessedTim> ProcessedTim() {
+        return Serdes.serdeFrom(new JsonSerializer<ProcessedTim>(), new JsonDeserializer<>(ProcessedTim.class));
     }
 
     public static Serde<ProcessedSsm> ProcessedSsm() {

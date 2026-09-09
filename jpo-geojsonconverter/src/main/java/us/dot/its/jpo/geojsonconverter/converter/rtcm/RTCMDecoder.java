@@ -5,17 +5,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.SystemUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import us.dot.its.jpo.geojsonconverter.DateJsonMapper;
-import us.dot.its.jpo.geojsonconverter.GeoJsonConverterProperties;
 
 import java.io.File;
 import java.io.IOException;
 
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HexFormat;
 
@@ -52,16 +48,19 @@ public class RTCMDecoder {
         if (executableExists) {
             return fullDecode(bytes);
         } else {
-            log.warn("Executable {} does not exist, or running on Windows. Partially decoding. " +
-                    "Install gpsdecode, or configure rtcm.full.decode=false to suppress this warning", EXECUTABLE);
+            log.warn(
+                    "Executable {} does not exist, or running on Windows. Partially decoding. "
+                            + "Install gpsdecode, or configure rtcm.full.decode=false to suppress this warning",
+                    EXECUTABLE);
             return partialDecode(bytes);
         }
 
     }
 
     /**
-     * Partially decode the RTCM message.  Used when gpsdecode library is not available.
-     * Ref. <a href="https://gitlab.com/gpsd/gpsd/-/blob/master/drivers/driver_rtcm3.c">gpsd/driver_rtcm.c</a>
+     * Partially decode the RTCM message. Used when gpsdecode library is not available. Ref.
+     * <a href="https://gitlab.com/gpsd/gpsd/-/blob/master/drivers/driver_rtcm3.c">gpsd/driver_rtcm.c</a>
+     * 
      * @param bytes byte array
      * @return JSON formatted partially decoded message.
      */
@@ -94,7 +93,7 @@ public class RTCMDecoder {
         int length = ((unsigned(bytes[1]) & 0x03) << 8) | unsigned(bytes[2]);
         node.put("length", length);
 
-        //  Type: 12 bits
+        // Type: 12 bits
         int type = (unsigned(bytes[3]) << 4) | (unsigned(bytes[4]) >>> 4);
         node.put("type", type);
 
@@ -110,7 +109,9 @@ public class RTCMDecoder {
 
     /**
      * Call the native gpsdecode command line tool to fully decode RTCMs.
-     * <p>Full decode requires gpsd-client to be installed on Linux.  Will not work on Windows.</p>
+     * <p>
+     * Full decode requires gpsd-client to be installed on Linux. Will not work on Windows.
+     * </p>
      */
     public static JsonNode fullDecode(byte[] bytes) {
         var pb = new ProcessBuilder(EXECUTABLE);

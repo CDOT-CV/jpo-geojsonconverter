@@ -3,6 +3,7 @@
     "redhat.vscode-xml",
     "vscjava.vscode-java-pack",
     "redhat.java",
-    "vmware.vscode-boot-dev-pack"
+    "vmware.vscode-boot-dev-pack",
+    "bierner.markdown-mermaid"
   ]
 }
