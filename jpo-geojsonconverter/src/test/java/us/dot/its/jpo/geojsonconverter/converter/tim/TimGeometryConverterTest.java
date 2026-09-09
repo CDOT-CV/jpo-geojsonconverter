@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.*;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Latitude;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Longitude;
+import us.dot.its.jpo.asn.j2735.r2024.Common.Position3D;
 import us.dot.its.jpo.asn.j2735.r2024.Common.NodeListXY;
 import us.dot.its.jpo.asn.j2735.r2024.Common.NodeOffsetPointXY;
 import us.dot.its.jpo.asn.j2735.r2024.Common.NodeSetXY;
@@ -233,6 +235,33 @@ public class TimGeometryConverterTest {
         }
 
         assertNull(geometryConverter.calculateCenterLocationFromRegionAnchors(travelerInfo));
+    }
+
+    @Test
+    public void testCalculateCenterLocationUnwrapsLongitudeAcrossAntimeridian() {
+        TravelerInformation travelerInfo = travelerInformation();
+        while (travelerInfo.getDataFrames().size() > 1) {
+            travelerInfo.getDataFrames().removeLast();
+        }
+
+        TravelerDataFrame dataFrame = travelerInfo.getDataFrames().getFirst();
+        TravelerDataFrame.SequenceOfRegions regions = new TravelerDataFrame.SequenceOfRegions();
+        regions.add(regionWithAnchor(1790000000L, 0L));
+        regions.add(regionWithAnchor(-1790000000L, 0L));
+        dataFrame.setRegions(regions);
+
+        Point centerPoint = geometryConverter.calculateCenterLocationFromRegionAnchors(travelerInfo);
+        assertNotNull(centerPoint);
+        assertEquals(180.0, Math.abs(centerPoint.getX()), 0.000001,
+                "Dateline-spanning anchors should stay near ±180, not average to 0");
+        assertEquals(0.0, centerPoint.getY(), 0.000001);
+    }
+
+    @Test
+    public void testAverageLongitudeKeepsNearbyLongitudesUnchanged() {
+        assertEquals(15.0, TimGeometryConverter.averageLongitude(List.of(10.0, 20.0)));
+        assertEquals(-84.45, TimGeometryConverter.averageLongitude(List.of(-84.4, -84.5)), 0.000001);
+        assertEquals(180.0, Math.abs(TimGeometryConverter.averageLongitude(List.of(179.0, -179.0))), 0.000001);
     }
 
     @Test
@@ -651,6 +680,15 @@ public class TimGeometryConverterTest {
 
     private GeographicalPath firstRegion() {
         return travelerInformation().getDataFrames().getFirst().getRegions().getFirst();
+    }
+
+    private GeographicalPath regionWithAnchor(long longitude, long latitude) {
+        GeographicalPath region = new GeographicalPath();
+        Position3D anchor = new Position3D();
+        anchor.setLong_(new Longitude(longitude));
+        anchor.setLat(new Latitude(latitude));
+        region.setAnchor(anchor);
+        return region;
     }
 
     private OffsetSystem.OffsetChoice createLlOffsetChoice(NodeLL... nodes) {

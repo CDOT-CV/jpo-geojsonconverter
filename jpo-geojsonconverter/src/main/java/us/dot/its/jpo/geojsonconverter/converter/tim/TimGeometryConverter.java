@@ -164,25 +164,30 @@ public class TimGeometryConverter {
      *
      * <p>
      * This point is intended for coarse geospatial indexing. It is not the centroid of the complete TIM geometry, and
-     * callers should use the feature geometries for intersection or roadway-traversal queries.
+     * callers should use the feature geometries for intersection or roadway-traversal queries. Longitudes are
+     * unwrapped around the first anchor before averaging so anchors that straddle the antimeridian stay near ±180
+     * rather than averaging to 0.
      *
      * @param travelerInfo The ASN.1 TravelerInformation object
      * @return JTS Point representing the average region-anchor location, or {@code null} when no valid anchors are
      *         available
      */
     public Point calculateCenterLocationFromRegionAnchors(TravelerInformation travelerInfo) {
-        List<List<Double>> coordinates = new ArrayList<>();
+        List<Double> longitudes = new ArrayList<>();
+        List<Double> latitudes = new ArrayList<>();
 
         if (travelerInfo.getDataFrames() != null) {
             for (TravelerDataFrame dataFrame : travelerInfo.getDataFrames()) {
                 if (dataFrame.getRegions() != null) {
                     for (GeographicalPath region : dataFrame.getRegions()) {
                         // Get anchor point coordinates
-                        if (region.getAnchor() != null) {
+                        if (region.getAnchor() != null && region.getAnchor().getLat() != null
+                                && region.getAnchor().getLong_() != null) {
                             Double lat = FieldConversions.convertLat(region.getAnchor().getLat().getValue());
                             Double lon = FieldConversions.convertLong(region.getAnchor().getLong_().getValue());
                             if (lat != null && lon != null) {
-                                coordinates.add(Arrays.asList(lon, lat)); // [longitude, latitude]
+                                longitudes.add(lon);
+                                latitudes.add(lat);
                             }
                         }
                     }
@@ -190,24 +195,58 @@ public class TimGeometryConverter {
             }
         }
 
-        if (coordinates.isEmpty()) {
+        if (longitudes.isEmpty()) {
             log.warn("Cannot calculate a representative TIM location: no valid region anchors were found");
-            return null;
-        }
-
-        var averageLatitude = coordinates.stream().filter(coord -> coord != null && coord.size() >= 2)
-                .mapToDouble(coord -> coord.get(1)).average();
-        var averageLongitude = coordinates.stream().filter(coord -> coord != null && coord.size() >= 2)
-                .mapToDouble(coord -> coord.get(0)).average();
-
-        if (averageLatitude.isEmpty() || averageLongitude.isEmpty()) {
-            log.warn("Cannot calculate a representative TIM location: region anchors contained no usable coordinates");
             return null;
         }
 
         // Create Point geometry using JTS GeometryFactory
         return new GeometryFactory()
-                .createPoint(new Coordinate(averageLongitude.getAsDouble(), averageLatitude.getAsDouble()));
+                .createPoint(new Coordinate(averageLongitude(longitudes), average(latitudes)));
+    }
+
+    /**
+     * Arithmetic mean of longitudes after unwrapping around the first value. Nearby longitudes match a simple average;
+     * values such as 179° and -179° stay on the antimeridian instead of averaging to 0°.
+     *
+     * @param longitudes Longitude values in decimal degrees
+     * @return Mean longitude in the range [-180, 180]
+     */
+    static double averageLongitude(List<Double> longitudes) {
+        double reference = longitudes.get(0);
+        double[] unwrapped = new double[longitudes.size()];
+        for (int i = 0; i < longitudes.size(); i++) {
+            unwrapped[i] = unwrapLongitude(longitudes.get(i), reference);
+        }
+        return wrapLongitude(Arrays.stream(unwrapped).average().getAsDouble());
+    }
+
+    static double unwrapLongitude(double longitude, double reference) {
+        double delta = longitude - reference;
+        if (delta > 180.0) {
+            delta -= 360.0;
+        } else if (delta < -180.0) {
+            delta += 360.0;
+        }
+        return reference + delta;
+    }
+
+    static double wrapLongitude(double longitude) {
+        if (longitude > 180.0) {
+            return longitude - 360.0;
+        }
+        if (longitude < -180.0) {
+            return longitude + 360.0;
+        }
+        return longitude;
+    }
+
+    private static double average(List<Double> values) {
+        double[] array = new double[values.size()];
+        for (int i = 0; i < values.size(); i++) {
+            array[i] = values.get(i);
+        }
+        return Arrays.stream(array).average().getAsDouble();
     }
 
     /**

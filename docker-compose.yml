@@ -6,7 +6,6 @@ services:
     profiles:
       - all
       - geojson_full
-      - geojson_base
     build:
       context: .
       dockerfile: Dockerfile
