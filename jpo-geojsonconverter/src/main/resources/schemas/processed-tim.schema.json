@@ -109,7 +109,7 @@
     },
     "ProcessedContentType" : {
       "type" : "string",
-      "enum" : [ "ADVISORY", "ROAD_SIGNAGE", "COMMERCIAL_SIGNAGE" ]
+      "enum" : [ "ADVISORY", "ROAD_SIGNAGE", "COMMERCIAL_SIGNAGE", "GENERIC_SIGN", "EXIT_SERVICE" ]
     },
     "ProcessedDeploymentAgency" : {
       "type" : "string",

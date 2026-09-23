@@ -23,6 +23,7 @@ import us.dot.its.jpo.asn.j2735.r2024.Common.NodeOffsetPointXY;
 import us.dot.its.jpo.asn.j2735.r2024.Common.NodeSetXY;
 import us.dot.its.jpo.asn.j2735.r2024.Common.NodeXY;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Node_LLmD_64b;
+import us.dot.its.jpo.asn.j2735.r2024.Common.Node_XY_20b;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Offset_B10;
 import us.dot.its.jpo.asn.j2735.r2024.Common.OffsetLL_B18;
 import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
@@ -33,6 +34,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.MultiLineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.MultiPolygon;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Polygon;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
+import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedTimFeature;
 import us.dot.its.jpo.geojsonconverter.serialization.deserializers.JsonDeserializer;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
@@ -259,9 +261,26 @@ public class TimGeometryConverterTest {
 
     @Test
     public void testAverageLongitudeKeepsNearbyLongitudesUnchanged() {
-        assertEquals(15.0, TimGeometryConverter.averageLongitude(List.of(10.0, 20.0)));
+        assertEquals(15.0, TimGeometryConverter.averageLongitude(List.of(10.0, 20.0)), 0.000001);
         assertEquals(-84.45, TimGeometryConverter.averageLongitude(List.of(-84.4, -84.5)), 0.000001);
         assertEquals(180.0, Math.abs(TimGeometryConverter.averageLongitude(List.of(179.0, -179.0))), 0.000001);
+    }
+
+    @Test
+    public void testAverageLongitudeIsIndependentOfInputOrder() {
+        List<Double> firstOrder = List.of(-180.0, 0.0, 179.0, 0.0);
+        List<Double> secondOrder = List.of(0.0, 0.0, 179.0, -180.0);
+        List<Double> thirdOrder = List.of(179.0, 0.0, -180.0, 0.0);
+
+        double mean = TimGeometryConverter.averageLongitude(firstOrder);
+        assertEquals(mean, TimGeometryConverter.averageLongitude(secondOrder), 0.000001);
+        assertEquals(mean, TimGeometryConverter.averageLongitude(thirdOrder), 0.000001);
+        assertEquals(89.5, mean, 0.000001);
+    }
+
+    @Test
+    public void testAverageLongitudeFallsBackWhenAnchorsCancel() {
+        assertEquals(10.0, TimGeometryConverter.averageLongitude(List.of(10.0, -170.0)), 0.000001);
     }
 
     @Test
@@ -315,6 +334,27 @@ public class TimGeometryConverterTest {
             assertTrue(Math.abs(first[0] - last[0]) < 0.000001, "Polygon should be closed (longitude)");
             assertTrue(Math.abs(first[1] - last[1]) < 0.000001, "Polygon should be closed (latitude)");
         }
+    }
+
+    @Test
+    public void testClosedPathWithFewerThanThreeDistinctPositionsProducesNoGeometry() {
+        GeographicalPath region = travelerInformation().getDataFrames().get(3).getRegions().getFirst();
+        Node_LLmD_64b firstAbsolute = new Node_LLmD_64b();
+        firstAbsolute.setLon(new Longitude(-1040000000L));
+        firstAbsolute.setLat(new Latitude(410000000L));
+        NodeOffsetPointLL firstDelta = new NodeOffsetPointLL();
+        firstDelta.setNode_LatLon(firstAbsolute);
+
+        Node_LLmD_64b secondAbsolute = new Node_LLmD_64b();
+        secondAbsolute.setLon(new Longitude(-1040100000L));
+        secondAbsolute.setLat(new Latitude(410100000L));
+        NodeOffsetPointLL secondDelta = new NodeOffsetPointLL();
+        secondDelta.setNode_LatLon(secondAbsolute);
+
+        region.getDescription().getPath().setOffset(
+                createLlOffsetChoice(node(firstDelta, null, null), node(secondDelta, null, null)));
+
+        assertNull(geometryConverter.createGeometryFromRegion(region));
     }
 
     @Test
@@ -595,7 +635,9 @@ public class TimGeometryConverterTest {
         absolute.setLon(new Longitude(-835566916));
         absolute.setLat(new Latitude(422427507));
         delta.setNode_LatLon(absolute);
-        region.getDescription().getPath().setOffset(createLlOffsetChoice(node(delta, 10L, 5L)));
+        NodeOffsetPointLL relative = createLlNodes()[0].getDelta();
+        region.getDescription().getPath().setOffset(
+                createLlOffsetChoice(node(delta, 10L, 5L), node(relative, null, null)));
 
         Geometry geometry = geometryConverter.createGeometryFromRegion(region);
         assertInstanceOf(LineString.class, geometry);
@@ -627,6 +669,7 @@ public class TimGeometryConverterTest {
         node.setDelta(delta);
         NodeSetXY nodes = new NodeSetXY();
         nodes.add(node);
+        nodes.add(xyNode(relativeXyNode()));
         NodeListXY nodeList = new NodeListXY();
         nodeList.setNodes(nodes);
         OffsetSystem.OffsetChoice offset = new OffsetSystem.OffsetChoice();
@@ -643,6 +686,115 @@ public class TimGeometryConverterTest {
                 geometryConverter.createGeometryFromRegion(region));
         assertEquals(-104.0, withoutAnchor.getCoordinates()[0][0], 0.000001);
         assertEquals(41.0, withoutAnchor.getCoordinates()[0][1], 0.000001);
+    }
+
+    @Test
+    public void testUnavailableLlAbsoluteNodeClearsReferenceUntilValidAbsoluteNodeRecoversIt() {
+        GeographicalPath region = firstRegion();
+        region.setAnchor(null);
+
+        NodeOffsetPointLL unavailable = absoluteLlNode(1800000001L, 410000000L);
+        NodeOffsetPointLL relative = createLlNodes()[0].getDelta();
+        NodeOffsetPointLL validAbsolute = absoluteLlNode(-1040000000L, 410000000L);
+        NodeOffsetPointLL relativeAfterRecovery = createLlNodes()[0].getDelta();
+        region.getDescription().getPath().setOffset(createLlOffsetChoice(node(unavailable, null, null),
+                node(relative, null, null), node(validAbsolute, null, null), node(relativeAfterRecovery, null, null)));
+
+        LineString geometry = assertInstanceOf(LineString.class, geometryConverter.createGeometryFromRegion(region));
+        assertEquals(2, geometry.getCoordinates().length);
+        assertEquals(-104.0, geometry.getCoordinates()[0][0], 0.000001);
+        assertEquals(41.0, geometry.getCoordinates()[0][1], 0.000001);
+    }
+
+    @Test
+    public void testUnavailableXyAbsoluteNodeClearsReferenceUntilValidAbsoluteNodeRecoversIt() {
+        GeographicalPath region = firstRegion();
+        region.setAnchor(null);
+
+        NodeSetXY nodes = new NodeSetXY();
+        nodes.add(xyNode(absoluteXyNode(1800000001L, 410000000L)));
+        nodes.add(xyNode(relativeXyNode()));
+        nodes.add(xyNode(absoluteXyNode(-1040000000L, 410000000L)));
+        nodes.add(xyNode(relativeXyNode()));
+        NodeListXY nodeList = new NodeListXY();
+        nodeList.setNodes(nodes);
+        OffsetSystem.OffsetChoice offset = new OffsetSystem.OffsetChoice();
+        offset.setXy(nodeList);
+        region.getDescription().getPath().setOffset(offset);
+
+        LineString geometry = assertInstanceOf(LineString.class, geometryConverter.createGeometryFromRegion(region));
+        assertEquals(2, geometry.getCoordinates().length);
+        assertEquals(-104.0, geometry.getCoordinates()[0][0], 0.000001);
+        assertEquals(41.0, geometry.getCoordinates()[0][1], 0.000001);
+    }
+
+    @Test
+    public void testUnavailableAnchorDoesNotSeedLlOrXyRelativeOffsets() {
+        GeographicalPath region = firstRegion();
+        Position3D unavailableAnchor = new Position3D();
+        unavailableAnchor.setLong_(new Longitude(1800000001L));
+        unavailableAnchor.setLat(new Latitude(410000000L));
+        region.setAnchor(unavailableAnchor);
+
+        region.getDescription().getPath().setOffset(createLlOffsetChoice(node(createLlNodes()[0].getDelta(), null,
+                null)));
+        assertNull(geometryConverter.createGeometryFromRegion(region));
+
+        NodeSetXY nodes = new NodeSetXY();
+        nodes.add(xyNode(relativeXyNode()));
+        NodeListXY nodeList = new NodeListXY();
+        nodeList.setNodes(nodes);
+        OffsetSystem.OffsetChoice offset = new OffsetSystem.OffsetChoice();
+        offset.setXy(nodeList);
+        region.getDescription().getPath().setOffset(offset);
+        assertNull(geometryConverter.createGeometryFromRegion(region));
+    }
+
+    @Test
+    public void testOnePositionPathDoesNotProduceLineString() {
+        GeographicalPath region = firstRegion();
+        region.setAnchor(null);
+        region.getDescription().getPath().setOffset(
+                createLlOffsetChoice(node(absoluteLlNode(-1040000000L, 410000000L), null, null)));
+
+        assertNull(geometryConverter.createGeometryFromRegion(region));
+    }
+
+    @Test
+    public void testDegenerateAndSelfIntersectingPolygonRingsAreOmitted() {
+        GeographicalPath degenerate = sampleClosedPathRegion();
+        degenerate.getDescription().getPath().setOffset(createLlOffsetChoice(
+                node(absoluteLlNode(0L, 0L), null, null), node(absoluteLlNode(10000000L, 10000000L), null, null),
+                node(absoluteLlNode(20000000L, 20000000L), null, null)));
+        assertNull(geometryConverter.createGeometryFromRegion(degenerate));
+
+        GeographicalPath selfIntersecting = sampleClosedPathRegion();
+        selfIntersecting.getDescription().getPath().setOffset(createLlOffsetChoice(
+                node(absoluteLlNode(0L, 0L), null, null), node(absoluteLlNode(10000000L, 10000000L), null, null),
+                node(absoluteLlNode(0L, 10000000L), null, null), node(absoluteLlNode(10000000L, 0L), null, null)));
+        assertNull(geometryConverter.createGeometryFromRegion(selfIntersecting));
+    }
+
+    @Test
+    public void testInvalidRegionRetainsAlignedIndexesAndNullGeometrySerializesExplicitly() {
+        TravelerInformation information = travelerInformation();
+        TravelerDataFrame dataFrame = information.getDataFrames().getFirst();
+        GeographicalPath onePositionRegion = dataFrame.getRegions().getLast();
+        onePositionRegion.getDescription().getPath().setOffset(
+                createLlOffsetChoice(node(absoluteLlNode(-1040000000L, 410000000L), null, null)));
+
+        ProcessedTim processedTim = timConverter.createProcessedTim(information, timMF.getMetadata());
+        ProcessedTimFeature<?> feature = processedTim.getDataFrameFeatureCollection().getFeatures().getFirst();
+        assertEquals(2, feature.getProperties().getRegionInfoList().size());
+        assertEquals(0, feature.getProperties().getRegionInfoList().getFirst().getGeometryIndex());
+        assertNull(feature.getProperties().getRegionInfoList().getLast().getGeometryIndex());
+
+        dataFrame.setRegions(new TravelerDataFrame.SequenceOfRegions());
+        dataFrame.getRegions().add(onePositionRegion);
+        ProcessedTim onlyInvalid = timConverter.createProcessedTim(information, timMF.getMetadata());
+        ProcessedTimFeature<?> invalidFeature = onlyInvalid.getDataFrameFeatureCollection().getFeatures().getFirst();
+        assertNull(invalidFeature.getGeometry());
+        assertTrue(invalidFeature.toString().contains("\"geometry\":null"));
     }
 
     @Test
@@ -757,6 +909,45 @@ public class TimGeometryConverterTest {
             }
             node.setAttributes(attributes);
         }
+        return node;
+    }
+
+    private GeographicalPath sampleClosedPathRegion() {
+        GeographicalPath region = travelerInformation().getDataFrames().get(3).getRegions().getFirst();
+        region.setAnchor(null);
+        return region;
+    }
+
+    private NodeOffsetPointLL absoluteLlNode(long longitude, long latitude) {
+        Node_LLmD_64b absolute = new Node_LLmD_64b();
+        absolute.setLon(new Longitude(longitude));
+        absolute.setLat(new Latitude(latitude));
+        NodeOffsetPointLL delta = new NodeOffsetPointLL();
+        delta.setNode_LatLon(absolute);
+        return delta;
+    }
+
+    private NodeOffsetPointXY absoluteXyNode(long longitude, long latitude) {
+        Node_LLmD_64b absolute = new Node_LLmD_64b();
+        absolute.setLon(new Longitude(longitude));
+        absolute.setLat(new Latitude(latitude));
+        NodeOffsetPointXY delta = new NodeOffsetPointXY();
+        delta.setNode_LatLon(absolute);
+        return delta;
+    }
+
+    private NodeOffsetPointXY relativeXyNode() {
+        Node_XY_20b offsets = new Node_XY_20b();
+        offsets.setX(new Offset_B10(100L));
+        offsets.setY(new Offset_B10(100L));
+        NodeOffsetPointXY delta = new NodeOffsetPointXY();
+        delta.setNode_XY1(offsets);
+        return delta;
+    }
+
+    private NodeXY xyNode(NodeOffsetPointXY delta) {
+        NodeXY node = new NodeXY();
+        node.setDelta(delta);
         return node;
     }
 }

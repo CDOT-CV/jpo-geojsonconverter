@@ -2,6 +2,7 @@ package us.dot.its.jpo.geojsonconverter.pojos.geojson.tim;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Generated;
@@ -29,5 +30,12 @@ public class ProcessedTimFeature<G extends Geometry> extends BaseFeature<Integer
     public ProcessedTimFeature(@JsonProperty("id") Integer id, @JsonProperty("geometry") Geometry geometry,
             @JsonProperty("properties") ProcessedTimProperties properties) {
         super(id, (G) geometry, properties);
+    }
+
+    /** GeoJSON features explicitly carry {@code geometry: null} when no region can be converted. */
+    @Override
+    @JsonInclude(Include.ALWAYS)
+    public G getGeometry() {
+        return super.getGeometry();
     }
 }

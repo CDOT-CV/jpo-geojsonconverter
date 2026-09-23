@@ -14,6 +14,7 @@ import com.networknt.schema.Error;
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.asn.j2735.r2024.Common.HeadingSlice;
 import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
+import us.dot.its.jpo.asn.j2735.r2024.Common.DSecond;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Position3D;
 import us.dot.its.jpo.asn.j2735.r2024.J2540ITIS.ITIScodes;
 import us.dot.its.jpo.asn.j2735.r2024.ITIS.ITIScodesAndTextSequence;
@@ -26,6 +27,8 @@ import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerDataFrame;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerDataFrame.ContentChoice;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInfoType;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformation;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.GenericSignageSequence;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.ExitServiceSequence;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.WorkZoneSequence;
 import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
 import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
@@ -203,8 +206,8 @@ public class TimConverter {
     private ProcessedTimFeature<?> createProcessedTimFeatureFromAsnData(ZonedDateTime odeDate,
             TravelerDataFrame dataFrame, int featureId) {
         try {
-            ProcessedTimProperties properties = createProcessedTimProperties(dataFrame, odeDate);
-            TimGeometryResult geometryResult = geometryProcessor.createGeometryResultFromDataFrame(dataFrame);
+            ProcessedTimProperties properties = createProcessedTimProperties(dataFrame, odeDate, featureId);
+            TimGeometryResult geometryResult = geometryProcessor.createGeometryResultFromDataFrame(dataFrame, featureId);
             applyRegionGeometryIndices(properties, geometryResult.regionGeometryIndices());
 
             return new ProcessedTimFeature<>(featureId, geometryResult.geometry(), properties);
@@ -235,13 +238,14 @@ public class TimConverter {
     /**
      * Create processed TIM properties from ASN.1 data.
      */
-    private ProcessedTimProperties createProcessedTimProperties(TravelerDataFrame dataFrame, ZonedDateTime odeDate) {
+    private ProcessedTimProperties createProcessedTimProperties(TravelerDataFrame dataFrame, ZonedDateTime odeDate,
+            int dataFrameIndex) {
         ProcessedTimProperties properties = new ProcessedTimProperties();
 
         setDeploymentAgency(properties, dataFrame);
-        setValidityPeriod(properties, dataFrame, odeDate);
+        setValidityPeriod(properties, dataFrame, odeDate, dataFrameIndex);
         setPriority(properties, dataFrame);
-        setRegionAndDirectionInfo(properties, dataFrame);
+        setRegionAndDirectionInfo(properties, dataFrame, dataFrameIndex);
         setContent(properties, dataFrame);
 
         return properties;
@@ -262,16 +266,22 @@ public class TimConverter {
      * Set validity period for the TIM feature.
      */
     private void setValidityPeriod(ProcessedTimProperties properties, TravelerDataFrame dataFrame,
-            ZonedDateTime odeDate) {
+            ZonedDateTime odeDate, int dataFrameIndex) {
         ProcessedValidityPeriod validityPeriod = new ProcessedValidityPeriod();
         ZonedDateTime startDateTime = odeDate;
 
-        // ASN.1 startYear is optional; when absent, use the ODE receive year with MinuteOfTheYear
+        // ASN.1 startYear may be absent or zero (unknown); in either case infer its year from the ODE receive time.
         if (dataFrame.getStartTime() != null) {
-            Integer startYear =
-                    dataFrame.getStartYear() != null ? (int) dataFrame.getStartYear().getValue() : null;
+            Integer startYear = FieldConversions.convertDYear(dataFrame.getStartYear());
             MinuteOfTheYear startTimeMoy = dataFrame.getStartTime();
-            startDateTime = J2735DateTimeConverter.generateUTCTimestamp(startTimeMoy, null, odeDate, startYear);
+            // TIM startTime is minute-precise and carries no DSecond. Passing zero prevents the receive timestamp's
+            // seconds and milliseconds from leaking into TIM applicability.
+            startDateTime = J2735DateTimeConverter.generateUTCTimestamp(startTimeMoy, new DSecond(0), odeDate,
+                    startYear);
+            if (startDateTime == null) {
+                log.warn("Could not resolve TIM validity start time at dataFrames[{}].startTime; preserving frame "
+                        + "without a derived end time", dataFrameIndex);
+            }
         }
         validityPeriod.setStartTime(startDateTime);
 
@@ -280,7 +290,9 @@ public class TimConverter {
 
             if (duration != INFINITE_DURATION_VALUE) {
                 validityPeriod.setInfinite(false);
-                validityPeriod.setEndTime(startDateTime.plusMinutes(duration));
+                if (startDateTime != null) {
+                    validityPeriod.setEndTime(startDateTime.plusMinutes(duration));
+                }
             } else {
                 validityPeriod.setInfinite(true);
                 validityPeriod.setEndTime(INFINITE_VALIDITY_PERIOD);
@@ -304,13 +316,16 @@ public class TimConverter {
     /**
      * Set region and direction information.
      */
-    private void setRegionAndDirectionInfo(ProcessedTimProperties properties, TravelerDataFrame dataFrame) {
+    private void setRegionAndDirectionInfo(ProcessedTimProperties properties, TravelerDataFrame dataFrame,
+            int dataFrameIndex) {
         if (dataFrame.getRegions() != null && !dataFrame.getRegions().isEmpty()) {
             List<ProcessedRegionInfoBase> regionInfoList = new ArrayList<>();
 
             // Create one region info object for each region
-            for (GeographicalPath region : dataFrame.getRegions()) {
-                ProcessedRegionInfoBase regionInfo = createProcessedRegionInfoFromAsnData(region);
+            for (int regionIndex = 0; regionIndex < dataFrame.getRegions().size(); regionIndex++) {
+                GeographicalPath region = dataFrame.getRegions().get(regionIndex);
+                ProcessedRegionInfoBase regionInfo =
+                        createProcessedRegionInfoFromAsnData(region, dataFrameIndex, regionIndex);
                 regionInfoList.add(regionInfo);
             }
 
@@ -331,7 +346,8 @@ public class TimConverter {
     /**
      * Create processed region info from ASN.1 data.
      */
-    private ProcessedRegionInfoBase createProcessedRegionInfoFromAsnData(GeographicalPath region) {
+    private ProcessedRegionInfoBase createProcessedRegionInfoFromAsnData(GeographicalPath region, int dataFrameIndex,
+            int regionIndex) {
         ProcessedRegionType regionType = geometryProcessor.determineRegionType(region);
         ProcessedElevationProfile elevationProfile = new ProcessedElevationProfile();
 
@@ -339,10 +355,11 @@ public class TimConverter {
         ProcessedAnchorPoint anchorPoint = setAnchorPointAndElevation(region, elevationProfile);
 
         // Extract and apply offset information for elevation and lane width profiles
-        populateProfilesWithOffsets(region, elevationProfile);
+        populateProfilesWithOffsets(region, elevationProfile, dataFrameIndex, regionIndex);
 
         // Create the appropriate region info object based on type
-        ProcessedRegionInfoBase regionInfo = createRegionInfoByType(regionType, region, elevationProfile);
+        ProcessedRegionInfoBase regionInfo =
+                createRegionInfoByType(regionType, region, elevationProfile, dataFrameIndex, regionIndex);
         regionInfo.setAnchorPoint(anchorPoint);
 
         // Set direction info for this specific region (ITWG rules vary by geofence type)
@@ -355,9 +372,10 @@ public class TimConverter {
     /**
      * Populate elevation and lane width profiles with offset-calculated values.
      */
-    private void populateProfilesWithOffsets(GeographicalPath region, ProcessedElevationProfile elevationProfile) {
+    private void populateProfilesWithOffsets(GeographicalPath region, ProcessedElevationProfile elevationProfile,
+            int dataFrameIndex, int regionIndex) {
         // Extract offset information from the region's path
-        OffsetInformation offsetInfo = geometryProcessor.extractOffsetInformation(region);
+        OffsetInformation offsetInfo = geometryProcessor.extractOffsetInformation(region, dataFrameIndex, regionIndex);
         if (offsetInfo == null) {
             return;
         }
@@ -384,9 +402,9 @@ public class TimConverter {
      * Populate lane width profile with offset-calculated values.
      */
     private void populateLaneWidthProfileWithOffsets(GeographicalPath region,
-            ProcessedLaneWidthProfile laneWidthProfile) {
+            ProcessedLaneWidthProfile laneWidthProfile, int dataFrameIndex, int regionIndex) {
         // Extract offset information from the region's path
-        OffsetInformation offsetInfo = geometryProcessor.extractOffsetInformation(region);
+        OffsetInformation offsetInfo = geometryProcessor.extractOffsetInformation(region, dataFrameIndex, regionIndex);
         if (offsetInfo == null) {
             return;
         }
@@ -426,6 +444,12 @@ public class TimConverter {
             } else if (content.getWorkZone() != null) {
                 timContent.setType(ProcessedContentType.COMMERCIAL_SIGNAGE);
                 processWorkZoneContent(content.getWorkZone(), contentItems);
+            } else if (content.getGenericSign() != null) {
+                timContent.setType(ProcessedContentType.GENERIC_SIGN);
+                processGenericSignContent(content.getGenericSign(), contentItems);
+            } else if (content.getExitService() != null) {
+                timContent.setType(ProcessedContentType.EXIT_SERVICE);
+                processExitServiceContent(content.getExitService(), contentItems);
             }
         }
 
@@ -470,7 +494,7 @@ public class TimConverter {
     }
 
     private ProcessedRegionInfoBase createRegionInfoByType(ProcessedRegionType regionType, GeographicalPath region,
-            ProcessedElevationProfile elevationProfile) {
+            ProcessedElevationProfile elevationProfile, int dataFrameIndex, int regionIndex) {
         ProcessedRegionInfoBase regionInfo;
 
         switch (regionType) {
@@ -483,7 +507,7 @@ public class TimConverter {
 
                 // Preserve node alignment when offsets exist without a base width. In
                 // that case, the calculated absolute widths are unknown (null).
-                populateLaneWidthProfileWithOffsets(region, laneWidthProfile);
+                populateLaneWidthProfileWithOffsets(region, laneWidthProfile, dataFrameIndex, regionIndex);
 
                 if (laneWidthProfile.getDefaultWidthMeters() != null
                         || laneWidthProfile.getNodeLaneWidthMeters() != null) {
@@ -668,6 +692,46 @@ public class TimConverter {
             // Process text content if available
             if (workZone.getItem() != null && workZone.getItem().getText() != null) {
                 String text = workZone.getItem().getText().getValue();
+                if (text != null && !text.trim().isEmpty()) {
+                    contentItems.add(ProcessedTimContentItem.createPlainTextItem(text.trim()));
+                }
+            }
+        }
+    }
+
+    private void processGenericSignContent(List<GenericSignageSequence> genericSignList,
+            List<ProcessedTimContentItem> contentItems) {
+        if (genericSignList == null || genericSignList.isEmpty()) {
+            return;
+        }
+
+        for (GenericSignageSequence genericSign : genericSignList) {
+            if (genericSign.getItem() != null && genericSign.getItem().getItis() != null) {
+                Long itisCode = genericSign.getItem().getItis().getValue();
+                contentItems.add(new ProcessedTimContentItem(itisCode, lookupItisCode(itisCode)));
+            }
+            if (genericSign.getItem() != null && genericSign.getItem().getText() != null) {
+                String text = genericSign.getItem().getText().getValue();
+                if (text != null && !text.trim().isEmpty()) {
+                    contentItems.add(ProcessedTimContentItem.createPlainTextItem(text.trim()));
+                }
+            }
+        }
+    }
+
+    private void processExitServiceContent(List<ExitServiceSequence> exitServiceList,
+            List<ProcessedTimContentItem> contentItems) {
+        if (exitServiceList == null || exitServiceList.isEmpty()) {
+            return;
+        }
+
+        for (ExitServiceSequence exitService : exitServiceList) {
+            if (exitService.getItem() != null && exitService.getItem().getItis() != null) {
+                Long itisCode = exitService.getItem().getItis().getValue();
+                contentItems.add(new ProcessedTimContentItem(itisCode, lookupItisCode(itisCode)));
+            }
+            if (exitService.getItem() != null && exitService.getItem().getText() != null) {
+                String text = exitService.getItem().getText().getValue();
                 if (text != null && !text.trim().isEmpty()) {
                     contentItems.add(ProcessedTimContentItem.createPlainTextItem(text.trim()));
                 }

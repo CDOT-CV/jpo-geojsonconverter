@@ -22,6 +22,13 @@ import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.SpeedLimit;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.SpeedLimitSequence;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.WorkZone;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.WorkZoneSequence;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.GenericSignage;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.GenericSignageSequence;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.ExitService;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.ExitServiceSequence;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.MinutesDuration;
+import us.dot.its.jpo.asn.j2735.r2024.Common.DYear;
+import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.GeometryCollection;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Polygon;
@@ -190,6 +197,62 @@ public class TimConverterTest {
     }
 
     @Test
+    public void testValidityStartHasMinutePrecisionIndependentOfReceiveSubseconds() {
+        var metadata = timMF.getMetadata();
+        metadata.setOdeReceivedAt("2025-10-07T21:40:19.711Z");
+        ProcessedTim first = timConverter.createProcessedTim(travelerInfo, metadata);
+        metadata.setOdeReceivedAt("2025-10-07T21:40:58.999Z");
+        ProcessedTim second = timConverter.createProcessedTim(travelerInfo, metadata);
+
+        var firstStart = first.getDataFrameFeatureCollection().getFeatures().get(0).getProperties()
+                .getValidityPeriod().getStartTime();
+        var secondStart = second.getDataFrameFeatureCollection().getFeatures().get(0).getProperties()
+                .getValidityPeriod().getStartTime();
+        assertEquals(firstStart, secondStart);
+        assertEquals(0, firstStart.getSecond());
+        assertEquals(0, firstStart.getNano());
+    }
+
+    @Test
+    public void testZeroStartYearUsesSameYearInferenceAsMissingYearAtNewYearBoundary() {
+        var metadata = timMF.getMetadata();
+        metadata.setOdeReceivedAt("2025-01-01T00:00:00.000Z");
+        TravelerDataFrame frame = travelerInfo.getDataFrames().get(0);
+        frame.setStartTime(new MinuteOfTheYear(525599));
+        frame.setStartYear(new DYear(0));
+
+        ProcessedTim zeroYear = timConverter.createProcessedTim(travelerInfo, metadata);
+        var zeroYearStart = zeroYear.getDataFrameFeatureCollection().getFeatures().get(0).getProperties()
+                .getValidityPeriod().getStartTime();
+
+        frame.setStartYear(null);
+        ProcessedTim missingYear = timConverter.createProcessedTim(travelerInfo, metadata);
+        var missingYearStart = missingYear.getDataFrameFeatureCollection().getFeatures().get(0).getProperties()
+                .getValidityPeriod().getStartTime();
+
+        assertEquals(2024, zeroYearStart.getYear());
+        assertEquals(zeroYearStart, missingYearStart);
+    }
+
+    @Test
+    public void testUnresolvableValidityStartRetainsFrameWithoutDerivedEndTime() {
+        TravelerDataFrame frame = travelerInfo.getDataFrames().get(0);
+        frame.setStartYear(new DYear(10000));
+        frame.setStartTime(new MinuteOfTheYear(100));
+        frame.setDurationTime(new MinutesDuration(10));
+
+        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, timMF.getMetadata());
+
+        assertEquals(travelerInfo.getDataFrames().size(),
+                processedTim.getDataFrameFeatureCollection().getFeatures().size());
+        var validity = processedTim.getDataFrameFeatureCollection().getFeatures().get(0).getProperties()
+                .getValidityPeriod();
+        assertNull(validity.getStartTime());
+        assertNull(validity.getEndTime());
+        assertTrue(!validity.isInfinite());
+    }
+
+    @Test
     public void testMixedPathAndCircleProducesGeometryCollection() {
         TravelerDataFrame pathFrame = findDataFrameWithRegionType(ProcessedRegionType.PATH);
         TravelerDataFrame circleFrame = findDataFrameWithRegionType(ProcessedRegionType.CIRCLE);
@@ -281,6 +344,8 @@ public class TimConverterTest {
     public void testConvertsSpeedLimitAndWorkZoneContent() {
         assertConvertedContent(createSpeedLimitContent(), ProcessedContentType.ROAD_SIGNAGE, "speed-limit Slow down");
         assertConvertedContent(createWorkZoneContent(), ProcessedContentType.COMMERCIAL_SIGNAGE, "speed-limit Work ahead");
+        assertConvertedContent(createGenericSignContent(), ProcessedContentType.GENERIC_SIGN, "Turn left speed-limit");
+        assertConvertedContent(createExitServiceContent(), ProcessedContentType.EXIT_SERVICE, "speed-limit Exit ahead");
     }
 
     private void assertConvertedContent(TravelerDataFrame.ContentChoice content, ProcessedContentType expectedType,
@@ -331,6 +396,44 @@ public class TimConverterTest {
 
         TravelerDataFrame.ContentChoice content = new TravelerDataFrame.ContentChoice();
         content.setWorkZone(workZone);
+        return content;
+    }
+
+    private TravelerDataFrame.ContentChoice createGenericSignContent() {
+        GenericSignage genericSign = new GenericSignage();
+        GenericSignageSequence textSequence = new GenericSignageSequence();
+        GenericSignageSequence.ItemChoice textItem = new GenericSignageSequence.ItemChoice();
+        textItem.setText(new ITIStextPhrase("Turn left"));
+        textSequence.setItem(textItem);
+        genericSign.add(textSequence);
+
+        GenericSignageSequence itisSequence = new GenericSignageSequence();
+        GenericSignageSequence.ItemChoice itisItem = new GenericSignageSequence.ItemChoice();
+        itisItem.setItis(new ITIScodes(268));
+        itisSequence.setItem(itisItem);
+        genericSign.add(itisSequence);
+
+        TravelerDataFrame.ContentChoice content = new TravelerDataFrame.ContentChoice();
+        content.setGenericSign(genericSign);
+        return content;
+    }
+
+    private TravelerDataFrame.ContentChoice createExitServiceContent() {
+        ExitService exitService = new ExitService();
+        ExitServiceSequence itisSequence = new ExitServiceSequence();
+        ExitServiceSequence.ItemChoice itisItem = new ExitServiceSequence.ItemChoice();
+        itisItem.setItis(new ITIScodes(268));
+        itisSequence.setItem(itisItem);
+        exitService.add(itisSequence);
+
+        ExitServiceSequence textSequence = new ExitServiceSequence();
+        ExitServiceSequence.ItemChoice textItem = new ExitServiceSequence.ItemChoice();
+        textItem.setText(new ITIStextPhrase("Exit ahead"));
+        textSequence.setItem(textItem);
+        exitService.add(textSequence);
+
+        TravelerDataFrame.ContentChoice content = new TravelerDataFrame.ContentChoice();
+        content.setExitService(exitService);
         return content;
     }
 

@@ -7,7 +7,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * Enum for content types in TIM messages.
  */
 public enum ProcessedContentType {
-    ADVISORY("ADVISORY"), ROAD_SIGNAGE("ROAD_SIGNAGE"), COMMERCIAL_SIGNAGE("COMMERCIAL_SIGNAGE");
+    ADVISORY("ADVISORY"), ROAD_SIGNAGE("ROAD_SIGNAGE"), COMMERCIAL_SIGNAGE("COMMERCIAL_SIGNAGE"),
+    GENERIC_SIGN("GENERIC_SIGN"), EXIT_SERVICE("EXIT_SERVICE");
 
     private final String value;
 

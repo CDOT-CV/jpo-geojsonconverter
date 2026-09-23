@@ -234,8 +234,9 @@ public class BsmProcessedJsonConverter
     }
 
     private ProcessedVehicleSize convertVehicleSize(VehicleSize vs) {
-        if (vs == null)
+        if (vs == null) {
             return null;
+        }
         ProcessedVehicleSize pvs = new ProcessedVehicleSize();
         pvs.setLength(vs.getLength() != null ? (int) vs.getLength().getValue() : null);
         pvs.setWidth(vs.getWidth() != null ? (int) vs.getWidth().getValue() : null);

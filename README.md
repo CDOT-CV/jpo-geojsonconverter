@@ -451,7 +451,7 @@ The RTCM decoding functionality can be configured with the `rtcm.full.decode` se
   - *rev* - Must equal "rtcmRev3" to be CTI-4501 compliant, although it is possible to decode rev 2 messages in full decode mode.
   - *messageTypes* - A list of message types from the decoded messages.
   - *stationId* - The station ID from the decoded messages.
-  - *messages* - A list of fully or partially decoded messages.  
+  - *messages* - A list of fully or partially decoded messages.
     - *hex* - The hex-encoded raw RTCM message.
     - *decodedMessage* - The decoded message in JSON format. There are numerous message types, and the structure of this node varies depending on type.
 
@@ -677,6 +677,7 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
    - An anchor point (absolute lat/lon) as the starting coordinate when one is present
    - LL or XY offset nodes accumulated from an anchor; LL offsets may also follow an explicit absolute LL node
    - Explicit latitude/longitude nodes in LL or XY node lists, which can establish a path without an anchor
+   - Unavailable absolute coordinates clear the current reference; relative nodes are skipped until a valid anchor or absolute node establishes a new one
    - Zoom scaling factors (2^scale) applied to offset calculations
    - Computed lanes and legacy `oldRegion` definitions are not currently supported
 
@@ -684,11 +685,11 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
    - **ITIS Codes**: Converted to both numeric codes and human-readable phrases using the generated J2735 `ITIScodes` POJO from `jpo-asn-pojos`
    - **Unknown ITIS Codes**: Preserved numerically and assigned the phrase `unknown`; new standard codes are added by updating the J2735 ASN.1 bundle in `jpo-asn-pojos`
    - **Text Content**: Plain text items are preserved as-is
-   - **Content Type**: Determined from the frame type (ADVISORY, ROAD_SIGNAGE, or COMMERCIAL_SIGNAGE)
+   - **Content Type**: Determined from the J2735 content choice: ADVISORY, ROAD_SIGNAGE, COMMERCIAL_SIGNAGE, GENERIC_SIGN, or EXIT_SERVICE. Existing values are preserved; the latter two were added for the previously unsupported choices.
    - **Combined Sentence**: All content items are concatenated in order to form a readable sentence
 
 6. **Validity Period Calculation**: The validity period is calculated from:
-   - Start time: Derived from `startYear` and `startTime` (MinuteOfTheYear), or defaults to ODE receive time
+   - Start time: Derived at minute precision from `startYear` and `startTime` (MinuteOfTheYear). A missing or zero year is inferred from ODE receive time; when the encoded start time cannot be resolved, the frame is retained without a derived finite end time.
    - End time: Calculated by adding `durationTime` (in minutes) to the start time
    - Infinite duration: If `durationTime` equals 32000, the validity period is marked as infinite with an end time of 9999-12-31T23:59:59Z
    - This period describes TIM applicability, not certificate validity. When present, signature generation time and certificate validity are reported separately in root-level `signedDataMetadata`; `isCertPresent` records whether the incoming message included the certificate.
@@ -699,8 +700,9 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
    - **Lane Width Profile**: Default width from region, plus node-level width offsets (for PATH regions only)
    - **Direction Information**: Either directionality (forward/backward/both) or heading sectors (bitstring converted to heading ranges)
    - **Geometry Index**: Zero-based position of the region in the feature geometry. For `Multi*` geometries it indexes the corresponding coordinate component; for `GeometryCollection` it indexes `geometries`. It is omitted when a region cannot be converted.
+   - Invalid one-position lines and degenerate or self-intersecting polygon rings are omitted from geometry; their region metadata remains present with no geometry index.
 
-8. **Representative Location Calculation**: The `location` field is the average of all valid region anchors across the data frames. Longitudes are unwrapped around the first anchor before averaging so dateline-spanning TIMs stay near ±180 instead of averaging to 0. It supports coarse containment or proximity filtering only; it may fall outside the rendered TIM geometry, so consumers must use `dataFrameFeatureCollection` for geometry intersection or roadway-traversal queries. The field is omitted when no valid anchors are available.
+8. **Representative Location Calculation**: The `location` field is the average of all valid region anchors across the data frames. Longitudes use a circular mean, which is independent of anchor order and keeps dateline-spanning TIMs near ±180. It supports coarse containment or proximity filtering only; it may fall outside the rendered TIM geometry, so consumers must use `dataFrameFeatureCollection` for geometry intersection or roadway-traversal queries. The field is omitted when no valid anchors are available.
 
 9. **Validation Messages**: ODE TIMs are structurally validated against the TIM JSON schema. Schema failures are recorded in a root-level `validationMessages` list, matching ProcessedBsm/ProcessedPsm/ProcessedSrm/ProcessedSsm. Content-level Interoperability Technical Working Group (ITWG) or Connecting The West (CTW) best-practice checking is planned for a follow-up that pulls in the TIM validator library.
 
@@ -718,7 +720,7 @@ Example `ProcessedTim` message:
 
 ```JSON
 {
- "schemaVersion": 1,
+ "schemaVersion": 2,
  "messageType": "TIM",
  "odeReceivedAt": "2025-10-15T20:19:28.543Z",
  "originIp": "172.27.0.1",

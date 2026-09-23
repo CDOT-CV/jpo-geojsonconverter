@@ -634,8 +634,9 @@ public class FieldConversions {
         int numberOfSectors =
                 wrapsAcrossNorth ? (MAX_HEADING_SECTORS - startBit) + (endBit + 1) : endBit - startBit + 1;
         double totalRange = numberOfSectors * HEADING_SECTOR_DEGREES;
-        double centerHeading = wrapsAcrossNorth ? (startHeading + totalRange / 2.0) % 360.0
-                : (startHeading + sectorBitToHeading(endBit)) / 2.0;
+        // Sector bits identify discrete headings, so the center lies halfway between the first and last
+        // sector headings. The same calculation works for ranges that wrap through north.
+        double centerHeading = (startHeading + (numberOfSectors - 1) * HEADING_SECTOR_DEGREES / 2.0) % 360.0;
 
         return new double[] {centerHeading, totalRange};
     }

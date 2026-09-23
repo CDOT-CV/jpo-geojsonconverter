@@ -36,6 +36,8 @@ public class TimGeometryConverter {
     private static final int MAX_CIRCLE_POINTS = 64;
     private static final double POINTS_PER_METER = 0.05; // Circle points per meter base calculation: 1 point per 20
                                                          // meters
+    /** Unit-vector sums below this length have no stable circular mean. */
+    private static final double UNSTABLE_LONGITUDE_MEAN_MAGNITUDE = 1e-9;
 
     /**
      * Calculate the optimal number of points for circle approximation based on diameter. Uses adaptive scaling to
@@ -70,17 +72,22 @@ public class TimGeometryConverter {
      * @return Appropriate GeoJSON geometry or null if processing fails
      */
     public Geometry createGeometryFromRegion(GeographicalPath region) {
+        return createGeometryFromRegion(region, -1, -1);
+    }
+
+    private Geometry createGeometryFromRegion(GeographicalPath region, int dataFrameIndex, int regionIndex) {
+        String regionPath = formatRegionPath(dataFrameIndex, regionIndex);
         try {
             ProcessedRegionType regionType = determineRegionType(region);
-            List<List<Double>> coordinates = extractCoordinatesFromRegion(region);
+            List<List<Double>> coordinates = extractCoordinatesFromRegion(region, dataFrameIndex, regionIndex);
 
             if (coordinates.isEmpty()) {
                 return null;
             }
 
-            return createGeometryByType(coordinates, regionType);
+            return createGeometryByType(coordinates, regionType, regionPath);
         } catch (Exception e) {
-            log.error("Error creating geometry from region: {}", e.getMessage(), e);
+            log.error("Error creating geometry from {}: {}", regionPath, e.getMessage(), e);
             return null;
         }
     }
@@ -103,6 +110,10 @@ public class TimGeometryConverter {
      * @return Geometry and one component-index entry per source region
      */
     TimGeometryResult createGeometryResultFromDataFrame(TravelerDataFrame dataFrame) {
+        return createGeometryResultFromDataFrame(dataFrame, -1);
+    }
+
+    TimGeometryResult createGeometryResultFromDataFrame(TravelerDataFrame dataFrame, int dataFrameIndex) {
         if (dataFrame.getRegions() == null || dataFrame.getRegions().isEmpty()) {
             return new TimGeometryResult(null, List.of());
         }
@@ -111,10 +122,11 @@ public class TimGeometryConverter {
         List<Integer> regionGeometryIndices = new ArrayList<>(dataFrame.getRegions().size());
 
         for (int regionIndex = 0; regionIndex < dataFrame.getRegions().size(); regionIndex++) {
-            Geometry geometry = createGeometryFromRegion(dataFrame.getRegions().get(regionIndex));
+            Geometry geometry = createGeometryFromRegion(dataFrame.getRegions().get(regionIndex), dataFrameIndex,
+                    regionIndex);
             if (geometry == null) {
                 regionGeometryIndices.add(null);
-                log.warn("No geometry was produced for TIM region index {}", regionIndex);
+                log.warn("No geometry was produced for {}", formatRegionPath(dataFrameIndex, regionIndex));
                 continue;
             }
 
@@ -132,11 +144,16 @@ public class TimGeometryConverter {
      * @return OffsetInformation containing node-aligned elevation and lane width offsets, or null if no path
      */
     public OffsetInformation extractOffsetInformation(GeographicalPath region) {
+        return extractOffsetInformation(region, -1, -1);
+    }
+
+    OffsetInformation extractOffsetInformation(GeographicalPath region, int dataFrameIndex, int regionIndex) {
         if (region.getDescription() == null || region.getDescription().getPath() == null) {
             return null;
         }
 
-        List<PathNodeData> pathData = processOffsetPathWithOffsets(region, region.getDescription().getPath());
+        List<PathNodeData> pathData = processOffsetPathWithOffsets(region, region.getDescription().getPath(),
+                dataFrameIndex, regionIndex);
         if (pathData.isEmpty()) {
             return null;
         }
@@ -164,9 +181,8 @@ public class TimGeometryConverter {
      *
      * <p>
      * This point is intended for coarse geospatial indexing. It is not the centroid of the complete TIM geometry, and
-     * callers should use the feature geometries for intersection or roadway-traversal queries. Longitudes are
-     * unwrapped around the first anchor before averaging so anchors that straddle the antimeridian stay near ±180
-     * rather than averaging to 0.
+     * callers should use the feature geometries for intersection or roadway-traversal queries. Longitudes use a
+     * circular mean, which is independent of anchor order and keeps anchors that straddle the antimeridian near ±180.
      *
      * @param travelerInfo The ASN.1 TravelerInformation object
      * @return JTS Point representing the average region-anchor location, or {@code null} when no valid anchors are
@@ -206,47 +222,36 @@ public class TimGeometryConverter {
     }
 
     /**
-     * Arithmetic mean of longitudes after unwrapping around the first value. Nearby longitudes match a simple average;
-     * values such as 179° and -179° stay on the antimeridian instead of averaging to 0°.
+     * Circular mean of longitudes. Nearby values match an arithmetic average, and values such as 179° and -179° stay on
+     * the antimeridian. The result does not depend on input order. When the longitudes are spread around the whole
+     * circle and have no stable mean, the first value is returned.
      *
      * @param longitudes Longitude values in decimal degrees
      * @return Mean longitude in the range [-180, 180]
      */
     static double averageLongitude(List<Double> longitudes) {
-        double reference = longitudes.get(0);
-        double[] unwrapped = new double[longitudes.size()];
-        for (int i = 0; i < longitudes.size(); i++) {
-            unwrapped[i] = unwrapLongitude(longitudes.get(i), reference);
+        double sinSum = 0.0;
+        double cosSum = 0.0;
+        for (double longitude : longitudes) {
+            double radians = Math.toRadians(longitude);
+            sinSum += Math.sin(radians);
+            cosSum += Math.cos(radians);
         }
-        return wrapLongitude(Arrays.stream(unwrapped).average().getAsDouble());
+        if (Math.hypot(sinSum, cosSum) < UNSTABLE_LONGITUDE_MEAN_MAGNITUDE) {
+            log.warn(
+                    "Longitude anchors are spread around the circle; representative longitude falls back to the first anchor");
+            return longitudes.get(0);
+        }
+        return Math.toDegrees(Math.atan2(sinSum, cosSum));
     }
 
-    static double unwrapLongitude(double longitude, double reference) {
-        double delta = longitude - reference;
-        if (delta > 180.0) {
-            delta -= 360.0;
-        } else if (delta < -180.0) {
-            delta += 360.0;
-        }
-        return reference + delta;
-    }
-
-    static double wrapLongitude(double longitude) {
-        if (longitude > 180.0) {
-            return longitude - 360.0;
-        }
-        if (longitude < -180.0) {
-            return longitude + 360.0;
-        }
-        return longitude;
-    }
-
+    /** Arithmetic mean of the values. */
     private static double average(List<Double> values) {
-        double[] array = new double[values.size()];
-        for (int i = 0; i < values.size(); i++) {
-            array[i] = values.get(i);
+        double sum = 0.0;
+        for (double value : values) {
+            sum += value;
         }
-        return Arrays.stream(array).average().getAsDouble();
+        return sum / values.size();
     }
 
     /**
@@ -276,21 +281,24 @@ public class TimGeometryConverter {
     /**
      * Extract coordinates from a TIM region
      */
-    private List<List<Double>> extractCoordinatesFromRegion(GeographicalPath region) {
+    private List<List<Double>> extractCoordinatesFromRegion(GeographicalPath region, int dataFrameIndex,
+            int regionIndex) {
         List<List<Double>> coordinates = new ArrayList<>();
 
         // Get coordinates from the description
         DescriptionChoice description = region.getDescription();
         if (description != null) {
             if (description.getPath() != null) {
-                coordinates.addAll(extractCoordinatesFromOffsetPath(region, description.getPath()));
+                coordinates.addAll(extractCoordinatesFromOffsetPath(region, description.getPath(), dataFrameIndex,
+                        regionIndex));
             } else if (description.getGeometry() != null) {
                 coordinates.addAll(extractCoordinatesFromGeometry(region, description.getGeometry()));
             }
         }
 
         if (coordinates.isEmpty() && region.getAnchor() != null) {
-            log.warn("No coordinates found for region: {}", region.getAnchor());
+            log.warn("No coordinates found for {} (anchor: {})", formatRegionPath(dataFrameIndex, regionIndex),
+                    region.getAnchor());
         }
 
         return coordinates;
@@ -299,10 +307,11 @@ public class TimGeometryConverter {
     /**
      * Create geometry based on the region type.
      */
-    private Geometry createGeometryByType(List<List<Double>> coordinates, ProcessedRegionType regionType) {
+    private Geometry createGeometryByType(List<List<Double>> coordinates, ProcessedRegionType regionType,
+            String regionPath) {
         return switch (regionType) {
-            case CIRCLE, POLYGON -> createPolygonFromCoordinates(coordinates);
-            case PATH, UNKNOWN -> createLineStringFromCoordinates(coordinates);
+            case CIRCLE, POLYGON -> createPolygonFromCoordinates(coordinates, regionPath);
+            case PATH, UNKNOWN -> createLineStringFromCoordinates(coordinates, regionPath);
         };
     }
 
@@ -537,7 +546,8 @@ public class TimGeometryConverter {
      * @param path The offset system path
      * @return List of PathNodeData containing coordinates and offset information
      */
-    private List<PathNodeData> processOffsetPathWithOffsets(GeographicalPath region, OffsetSystem path) {
+    private List<PathNodeData> processOffsetPathWithOffsets(GeographicalPath region, OffsetSystem path,
+            int dataFrameIndex, int regionIndex) {
         if (path == null || path.getOffset() == null) {
             return new ArrayList<>();
         }
@@ -551,129 +561,103 @@ public class TimGeometryConverter {
         }
 
         List<PathNodeData> pathData = new ArrayList<>();
-        boolean hasAnchor = anchorLat != null && anchorLon != null;
-        double[] currentCoords = hasAnchor ? new double[] {anchorLon, anchorLat} : new double[2];
-        boolean hasCurrentCoordinates = hasAnchor;
-        boolean missingReferenceLogged = false;
+        double[] currentCoords = anchorLat != null && anchorLon != null ? new double[] {anchorLon, anchorLat} : null;
+        if (region.getAnchor() != null && currentCoords == null) {
+            log.warn("Unavailable TIM anchor coordinates at {}.anchor; offset reference is cleared",
+                    formatRegionPath(dataFrameIndex, regionIndex));
+        }
         double zoomFactor = calculateZoomFactor(path);
 
         // Handle LL (Latitude/Longitude) coordinates
         if (path.getOffset().getLl() != null && path.getOffset().getLl().getNodes() != null) {
-            for (var node : path.getOffset().getLl().getNodes()) {
-                if (node.getDelta() != null) {
-                    boolean isAbsoluteNode = node.getDelta().getNode_LatLon() != null;
-                    if (hasCurrentCoordinates || isAbsoluteNode) {
-                        processLLNode(node.getDelta(), zoomFactor, currentCoords);
-                        hasCurrentCoordinates = true;
-                        Long[] offsets = extractNodeOffsets(node);
-                        Long dwidthOffset = offsets != null ? offsets[0] : null;
-                        Long delevationOffset = offsets != null ? offsets[1] : null;
-                        pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,
-                                delevationOffset));
-                    } else if (!missingReferenceLogged) {
-                        log.warn(
-                                "Skipping TIM LL offset attributes because the region has no anchor or preceding absolute LatLon node");
-                        missingReferenceLogged = true;
-                    }
+            for (int nodeIndex = 0; nodeIndex < path.getOffset().getLl().getNodes().size(); nodeIndex++) {
+                var node = path.getOffset().getLl().getNodes().get(nodeIndex);
+                if (node.getDelta() == null) {
+                    continue;
                 }
+                if (node.getDelta().getNode_LatLon() != null) {
+                    currentCoords = absoluteCoordinates(node.getDelta().getNode_LatLon());
+                    if (currentCoords == null) {
+                        log.warn("Unavailable absolute LL coordinates at {}; skipping node and clearing offset reference",
+                                formatNodePath(dataFrameIndex, regionIndex, "ll", nodeIndex));
+                        continue;
+                    }
+                } else if (currentCoords == null) {
+                    log.warn("Skipping relative LL node at {}; no valid anchor or preceding absolute node",
+                            formatNodePath(dataFrameIndex, regionIndex, "ll", nodeIndex));
+                    continue;
+                } else {
+                    processLLNode(node.getDelta(), zoomFactor, currentCoords);
+                }
+
+                Long[] offsets = extractNodeOffsets(node);
+                Long dwidthOffset = offsets != null ? offsets[0] : null;
+                Long delevationOffset = offsets != null ? offsets[1] : null;
+                pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,
+                        delevationOffset));
             }
         }
         // Handle XY (Cartesian) coordinates
         else if (path.getOffset().getXy() != null && path.getOffset().getXy().getNodes() != null) {
-            for (var node : path.getOffset().getXy().getNodes()) {
-                if (node.getDelta() != null) {
-                    boolean isAbsoluteNode = node.getDelta().getNode_LatLon() != null;
-                    if (hasCurrentCoordinates || isAbsoluteNode) {
-                        processXYNode(node.getDelta(), zoomFactor, currentCoords);
-                        hasCurrentCoordinates = true;
-                        Long[] offsets = extractNodeOffsets(node);
-                        Long dwidthOffset = offsets != null ? offsets[0] : null;
-                        Long delevationOffset = offsets != null ? offsets[1] : null;
-                        pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,
-                                delevationOffset));
-                    } else if (!missingReferenceLogged) {
-                        log.warn(
-                                "Skipping TIM XY offset attributes because the region has no anchor or preceding absolute LatLon node");
-                        missingReferenceLogged = true;
-                    }
+            for (int nodeIndex = 0; nodeIndex < path.getOffset().getXy().getNodes().size(); nodeIndex++) {
+                var node = path.getOffset().getXy().getNodes().get(nodeIndex);
+                if (node.getDelta() == null) {
+                    continue;
                 }
+                if (node.getDelta().getNode_LatLon() != null) {
+                    currentCoords = absoluteCoordinates(node.getDelta().getNode_LatLon());
+                    if (currentCoords == null) {
+                        log.warn("Unavailable absolute XY reference coordinates at {}; skipping node and clearing offset reference",
+                                formatNodePath(dataFrameIndex, regionIndex, "xy", nodeIndex));
+                        continue;
+                    }
+                } else if (currentCoords == null) {
+                    log.warn("Skipping relative XY node at {}; no valid anchor or preceding absolute node",
+                            formatNodePath(dataFrameIndex, regionIndex, "xy", nodeIndex));
+                    continue;
+                } else {
+                    processXYNode(node.getDelta(), zoomFactor, currentCoords);
+                }
+
+                Long[] offsets = extractNodeOffsets(node);
+                Long dwidthOffset = offsets != null ? offsets[0] : null;
+                Long delevationOffset = offsets != null ? offsets[1] : null;
+                pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,
+                        delevationOffset));
             }
         }
 
         return pathData;
     }
 
-    private List<List<Double>> extractCoordinatesFromOffsetPath(GeographicalPath region, OffsetSystem path) {
-        if (path == null) {
-            return new ArrayList<>();
+    private List<List<Double>> extractCoordinatesFromOffsetPath(GeographicalPath region, OffsetSystem path,
+            int dataFrameIndex, int regionIndex) {
+        List<PathNodeData> pathData = processOffsetPathWithOffsets(region, path, dataFrameIndex, regionIndex);
+        return pathData.stream().map(PathNodeData::getCoordinates).toList();
+    }
+
+    private double[] absoluteCoordinates(Node_LLmD_64b nodeLatLon) {
+        if (nodeLatLon == null || nodeLatLon.getLon() == null || nodeLatLon.getLat() == null) {
+            return null;
         }
-
-        List<List<Double>> coordinates = new ArrayList<>();
-
-        // Initialize anchor coordinates if available
-        Double anchorLat = null;
-        Double anchorLon = null;
-        boolean hasAnchor = false;
-
-        if (region.getAnchor() != null && region.getAnchor().getLat() != null
-                && region.getAnchor().getLong_() != null) {
-            Position3D anchor = region.getAnchor();
-            anchorLat = FieldConversions.convertLat(anchor.getLat().getValue());
-            anchorLon = FieldConversions.convertLong(anchor.getLong_().getValue());
-            hasAnchor = anchorLat != null && anchorLon != null;
+        Double longitude = FieldConversions.convertLong(nodeLatLon.getLon().getValue());
+        Double latitude = FieldConversions.convertLat(nodeLatLon.getLat().getValue());
+        if (longitude == null || latitude == null) {
+            return null;
         }
+        return new double[] {longitude, latitude};
+    }
 
-        if (path.getOffset() != null) {
-            double zoomFactor = calculateZoomFactor(path);
-
-            // Handle LL (Latitude/Longitude) coordinates
-            if (path.getOffset().getLl() != null && path.getOffset().getLl().getNodes() != null) {
-                double[] currentCoords = hasAnchor ? new double[] {anchorLon, anchorLat} : new double[2];
-                boolean hasCurrentCoordinates = hasAnchor;
-                boolean missingAnchorLogged = false;
-
-                for (var node : path.getOffset().getLl().getNodes()) {
-                    if (node.getDelta() != null) {
-                        // Check if this is a LatLon node (absolute coordinates) that doesn't need anchor
-                        boolean isLatLonNode = node.getDelta().getNode_LatLon() != null;
-
-                        // An absolute LatLon node establishes a starting coordinate for any following offsets.
-                        if (hasCurrentCoordinates || isLatLonNode) {
-                            processLLNode(node.getDelta(), zoomFactor, currentCoords);
-                            hasCurrentCoordinates = true;
-                            coordinates.add(Arrays.asList(currentCoords[0], currentCoords[1]));
-                        } else if (!missingAnchorLogged) {
-                            log.warn(
-                                    "Skipping TIM LL offset nodes because the region has no anchor or preceding absolute LatLon node");
-                            missingAnchorLogged = true;
-                        }
-                    }
-                }
-            }
-            // Handle XY coordinates. Absolute LatLon nodes may establish a path without an anchor.
-            else if (path.getOffset().getXy() != null && path.getOffset().getXy().getNodes() != null) {
-                double[] currentCoords = hasAnchor ? new double[] {anchorLon, anchorLat} : new double[2];
-                boolean hasCurrentCoordinates = hasAnchor;
-                boolean missingAnchorLogged = false;
-
-                for (var node : path.getOffset().getXy().getNodes()) {
-                    if (node.getDelta() != null) {
-                        boolean isLatLonNode = node.getDelta().getNode_LatLon() != null;
-                        if (hasCurrentCoordinates || isLatLonNode) {
-                            processXYNode(node.getDelta(), zoomFactor, currentCoords);
-                            hasCurrentCoordinates = true;
-                            coordinates.add(Arrays.asList(currentCoords[0], currentCoords[1]));
-                        } else if (!missingAnchorLogged) {
-                            log.warn(
-                                    "Skipping TIM XY offset nodes because the region has no anchor or preceding absolute LatLon node");
-                            missingAnchorLogged = true;
-                        }
-                    }
-                }
-            }
+    private String formatRegionPath(int dataFrameIndex, int regionIndex) {
+        if (dataFrameIndex < 0) {
+            return regionIndex < 0 ? "TIM region" : "TIM region[" + regionIndex + "]";
         }
+        return "dataFrames[" + dataFrameIndex + "].regions[" + regionIndex + "]";
+    }
 
-        return coordinates;
+    private String formatNodePath(int dataFrameIndex, int regionIndex, String coordinateSystem, int nodeIndex) {
+        return formatRegionPath(dataFrameIndex, regionIndex) + ".description.path.offset." + coordinateSystem
+                + ".nodes[" + nodeIndex + "]";
     }
 
     private List<List<Double>> extractCoordinatesFromGeometry(GeographicalPath region, GeometricProjection geometry) {
@@ -772,8 +756,9 @@ public class TimGeometryConverter {
         return normalized;
     }
 
-    private LineString createLineStringFromCoordinates(List<List<Double>> coordinates) {
-        if (coordinates == null || coordinates.isEmpty()) {
+    private LineString createLineStringFromCoordinates(List<List<Double>> coordinates, String regionPath) {
+        if (coordinates == null || coordinates.size() < 2) {
+            log.warn("Cannot create a LineString with fewer than two positions at {}", regionPath);
             return null;
         }
 
@@ -789,8 +774,15 @@ public class TimGeometryConverter {
         return new LineString(coordinateArray);
     }
 
-    private Polygon createPolygonFromCoordinates(List<List<Double>> coordinates) {
+    private Polygon createPolygonFromCoordinates(List<List<Double>> coordinates, String regionPath) {
         if (coordinates == null || coordinates.isEmpty()) {
+            return null;
+        }
+
+        int distinctPositions = countDistinctPositions(coordinates);
+        if (distinctPositions < 3) {
+            log.warn("Cannot create a polygon from {} distinct position(s) at {}; a closed ring needs at least 3",
+                    distinctPositions, regionPath);
             return null;
         }
 
@@ -804,16 +796,58 @@ public class TimGeometryConverter {
             }
         }
 
+        org.locationtech.jts.geom.Coordinate[] jtsCoordinates =
+                new org.locationtech.jts.geom.Coordinate[closedCoordinates.size()];
         double[][][] coordinateArray = new double[1][closedCoordinates.size()][2];
         for (int i = 0; i < closedCoordinates.size(); i++) {
             List<Double> coord = closedCoordinates.get(i);
-            if (coord.size() >= 2) {
-                coordinateArray[0][i][0] = coord.get(0); // longitude
-                coordinateArray[0][i][1] = coord.get(1); // latitude
+            if (coord == null || coord.size() < 2 || coord.get(0) == null || coord.get(1) == null
+                    || !Double.isFinite(coord.get(0)) || !Double.isFinite(coord.get(1))) {
+                log.warn("Cannot create a polygon from an invalid coordinate at {}", regionPath);
+                return null;
             }
+            coordinateArray[0][i][0] = coord.get(0); // longitude
+            coordinateArray[0][i][1] = coord.get(1); // latitude
+            jtsCoordinates[i] = new org.locationtech.jts.geom.Coordinate(coord.get(0), coord.get(1));
+        }
+
+        org.locationtech.jts.geom.GeometryFactory jtsFactory = new org.locationtech.jts.geom.GeometryFactory();
+        org.locationtech.jts.geom.LinearRing shell;
+        org.locationtech.jts.geom.Polygon jtsPolygon;
+        try {
+            shell = jtsFactory.createLinearRing(jtsCoordinates);
+            jtsPolygon = jtsFactory.createPolygon(shell);
+        } catch (IllegalArgumentException e) {
+            log.warn("Cannot create a valid polygon ring at {}: {}", regionPath, e.getMessage());
+            return null;
+        }
+
+        if (!jtsPolygon.isValid() || jtsPolygon.isEmpty() || jtsPolygon.getArea() <= 0.0) {
+            log.warn("Omitting degenerate or self-intersecting polygon at {}", regionPath);
+            return null;
         }
 
         return new Polygon(coordinateArray);
+    }
+
+    private static int countDistinctPositions(List<List<Double>> coordinates) {
+        List<List<Double>> distinct = new ArrayList<>();
+        for (List<Double> coordinate : coordinates) {
+            if (coordinate == null || coordinate.size() < 2 || coordinate.get(0) == null || coordinate.get(1) == null) {
+                continue;
+            }
+            boolean alreadySeen = false;
+            for (List<Double> existing : distinct) {
+                if (existing.get(0).equals(coordinate.get(0)) && existing.get(1).equals(coordinate.get(1))) {
+                    alreadySeen = true;
+                    break;
+                }
+            }
+            if (!alreadySeen) {
+                distinct.add(coordinate);
+            }
+        }
+        return distinct.size();
     }
 
 }

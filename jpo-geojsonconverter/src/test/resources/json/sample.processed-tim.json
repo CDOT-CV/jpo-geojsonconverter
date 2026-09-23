@@ -10,8 +10,8 @@
     "location": {
         "type": "Point",
         "coordinates": [
-            -83.5565857,
-            42.243262671428575
+            -83.55658570000001,
+            42.24326267142857
         ]
     },
     "validationMessages": [],
@@ -96,7 +96,7 @@
                 "properties": {
                     "deploymentAgencyType": "STATE_OR_LOCAL",
                     "validityPeriod": {
-                        "startTime": "2025-10-08T17:00:19.711Z",
+                        "startTime": "2025-10-08T17:00:00Z",
                         "endTime": "9999-12-31T23:59:59Z",
                         "infinite": true
                     },
@@ -270,7 +270,7 @@
                 "properties": {
                     "deploymentAgencyType": "STATE_OR_LOCAL",
                     "validityPeriod": {
-                        "startTime": "2025-10-08T17:00:19.711Z",
+                        "startTime": "2025-10-08T17:00:00Z",
                         "endTime": "9999-12-31T23:59:59Z",
                         "infinite": true
                     },
@@ -395,7 +395,7 @@
                 "properties": {
                     "deploymentAgencyType": "STATE_OR_LOCAL",
                     "validityPeriod": {
-                        "startTime": "2025-10-09T12:00:19.711Z",
+                        "startTime": "2025-10-09T12:00:00Z",
                         "endTime": "9999-12-31T23:59:59Z",
                         "infinite": true
                     },
@@ -416,7 +416,7 @@
                                 "directionType": "HEADING",
                                 "headingList": [
                                     {
-                                        "heading": 0.0,
+                                        "heading": 348.75,
                                         "range": 180.0
                                     }
                                 ]
@@ -480,7 +480,7 @@
                 "properties": {
                     "deploymentAgencyType": "STATE_OR_LOCAL",
                     "validityPeriod": {
-                        "startTime": "2025-10-09T12:00:19.711Z",
+                        "startTime": "2025-10-09T12:00:00Z",
                         "endTime": "9999-12-31T23:59:59Z",
                         "infinite": true
                     },
@@ -605,7 +605,7 @@
                 "properties": {
                     "deploymentAgencyType": "STATE_OR_LOCAL",
                     "validityPeriod": {
-                        "startTime": "2025-10-08T17:00:19.711Z",
+                        "startTime": "2025-10-08T17:00:00Z",
                         "endTime": "9999-12-31T23:59:59Z",
                         "infinite": true
                     },
