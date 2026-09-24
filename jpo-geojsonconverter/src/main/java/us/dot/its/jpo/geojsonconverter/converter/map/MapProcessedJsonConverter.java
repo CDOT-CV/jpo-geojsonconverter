@@ -409,22 +409,11 @@ public class MapProcessedJsonConverter
                     continue;
                 }
 
-                // Calculate offset lon,lat values
-                // Equations may become less accurate the further N/S the coordinate is
-                // (offsetX * 0.01) / (math.cos((Math.PI / 180.0) * anchorLat) * 111111.0)
-                // Step 1. (offsetX * 0.01)
-                // Step 2. (math.cos((Math.PI/180.0) * anchorLat) * 111111.0)
-                // Step 3. Step 1 / Step 2
-                double offsetX_step1 = offsetX * 0.01;
-                double offsetX_step2 = Math.cos(((double) (Math.PI / 180.0)) * anchorLat) * 111111.0;
-                double offsetXDegrees = offsetX_step1 / offsetX_step2;
-
-                // (offsetY * 0.01) / 111111.0
-                double offsetYDegrees = (offsetY * 0.01) / 111111.0;
-
-                // return (reference_point[0] + dx_deg, reference_point[1] + dy_deg)
-                double offsetLong = anchorLong + offsetXDegrees;
-                double offsetLat = anchorLat + offsetYDegrees;
+                // Node XY values are centimeters east and north. MAP paths do not apply a zoom scale.
+                double[] degreeOffsets =
+                        FieldConversions.convertJ2735XY(offsetX.longValue(), offsetY.longValue(), anchorLat, 1.0);
+                double offsetLong = anchorLong + degreeOffsets[0];
+                double offsetLat = anchorLat + degreeOffsets[1];
 
                 List<Double> coordinate = new ArrayList<>();
                 coordinate.add(offsetLong);

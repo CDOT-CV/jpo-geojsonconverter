@@ -1,6 +1,8 @@
 package us.dot.its.jpo.geojsonconverter.converter;
 
 import lombok.extern.slf4j.Slf4j;
+import org.geotools.referencing.GeodeticCalculator;
+import org.geotools.referencing.crs.DefaultGeographicCRS;
 import us.dot.its.jpo.asn.j2735.r2024.Common.*;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.DistanceUnits;
 import us.dot.its.jpo.asn.j2735.r2024.SignalRequestMessage.DeltaTime;
@@ -9,6 +11,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.common.ProcessedRequestImportanceLe
 import us.dot.its.jpo.geojsonconverter.pojos.common.ProcessedRequestSubRole;
 import us.dot.its.jpo.geojsonconverter.pojos.common.ProcessedVehicleType;
 
+import java.awt.geom.Point2D;
 import java.time.*;
 import java.time.Duration;
 import java.util.List;
@@ -21,7 +24,6 @@ public class FieldConversions {
     private static final double HEADING_SECTOR_DEGREES = 22.5;
     private static final double HEADING_SECTOR_RANGE = 22.5;
     private static final int MAX_HEADING_SECTORS = 16;
-    private static final double CENTIMETERS_PER_DEGREE_LATITUDE = 11111100.0;
     private static final double J2735_DECIMAL_CONVERSION_FACTOR = 10000000.0;
     private static final double CENTIMETERS_TO_METERS = 0.01;
 
@@ -154,19 +156,39 @@ public class FieldConversions {
     }
 
     /**
-     * Convert J2735 XY coordinate to decimal degrees with zoom scaling.
-     * 
-     * @param j2735X J2735 X coordinate value (centimeters)
-     * @param j2735Y J2735 Y coordinate value (centimeters)
-     * @param currentLat Current latitude for longitude scaling
-     * @param zoomFactor Zoom scaling factor (2^zoom)
+     * Convert a J2735 XY node offset to a WGS84 longitude/latitude offset.
+     *
+     * <p>
+     * {@code NodeOffsetPointXY} X and Y are east and north distances in centimeters, scaled by {@code zoomFactor}
+     * ({@code 2^zoom}). Degree deltas are solved on the WGS84 ellipsoid so that ground distance is preserved as the
+     * length of a degree changes with latitude.
+     *
+     * @param j2735X J2735 X offset in centimeters east
+     * @param j2735Y J2735 Y offset in centimeters north
+     * @param currentLat Reference latitude in decimal degrees
+     * @param zoomFactor Zoom scaling factor ({@code 2^zoom})
      * @return Array with [longitude_offset, latitude_offset] in decimal degrees
      */
     public static double[] convertJ2735XY(long j2735X, long j2735Y, double currentLat, double zoomFactor) {
-        double latOffset = (j2735Y / CENTIMETERS_PER_DEGREE_LATITUDE) * zoomFactor;
-        double lonOffset =
-                (j2735X / (CENTIMETERS_PER_DEGREE_LATITUDE * Math.cos(Math.toRadians(currentLat)))) * zoomFactor;
-        return new double[] {lonOffset, latOffset};
+        double eastMeters = j2735X * CENTIMETERS_TO_METERS * zoomFactor;
+        double northMeters = j2735Y * CENTIMETERS_TO_METERS * zoomFactor;
+        double distanceMeters = Math.hypot(eastMeters, northMeters);
+        if (distanceMeters == 0.0) {
+            return new double[] {0.0, 0.0};
+        }
+
+        // Azimuth is degrees clockwise from north. X is east and Y is north.
+        double azimuthDegrees = Math.toDegrees(Math.atan2(eastMeters, northMeters));
+        try {
+            GeodeticCalculator calculator = new GeodeticCalculator(DefaultGeographicCRS.WGS84);
+            // WGS84 is rotationally symmetric, so the degree deltas do not depend on the starting longitude.
+            calculator.setStartingGeographicPoint(0.0, currentLat);
+            calculator.setDirection(azimuthDegrees, distanceMeters);
+            Point2D destination = calculator.getDestinationGeographicPoint();
+            return new double[] {destination.getX(), destination.getY() - currentLat};
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to convert J2735 XY offset to WGS84 degrees", e);
+        }
     }
 
     /**

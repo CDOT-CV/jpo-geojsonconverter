@@ -51,8 +51,9 @@ public class TimConverter {
     // Constants
     private static final String UTC_ZONE_ID = "UTC";
     private static final int INFINITE_DURATION_VALUE = 32000;
+    // ZonedDateTime's last argument is nanoseconds. 999_000_000 is 23:59:59.999Z.
     private static final ZonedDateTime INFINITE_VALIDITY_PERIOD =
-            ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 999, ZoneId.of(UTC_ZONE_ID));
+            ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 999_000_000, ZoneId.of(UTC_ZONE_ID));
 
     private final TimGeometryConverter geometryProcessor;
 

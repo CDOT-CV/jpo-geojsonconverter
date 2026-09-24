@@ -137,18 +137,46 @@ public class FieldConversionsTest {
 
     @Test
     public void testConvertJ2735XY() {
-        // Test XY conversion with zoom
-        double[] result = FieldConversions.convertJ2735XY(100000L, 200000L, 40.0, 2.0);
-        assertThat(result, notNullValue());
-        assertThat(result.length, equalTo(2));
+        double[] zero = FieldConversions.convertJ2735XY(0L, 0L, 40.0, 2.0);
+        assertThat(zero[0], closeTo(0.0, 1e-12));
+        assertThat(zero[1], closeTo(0.0, 1e-12));
 
-        // Verify longitude offset calculation
-        double expectedLonOffset = (100000.0 / 11111100.0) * 2.0 / Math.cos(Math.toRadians(40.0));
-        assertThat(result[0], closeTo(expectedLonOffset, 0.0001));
+        // 1000 cm east and 2000 cm north at zoom 2 is 20 m east and 40 m north.
+        double latitude = 40.0;
+        double eastMeters = 1000.0 * 0.01 * 2.0;
+        double northMeters = 2000.0 * 0.01 * 2.0;
+        double[] result = FieldConversions.convertJ2735XY(1000L, 2000L, latitude, 2.0);
+        double[] metersPerDegree = wgs84MetersPerDegree(latitude);
+        // A short diagonal geodesic is within about a millimeter of the local WGS84 radii.
+        assertThat(result[0], closeTo(eastMeters / metersPerDegree[0], 1e-8));
+        assertThat(result[1], closeTo(northMeters / metersPerDegree[1], 1e-8));
 
-        // Verify latitude offset calculation
-        double expectedLatOffset = (200000.0 / 11111100.0) * 2.0;
-        assertThat(result[1], closeTo(expectedLatOffset, 0.0001));
+        double[] southwest = FieldConversions.convertJ2735XY(-1000L, -2000L, latitude, 2.0);
+        assertThat(southwest[0], closeTo(-result[0], 1e-8));
+        assertThat(southwest[1], closeTo(-result[1], 1e-8));
+
+        // A degree of latitude is longer toward the poles, so the same northing covers fewer degrees.
+        double[] equator = FieldConversions.convertJ2735XY(0L, 100000L, 0.0, 1.0);
+        double[] higherLatitude = FieldConversions.convertJ2735XY(0L, 100000L, 60.0, 1.0);
+        assertThat(equator[0], closeTo(0.0, 1e-9));
+        assertThat(higherLatitude[1], lessThan(equator[1]));
+    }
+
+    /**
+     * @return meters per degree of [longitude, latitude] on the WGS84 ellipsoid
+     */
+    private static double[] wgs84MetersPerDegree(double latitudeDegrees) {
+        double semiMajorAxis = 6378137.0;
+        double flattening = 1.0 / 298.257223563;
+        double eccentricitySquared = flattening * (2.0 - flattening);
+        double sinLatitude = Math.sin(Math.toRadians(latitudeDegrees));
+        double primeVerticalDenominator = 1.0 - eccentricitySquared * sinLatitude * sinLatitude;
+        double primeVerticalRadius = semiMajorAxis / Math.sqrt(primeVerticalDenominator);
+        double meridionalRadius = semiMajorAxis * (1.0 - eccentricitySquared)
+                / (primeVerticalDenominator * Math.sqrt(primeVerticalDenominator));
+        double radiansPerDegree = Math.PI / 180.0;
+        return new double[] {primeVerticalRadius * Math.cos(Math.toRadians(latitudeDegrees)) * radiansPerDegree,
+                meridionalRadius * radiansPerDegree};
     }
 
     // ========== Elevation Conversion Tests ==========

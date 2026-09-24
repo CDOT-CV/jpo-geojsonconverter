@@ -97,7 +97,7 @@
                     "deploymentAgencyType": "STATE_OR_LOCAL",
                     "validityPeriod": {
                         "startTime": "2025-10-08T17:00:19.711Z",
-                        "endTime": "9999-12-31T23:59:59Z",
+                        "endTime": "9999-12-31T23:59:59.999Z",
                         "infinite": true
                     },
                     "priority": 2,
@@ -271,7 +271,7 @@
                     "deploymentAgencyType": "STATE_OR_LOCAL",
                     "validityPeriod": {
                         "startTime": "2025-10-08T17:00:19.711Z",
-                        "endTime": "9999-12-31T23:59:59Z",
+                        "endTime": "9999-12-31T23:59:59.999Z",
                         "infinite": true
                     },
                     "priority": 2,
@@ -396,7 +396,7 @@
                     "deploymentAgencyType": "STATE_OR_LOCAL",
                     "validityPeriod": {
                         "startTime": "2025-10-09T12:00:19.711Z",
-                        "endTime": "9999-12-31T23:59:59Z",
+                        "endTime": "9999-12-31T23:59:59.999Z",
                         "infinite": true
                     },
                     "priority": 1,
@@ -481,7 +481,7 @@
                     "deploymentAgencyType": "STATE_OR_LOCAL",
                     "validityPeriod": {
                         "startTime": "2025-10-09T12:00:19.711Z",
-                        "endTime": "9999-12-31T23:59:59Z",
+                        "endTime": "9999-12-31T23:59:59.999Z",
                         "infinite": true
                     },
                     "priority": 1,
@@ -606,7 +606,7 @@
                     "deploymentAgencyType": "STATE_OR_LOCAL",
                     "validityPeriod": {
                         "startTime": "2025-10-08T17:00:19.711Z",
-                        "endTime": "9999-12-31T23:59:59Z",
+                        "endTime": "9999-12-31T23:59:59.999Z",
                         "infinite": true
                     },
                     "priority": 2,
