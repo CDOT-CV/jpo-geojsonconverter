@@ -52,7 +52,7 @@ public class TimConverter {
     private static final String UTC_ZONE_ID = "UTC";
     private static final int INFINITE_DURATION_VALUE = 32000;
     private static final ZonedDateTime INFINITE_VALIDITY_PERIOD =
-            ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 0, ZoneId.of(UTC_ZONE_ID));
+            ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 999, ZoneId.of(UTC_ZONE_ID));
 
     private final TimGeometryConverter geometryProcessor;
 
@@ -72,8 +72,7 @@ public class TimConverter {
     }
 
     /**
-     * Create a processed TIM object from ASN.1 data and optional IEEE 1609.2
-     * signed-message metadata.
+     * Create a processed TIM object from ASN.1 data and optional IEEE 1609.2 signed-message metadata.
      *
      * @param travelerInfo The ASN.1 TravelerInformation object
      * @param metadata The ODE message frame metadata
@@ -172,7 +171,8 @@ public class TimConverter {
                         new us.dot.its.jpo.geojsonconverter.pojos.geojson.Point(jtsPoint.getX(), jtsPoint.getY());
                 processedTim.setLocation(geoJsonPoint);
             } else {
-                log.warn("Omitting TIM location because no representative region-anchor point could be calculated; packetId={}",
+                log.warn(
+                        "Omitting TIM location because no representative region-anchor point could be calculated; packetId={}",
                         processedTim.getPacketId());
             }
         } catch (Exception e) {
@@ -207,7 +207,8 @@ public class TimConverter {
             TravelerDataFrame dataFrame, int featureId) {
         try {
             ProcessedTimProperties properties = createProcessedTimProperties(dataFrame, odeDate, featureId);
-            TimGeometryResult geometryResult = geometryProcessor.createGeometryResultFromDataFrame(dataFrame, featureId);
+            TimGeometryResult geometryResult =
+                    geometryProcessor.createGeometryResultFromDataFrame(dataFrame, featureId);
             applyRegionGeometryIndices(properties, geometryResult.regionGeometryIndices());
 
             return new ProcessedTimFeature<>(featureId, geometryResult.geometry(), properties);
@@ -276,8 +277,8 @@ public class TimConverter {
             MinuteOfTheYear startTimeMoy = dataFrame.getStartTime();
             // TIM startTime is minute-precise and carries no DSecond. Passing zero prevents the receive timestamp's
             // seconds and milliseconds from leaking into TIM applicability.
-            startDateTime = J2735DateTimeConverter.generateUTCTimestamp(startTimeMoy, new DSecond(0), odeDate,
-                    startYear);
+            startDateTime =
+                    J2735DateTimeConverter.generateUTCTimestamp(startTimeMoy, new DSecond(0), odeDate, startYear);
             if (startDateTime == null) {
                 log.warn("Could not resolve TIM validity start time at dataFrames[{}].startTime; preserving frame "
                         + "without a derived end time", dataFrameIndex);
@@ -552,8 +553,8 @@ public class TimConverter {
      * <li>POLYGON ({@code closedPath=true}): use {@code GeographicalPath.direction} (HeadingSlice)</li>
      * <li>CIRCLE: use {@code description.geometry.direction} (HeadingSlice), not path directionality</li>
      * </ul>
-     * Non-applicable direction fields are ignored so polygon/circle features are not dropped when a
-     * non-compliant {@code directionality} is present.
+     * Non-applicable direction fields are ignored so polygon/circle features are not dropped when a non-compliant
+     * {@code directionality} is present.
      */
     private ProcessedDirectionInfoBase createProcessedDirectionInfoFromAsnData(GeographicalPath region,
             ProcessedRegionType regionType) {
