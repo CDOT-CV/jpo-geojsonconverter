@@ -7,9 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +16,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.networknt.schema.Error;
-import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuIntersectionKey;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.map.DeserializedRawMap;
@@ -92,16 +88,6 @@ public class MapProcessedJsonConverterTest {
         assertNotNull(mapFeatureCollection.key);
         assertEquals("ERROR", mapFeatureCollection.key.getRsuId());
         assertNull(mapFeatureCollection.value);
-    }
-
-    @Test
-    public void testGenerateUTCTimestampMOY() {
-        ZonedDateTime odeReceivedAt = Instant.parse("2022-01-01T00:00:00Z").atZone(ZoneId.of("UTC"));
-        MinuteOfTheYear moy = new MinuteOfTheYear(500000);
-        ZonedDateTime moyTime = mapProcessedJsonConverter.generateUTCTimestamp(moy, odeReceivedAt);
-
-        assertNotNull(moyTime);
-        assertEquals("DECEMBER", moyTime.getMonth().toString());
     }
 
 }

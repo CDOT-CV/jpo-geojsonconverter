@@ -19,6 +19,7 @@ import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 @Slf4j
 public class DeserializedRawMessageFrame {
     OdeMessageFrameData odeMessageFrameData;
+    Ieee1609Dot2SignedDataMetadata signedDataMetadata;
     JsonValidatorResult validationResults;
     boolean validationFailure;
     String failedMessage;
