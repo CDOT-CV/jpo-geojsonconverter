@@ -32,6 +32,5 @@ jobs:
           mvn -s settings.xml -e clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar \
             -Dsonar.projectKey=${{ github.repository_owner }}_jpo-geojsonconverter \
             -Dsonar.projectName=jpo-geojsonconverter \
-            -Dsonar.organization=${{ github.repository_owner }} \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.branch.name=$GITHUB_REF_NAME
+            -Dsonar.organization=${{ vars.SONAR_ORGANIZATION || github.repository_owner }} \
+            -Dsonar.host.url=https://sonarcloud.io
