@@ -3,6 +3,8 @@ package us.dot.its.jpo.geojsonconverter.converter.map;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,6 +18,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.networknt.schema.Error;
+import us.dot.its.jpo.asn.j2735.r2024.Common.Latitude;
+import us.dot.its.jpo.asn.j2735.r2024.Common.Longitude;
+import us.dot.its.jpo.asn.j2735.r2024.Common.NodeOffsetPointXY;
+import us.dot.its.jpo.asn.j2735.r2024.Common.NodeSetXY;
+import us.dot.its.jpo.asn.j2735.r2024.Common.NodeXY;
+import us.dot.its.jpo.asn.j2735.r2024.Common.Node_XY_20b;
+import us.dot.its.jpo.asn.j2735.r2024.Common.Node_LLmD_64b;
+import us.dot.its.jpo.asn.j2735.r2024.Common.Offset_B10;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuIntersectionKey;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.map.DeserializedRawMap;
@@ -67,6 +77,10 @@ public class MapProcessedJsonConverterTest {
         assertEquals(12112, mapFeatureCollection.key.getIntersectionId());
         assertNotNull(mapFeatureCollection.value);
         assertEquals(27, mapFeatureCollection.value.getMapFeatureCollection().getFeatures().length);
+        var connectingLaneFeatures = mapFeatureCollection.value.getConnectingLanesFeatureCollection().getFeatures();
+        assertTrue(connectingLaneFeatures.length > 0);
+        assertEquals("18-6", connectingLaneFeatures[0].getId());
+        assertEquals(6, connectingLaneFeatures[0].getProperties().getSignalGroupId());
     }
 
     @Test
@@ -88,6 +102,39 @@ public class MapProcessedJsonConverterTest {
         assertNotNull(mapFeatureCollection.key);
         assertEquals("ERROR", mapFeatureCollection.key.getRsuId());
         assertNull(mapFeatureCollection.value);
+    }
+
+    @Test
+    void nodeConversionListConvertsRelativeAndAbsoluteOffsetsAndSkipsEmptyNodes() {
+        NodeSetXY nodeSet = new NodeSetXY();
+
+        Node_XY_20b relativeOffsets = new Node_XY_20b();
+        relativeOffsets.setX(new Offset_B10(15L));
+        relativeOffsets.setY(new Offset_B10(-25L));
+        NodeOffsetPointXY relativeDelta = new NodeOffsetPointXY();
+        relativeDelta.setNode_XY1(relativeOffsets);
+        NodeXY relativeNode = new NodeXY();
+        relativeNode.setDelta(relativeDelta);
+        nodeSet.add(relativeNode);
+
+        Node_LLmD_64b absolutePosition = new Node_LLmD_64b();
+        absolutePosition.setLon(new Longitude(-1040000000));
+        absolutePosition.setLat(new Latitude(410000000));
+        NodeOffsetPointXY absoluteDelta = new NodeOffsetPointXY();
+        absoluteDelta.setNode_LatLon(absolutePosition);
+        NodeXY absoluteNode = new NodeXY();
+        absoluteNode.setDelta(absoluteDelta);
+        nodeSet.add(absoluteNode);
+
+        NodeXY emptyNode = new NodeXY();
+        emptyNode.setDelta(new NodeOffsetPointXY());
+        nodeSet.add(emptyNode);
+
+        var converted = mapProcessedJsonConverter.nodeConversionList(nodeSet);
+
+        assertEquals(2, converted.size());
+        assertArrayEquals(new Integer[] {15, -25}, converted.get(0).getDelta());
+        assertArrayEquals(new Integer[] {-104, 41}, converted.get(1).getDelta());
     }
 
 }

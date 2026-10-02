@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.victools.jsonschema.generator.*;
 import com.github.victools.jsonschema.module.jackson.JacksonModule;
+import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.bsm.ProcessedBsm;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.map.ProcessedMap;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.psm.ProcessedPsm;
@@ -21,6 +22,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+@Slf4j
 public class SchemaGeneratorUtility {
     public static void main(String[] args) {
         System.exit(run(args));
@@ -94,7 +96,7 @@ public class SchemaGeneratorUtility {
             return 0;
         } catch (Exception e) {
             System.err.println("Error generating schemas: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Schema generation failed", e);
             return 1;
         }
     }

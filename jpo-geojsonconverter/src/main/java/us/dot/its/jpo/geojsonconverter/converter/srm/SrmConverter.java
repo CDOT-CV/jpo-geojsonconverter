@@ -109,35 +109,42 @@ public class SrmConverter {
     }
 
     private void processRequestorPositionVector(RequestorPositionVector vector, SrmProperties props) {
-        if (vector != null) {
-            if (vector.getHeading() != null) {
-                props.setHeading(convertHeading(vector.getHeading().getValue()));
-            }
+        if (vector == null) {
+            return;
+        }
+        if (vector.getHeading() != null) {
+            props.setHeading(convertHeading(vector.getHeading().getValue()));
+        }
+        processRequestorSpeed(vector.getSpeed(), props);
+        processRequestorPosition(vector.getPosition(), props);
+    }
 
-            TransmissionAndSpeed tSpeed = vector.getSpeed();
-            if (tSpeed != null) {
-                Velocity speed = tSpeed.getSpeed();
-                if (speed != null) {
-                    props.setSpeedMetersPerSecond(convertSpeed(speed.getValue()));
-                }
-                TransmissionState transmission = tSpeed.getTransmisson();
-                if (transmission != null) {
-                    props.setTransmission(ProcessedTransmissionState.fromName(transmission.getName()));
-                }
-            }
+    private void processRequestorSpeed(TransmissionAndSpeed transmissionAndSpeed, SrmProperties props) {
+        if (transmissionAndSpeed == null) {
+            return;
+        }
+        Velocity speed = transmissionAndSpeed.getSpeed();
+        if (speed != null) {
+            props.setSpeedMetersPerSecond(convertSpeed(speed.getValue()));
+        }
+        TransmissionState transmission = transmissionAndSpeed.getTransmisson();
+        if (transmission != null) {
+            props.setTransmission(ProcessedTransmissionState.fromName(transmission.getName()));
+        }
+    }
 
-            Position3D position = vector.getPosition();
-            if (position != null) {
-                if (position.getLong_() != null) {
-                    props.setLongitude(convertLong(position.getLong_().getValue()));
-                }
-                if (position.getLat() != null) {
-                    props.setLatitude(convertLat(position.getLat().getValue()));
-                }
-                if (position.getElevation() != null) {
-                    props.setElevation(convertElevation(position.getElevation().getValue()));
-                }
-            }
+    private void processRequestorPosition(Position3D position, SrmProperties props) {
+        if (position == null) {
+            return;
+        }
+        if (position.getLong_() != null) {
+            props.setLongitude(convertLong(position.getLong_().getValue()));
+        }
+        if (position.getLat() != null) {
+            props.setLatitude(convertLat(position.getLat().getValue()));
+        }
+        if (position.getElevation() != null) {
+            props.setElevation(convertElevation(position.getElevation().getValue()));
         }
     }
 

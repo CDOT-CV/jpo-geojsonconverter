@@ -74,6 +74,9 @@ public class SrmTransformer
 
         // Process message frame
         ProcessedSrm processedSrm =  converter.processSrm(srm, odeReceivedAt);
+        if (processedSrm == null) {
+            throw new IllegalStateException("SRM conversion returned no processed message");
+        }
 
         // Add metadata
         SrmProperties properties = processedSrm.getProperties();

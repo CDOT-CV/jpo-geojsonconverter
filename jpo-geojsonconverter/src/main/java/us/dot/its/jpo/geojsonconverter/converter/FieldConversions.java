@@ -368,6 +368,9 @@ public class FieldConversions {
      * @return Epoch milliseconds, or null if any required field is missing
      */
     public static Long convertDDateTime(List<String> validationMessages, DDateTime dDateTime) {
+        if (validationMessages == null) {
+            validationMessages = new ArrayList<>();
+        }
         if (dDateTime == null) {
             validationMessages.add("DDateTime is missing.");
             return null;

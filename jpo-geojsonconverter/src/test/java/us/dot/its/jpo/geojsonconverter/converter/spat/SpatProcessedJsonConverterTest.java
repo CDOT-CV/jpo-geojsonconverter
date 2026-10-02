@@ -87,4 +87,25 @@ public class SpatProcessedJsonConverterTest {
         assertNull(processedSpat.value);
     }
 
+    @Test
+    public void testApplyValidSpat() {
+        DeserializedRawSpat rawSpat = new DeserializedRawSpat();
+        rawSpat.setOdeSpatMessageFrameData(spatMF);
+        rawSpat.setValidatorResults(new JsonValidatorResult());
+
+        KeyValue<RsuIntersectionKey, ProcessedSpat> result = spatProcessedJsonConverter.apply(null, rawSpat);
+
+        assertEquals("172.18.0.1", result.key.getRsuId());
+        assertEquals(8804, result.key.getIntersectionId());
+        assertNotNull(result.value);
+        assertEquals("172.18.0.1", result.value.getOriginIp());
+        assertEquals(8804, result.value.getIntersectionId());
+        assertEquals(0, result.value.getRevision());
+        assertNotNull(result.value.getUtcTimeStamp());
+        assertEquals(8, result.value.getStates().size());
+        assertEquals(1, result.value.getStates().get(0).getStateTimeSpeed().size());
+        assertNotNull(result.value.getStates().get(0).getStateTimeSpeed().get(0).getTiming().getMinEndTime());
+        assertNull(result.value.getStates().get(0).getStateTimeSpeed().get(0).getSpeeds());
+    }
+
 }

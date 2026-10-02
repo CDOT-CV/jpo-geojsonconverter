@@ -82,7 +82,9 @@ public class JsonDeserializerTest {
 
 
 class TestClass {
-    public TestClass() {}
+    public TestClass() {
+        // Jackson requires a public no-argument constructor for this fixture.
+    }
 
     private String prop;
 

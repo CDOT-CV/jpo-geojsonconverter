@@ -23,6 +23,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.hamcrest.Matchers.hasProperty;
 import static us.dot.its.jpo.geojsonconverter.TestResourceUtil.loadResource;
 
@@ -43,6 +44,37 @@ public class SrmConverterTest {
         assertThat(props, hasProperty("requests", notNullValue()));
         List<ProcessedSignalRequest> requests = props.getRequests();
         assertEquals(requests.size(), expectNumberOfRequests);
+    }
+
+    @Test
+    public void testProcessSrmWithoutRequestorPositionDetails() throws JsonProcessingException {
+        String srmJson = """
+                {
+                  "messageId": 29,
+                  "value": {
+                    "SignalRequestMessage": {
+                      "requests": [],
+                      "requestor": {
+                        "id": { "stationID": 2031825062 },
+                        "position": {}
+                      }
+                    }
+                  }
+                }
+                """;
+        SignalRequestMessageMessageFrame messageFrame =
+                mapper.readValue(srmJson, SignalRequestMessageMessageFrame.class);
+
+        ProcessedSrm processedSrm = new SrmConverter().processSrm(messageFrame, ZonedDateTime.now());
+
+        assertNotNull(processedSrm);
+        assertNull(processedSrm.getGeometry());
+        assertNull(processedSrm.getProperties().getHeading());
+        assertNull(processedSrm.getProperties().getSpeedMetersPerSecond());
+        assertNull(processedSrm.getProperties().getLongitude());
+        assertNull(processedSrm.getProperties().getLatitude());
+        assertNull(processedSrm.getProperties().getElevation());
+        assertEquals(0, processedSrm.getProperties().getRequests().size());
     }
 
     public static Stream<Arguments> params() throws IOException {

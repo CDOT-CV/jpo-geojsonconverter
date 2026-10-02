@@ -321,44 +321,58 @@ public class MapProcessedJsonConverter
         MapRefPoint refPoint = new MapRefPoint();
         refPoint.setFromPosition3D(convertPosition3D(intersection.getRefPoint()));
 
-        HashMap<Integer, double[]> lanePoints = new HashMap<Integer, double[]>();
-        for (GenericLane lane : intersection.getLaneSet()) {
-            if (!lanePoints.containsKey((int) lane.getLaneID().getValue())) {
-                LineString laneGeometry = createGeometry(lane, refPoint);
-                double coordinate[] = {laneGeometry.getCoordinates()[0][0], laneGeometry.getCoordinates()[0][1]};
-                lanePoints.put((int) lane.getLaneID().getValue(), coordinate);
-            }
-        }
-
-        List<ConnectingLanesFeature<LineString>> lanesFeatures = new ArrayList<>();
-        for (GenericLane lane : intersection.getLaneSet()) {
-            if (lane.getLaneAttributes().getDirectionalUse().isIngressPath() == true) {
-                double[] laneCoordinates = lanePoints.get((int) lane.getLaneID().getValue()); // first point
-                if (lane.getConnectsTo() == null)
-                    continue;
-
-                for (Connection connection : lane.getConnectsTo()) {
-                    ConnectingLanesProperties laneProps = new ConnectingLanesProperties();
-                    laneProps.setIngressLaneId(lane.getLaneID() != null ? (int) lane.getLaneID().getValue() : null);
-                    laneProps.setEgressLaneId(connection.getConnectingLane().getLane() != null
-                            ? (int) connection.getConnectingLane().getLane().getValue()
-                            : null);
-                    laneProps.setSignalGroupId(
-                            connection.getSignalGroup() != null ? (int) connection.getSignalGroup().getValue() : null);
-
-                    // Point
-                    double[] connectionCoordinates =
-                            lanePoints.get((int) connection.getConnectingLane().getLane().getValue()); // last point
-                    double[][] coordinates = new double[][] {laneCoordinates, connectionCoordinates};
-                    LineString geometry = new LineString(coordinates);
-
-                    String id = String.format("%s-%s", laneProps.getIngressLaneId(), laneProps.getEgressLaneId());
-                    lanesFeatures.add(new ConnectingLanesFeature<LineString>(id, geometry, laneProps));
-                }
-            }
-        }
+        HashMap<Integer, double[]> lanePoints = collectLanePoints(intersection, refPoint);
+        List<ConnectingLanesFeature<LineString>> lanesFeatures = createConnectingLaneFeatures(intersection, lanePoints);
 
         return new ConnectingLanesFeatureCollection<LineString>(lanesFeatures.toArray(new ConnectingLanesFeature[0]));
+    }
+
+    private HashMap<Integer, double[]> collectLanePoints(IntersectionGeometry intersection, MapRefPoint refPoint) {
+        HashMap<Integer, double[]> lanePoints = new HashMap<>();
+        for (GenericLane lane : intersection.getLaneSet()) {
+            int laneId = (int) lane.getLaneID().getValue();
+            if (!lanePoints.containsKey(laneId)) {
+                LineString laneGeometry = createGeometry(lane, refPoint);
+                double[] coordinates = {laneGeometry.getCoordinates()[0][0], laneGeometry.getCoordinates()[0][1]};
+                lanePoints.put(laneId, coordinates);
+            }
+        }
+        return lanePoints;
+    }
+
+    private List<ConnectingLanesFeature<LineString>> createConnectingLaneFeatures(
+            IntersectionGeometry intersection, HashMap<Integer, double[]> lanePoints) {
+        List<ConnectingLanesFeature<LineString>> lanesFeatures = new ArrayList<>();
+        for (GenericLane lane : intersection.getLaneSet()) {
+            if (lane.getLaneAttributes().getDirectionalUse().isIngressPath()) {
+                double[] laneCoordinates = lanePoints.get((int) lane.getLaneID().getValue());
+                addConnectingLaneFeatures(lane, laneCoordinates, lanePoints, lanesFeatures);
+            }
+        }
+        return lanesFeatures;
+    }
+
+    private void addConnectingLaneFeatures(GenericLane lane, double[] laneCoordinates,
+            HashMap<Integer, double[]> lanePoints, List<ConnectingLanesFeature<LineString>> lanesFeatures) {
+        if (lane.getConnectsTo() == null) {
+            return;
+        }
+
+        for (Connection connection : lane.getConnectsTo()) {
+            ConnectingLanesProperties laneProps = new ConnectingLanesProperties();
+            laneProps.setIngressLaneId(lane.getLaneID() != null ? (int) lane.getLaneID().getValue() : null);
+            laneProps.setEgressLaneId(connection.getConnectingLane().getLane() != null
+                    ? (int) connection.getConnectingLane().getLane().getValue()
+                    : null);
+            laneProps.setSignalGroupId(
+                    connection.getSignalGroup() != null ? (int) connection.getSignalGroup().getValue() : null);
+
+            double[] connectionCoordinates =
+                    lanePoints.get((int) connection.getConnectingLane().getLane().getValue());
+            LineString geometry = new LineString(new double[][] {laneCoordinates, connectionCoordinates});
+            String id = String.format("%s-%s", laneProps.getIngressLaneId(), laneProps.getEgressLaneId());
+            lanesFeatures.add(new ConnectingLanesFeature<>(id, geometry, laneProps));
+        }
     }
 
     public LineString createGeometry(GenericLane lane, MapRefPoint refPoint) {
@@ -467,35 +481,11 @@ public class MapProcessedJsonConverter
                             : null);
                 }
 
-                Integer offsetX = null;
-                Integer offsetY = null;
-                NodeOffsetPointXY nodeOffset = nodeXy.getDelta();
-                if (nodeOffset.getNode_XY1() != null) {
-                    offsetX = (int) nodeOffset.getNode_XY1().getX().getValue();
-                    offsetY = (int) nodeOffset.getNode_XY1().getY().getValue();
-                } else if (nodeOffset.getNode_XY2() != null) {
-                    offsetX = (int) nodeOffset.getNode_XY2().getX().getValue();
-                    offsetY = (int) nodeOffset.getNode_XY2().getY().getValue();
-                } else if (nodeOffset.getNode_XY3() != null) {
-                    offsetX = (int) nodeOffset.getNode_XY3().getX().getValue();
-                    offsetY = (int) nodeOffset.getNode_XY3().getY().getValue();
-                } else if (nodeOffset.getNode_XY4() != null) {
-                    offsetX = (int) nodeOffset.getNode_XY4().getX().getValue();
-                    offsetY = (int) nodeOffset.getNode_XY4().getY().getValue();
-                } else if (nodeOffset.getNode_XY5() != null) {
-                    offsetX = (int) nodeOffset.getNode_XY5().getX().getValue();
-                    offsetY = (int) nodeOffset.getNode_XY5().getY().getValue();
-                } else if (nodeOffset.getNode_XY6() != null) {
-                    offsetX = (int) nodeOffset.getNode_XY6().getX().getValue();
-                    offsetY = (int) nodeOffset.getNode_XY6().getY().getValue();
-                } else if (nodeOffset.getNode_LatLon() != null) {
-                    offsetX = FieldConversions.convertLong(nodeOffset.getNode_LatLon().getLon().getValue()).intValue();
-                    offsetY = FieldConversions.convertLat(nodeOffset.getNode_LatLon().getLat().getValue()).intValue();
-                } else {
+                Integer[] delta = convertNodeDelta(nodeXy.getDelta());
+                if (delta == null) {
                     continue;
                 }
 
-                Integer[] delta = {offsetX, offsetY};
                 mapNode.setDelta(delta);
                 mapNodes.add(mapNode);
             }
@@ -505,5 +495,36 @@ public class MapProcessedJsonConverter
             logger.error(errMsg, e);
         }
         return mapNodes;
+    }
+
+    private Integer[] convertNodeDelta(NodeOffsetPointXY nodeOffset) {
+        if (nodeOffset.getNode_XY1() != null) {
+            return xyDelta(nodeOffset.getNode_XY1().getX().getValue(), nodeOffset.getNode_XY1().getY().getValue());
+        }
+        if (nodeOffset.getNode_XY2() != null) {
+            return xyDelta(nodeOffset.getNode_XY2().getX().getValue(), nodeOffset.getNode_XY2().getY().getValue());
+        }
+        if (nodeOffset.getNode_XY3() != null) {
+            return xyDelta(nodeOffset.getNode_XY3().getX().getValue(), nodeOffset.getNode_XY3().getY().getValue());
+        }
+        if (nodeOffset.getNode_XY4() != null) {
+            return xyDelta(nodeOffset.getNode_XY4().getX().getValue(), nodeOffset.getNode_XY4().getY().getValue());
+        }
+        if (nodeOffset.getNode_XY5() != null) {
+            return xyDelta(nodeOffset.getNode_XY5().getX().getValue(), nodeOffset.getNode_XY5().getY().getValue());
+        }
+        if (nodeOffset.getNode_XY6() != null) {
+            return xyDelta(nodeOffset.getNode_XY6().getX().getValue(), nodeOffset.getNode_XY6().getY().getValue());
+        }
+        if (nodeOffset.getNode_LatLon() != null) {
+            int offsetX = FieldConversions.convertLong(nodeOffset.getNode_LatLon().getLon().getValue()).intValue();
+            int offsetY = FieldConversions.convertLat(nodeOffset.getNode_LatLon().getLat().getValue()).intValue();
+            return new Integer[] {offsetX, offsetY};
+        }
+        return null;
+    }
+
+    private Integer[] xyDelta(long offsetX, long offsetY) {
+        return new Integer[] {(int) offsetX, (int) offsetY};
     }
 }
