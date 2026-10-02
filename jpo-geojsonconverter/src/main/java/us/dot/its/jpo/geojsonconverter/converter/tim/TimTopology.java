@@ -28,10 +28,11 @@ public class TimTopology {
             TimJsonValidator timJsonValidator, TimConverter timConverter) {
         StreamsBuilder builder = new StreamsBuilder();
 
-        // Stream for raw TIM messages
-        // Raw topic has no key and the values are raw JSON bytes
-        KStream<Void, Bytes> rawOdeTimStream =
-                builder.stream(timOdeJsonTopic, Consumed.with(Serdes.Void(), Serdes.Bytes()));
+        // Stream raw TIM JSON bytes, accepting and discarding any incoming key because
+        // TIM conversion derives the processed key from the message contents.
+        KStream<Void, Bytes> rawOdeTimStream = builder
+                .<byte[], Bytes>stream(timOdeJsonTopic, Consumed.with(Serdes.ByteArray(), Serdes.Bytes()))
+                .selectKey((key, value) -> (Void) null);
 
         // Validate the JSON and write validation errors to the log at warn level
         // Passes the raw JSON along unchanged, even if there are validation errors.
