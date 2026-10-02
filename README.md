@@ -877,7 +877,7 @@ Recommended machine specs running Docker to run the GeoJsonConverter:
 The GeoJsonConverter software can run on most standard Window, Mac, or Linux based computers with
 Pentium core processors. Performance of the software will be based on the computing power and available RAM in
 the system.  Larger data flows can require much larger space requirements depending on the
-amount of data being processed by the software. The GeoJsonConverter software application was developed using the open source programming language Java. If running the GeoJsonConverter outside of Docker, the application requires the Java 21 runtime environment.
+amount of data being processed by the software. The GeoJsonConverter software application was developed using the open source programming language Java. If running the GeoJsonConverter outside of Docker, the application requires the Java 25 runtime environment.
 
 ### Software Prerequisites
 
@@ -1008,7 +1008,7 @@ A GitHub token is required to pull artifacts from GitHub repositories. This is r
 
 #### Non-Docker build and test
 
-From the `jpo-geojsonconverter` module directory, export the package credentials and run the Maven wrapper. `verify` compiles the application and runs the complete unit-test suite.
+Use JDK 25 (Temurin is recommended); the repository's `.java-version` file pins `temurin@25`. From the `jpo-geojsonconverter` module directory, export the package credentials and run the Maven wrapper. `verify` compiles the application and runs the complete unit-test suite.
 
 Linux/macOS:
 

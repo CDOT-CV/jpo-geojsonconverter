@@ -1,4 +1,4 @@
-FROM maven:3.8-eclipse-temurin-21-alpine AS builder
+FROM maven:3.10.0-eclipse-temurin-25-alpine AS builder
 
 WORKDIR /home
 
@@ -19,7 +19,7 @@ RUN mvn -s settings.xml dependency:resolve
 COPY ./jpo-geojsonconverter/src ./src
 RUN mvn -s settings.xml install -DskipTests
 
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:25-jre-alpine
 
 WORKDIR /home
 

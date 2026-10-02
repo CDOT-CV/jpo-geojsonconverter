@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.154.0/containers/java-8
 {
-	"name": "JPO GeoJSONConverter Java 21",
+	"name": "JPO GeoJSONConverter Java 25",
 	"dockerFile": "Dockerfile",
 	"overrideCommand": false,
 	"shutdownAction": "stopContainer",

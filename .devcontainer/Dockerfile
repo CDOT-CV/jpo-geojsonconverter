@@ -3,7 +3,7 @@
 # Licensed under the MIT License. See https://go.microsoft.com/fwlink/?linkid=2090316 for license information.
 #-------------------------------------------------------------------------------------------------------------
 
-FROM eclipse-temurin:21-jdk
+FROM eclipse-temurin:25-jdk-noble
 
 # This Dockerfile adds a non-root user with sudo access. Use the "remoteUser"
 # property in devcontainer.json to use it. On Linux, the container user's GID/UIDs
@@ -36,7 +36,7 @@ RUN chmod a+x "$HOME/.sdkman/bin/sdkman-init.sh"
 #-------------------------------------------------------------------------------------------------------------
 
 #-------------------Install Maven CLI Tools----------------------------------
-ARG MAVEN_VERSION=3.6.3
+ARG MAVEN_VERSION=3.9.9
 RUN /bin/bash -c "source $HOME/.sdkman/bin/sdkman-init.sh && sdk install maven ${MAVEN_VERSION}"
 #-------------------------------------------------------------------------------------------------------------
 
