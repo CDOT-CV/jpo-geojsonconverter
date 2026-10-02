@@ -45,7 +45,7 @@ public class J2735DateTimeConverter {
                     milliseconds = dSecond.getValue();
                 } else {
                     // Use seconds and milliseconds from odeDate when dSecond is null
-                    milliseconds = odeDate.getSecond() * 1000 + odeDate.getNano() / 1_000_000;
+                    milliseconds = odeDate.getSecond() * 1000L + odeDate.getNano() / 1_000_000L;
                 }
                 dateString = String.format("%d-01-01T00:00:00.00Z", year);
                 date = Instant.parse(dateString).atZone(ZoneId.of("UTC"));
@@ -144,8 +144,8 @@ public class J2735DateTimeConverter {
             ZonedDateTime startOfHour = currentTime.truncatedTo(ChronoUnit.HOURS);
 
             // Current time in deciseconds within the hour
-            long currentDecis = currentTime.getMinute() * 600 + currentTime.getSecond() * 10
-                    + (currentTime.getNano() / 100_000_000);
+            long currentDecis = currentTime.getMinute() * 600L + currentTime.getSecond() * 10L
+                    + (currentTime.getNano() / 100_000_000L);
 
             // Determine if TimeMark applies to current or next hour
             ZonedDateTime result = (value > currentDecis) ? startOfHour.plus(millis, ChronoUnit.MILLIS)

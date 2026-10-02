@@ -1,5 +1,7 @@
 package us.dot.its.jpo.geojsonconverter.converter.srm;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.common.serialization.VoidSerializer;
@@ -9,6 +11,7 @@ import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import java.util.stream.Stream;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -23,6 +26,7 @@ import us.dot.its.jpo.geojsonconverter.validator.SrmJsonValidator;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -37,6 +41,47 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class SrmTopologyTest {
     final String inputTopicName = "topic.OdeSrmJson";
     final String outputTopicName = "topic.ProcessedSrm";
+
+    @ParameterizedTest
+    @CsvSource({
+            "45123, 2025-01-01T16:40:45.123Z",
+            "59999, 2025-01-01T16:40:59.999Z",
+            "60000, 2025-01-01T16:41:00Z",
+            "60999, 2025-01-01T16:41:00.999Z",
+            "61000, 2025-01-01T16:40:00Z",
+            "65535, 2025-01-01T16:40:00Z"
+    })
+    void secondsBoundariesPreserveConvertedOutput(long seconds, String expectedTimestamp) throws IOException {
+        var json = new ObjectMapper().readTree(loadResource("json/valid.srm.json"));
+        var message = (ObjectNode) json.at("/payload/data/value/SignalRequestMessage");
+        message.put("timeStamp", 1000);
+        message.put("second", seconds);
+        var request = (ObjectNode) message.at("/requests/0");
+        request.put("minute", 1000);
+        request.put("second", seconds);
+
+        var topology = SrmTopology.build(inputTopicName, outputTopicName, new SrmJsonValidator(), new SrmConverter());
+        try (var driver = new TopologyTestDriver(topology)) {
+            var input = driver.createInputTopic(inputTopicName, new VoidSerializer(), new StringSerializer());
+            var output = driver.createOutputTopic(outputTopicName,
+                    new JsonDeserializer<>(RsuVehicleIdKey.class), new JsonDeserializer<>(ProcessedSrm.class));
+            input.pipeInput(json.toString());
+            var results = output.readKeyValuesToList();
+
+            assertEquals(1, results.size());
+            var result = results.getFirst();
+            assertEquals("172.18.0.1", result.key.getRsuId());
+            assertNotNull(result.value);
+            var properties = result.value.getProperties();
+            assertEquals(Instant.parse(expectedTimestamp), properties.getTimeStamp().toInstant());
+            assertEquals(1, properties.getRequests().size());
+            assertEquals(Instant.parse(expectedTimestamp),
+                    properties.getRequests().getFirst().getEstimatedTimeOfArrival().toInstant());
+            assertNotNull(properties.getAsn1());
+            assertNotNull(result.value.getGeometry());
+            assertEquals(0, properties.getValidationMessages().size());
+        }
+    }
 
     @ParameterizedTest
     @MethodSource("params")

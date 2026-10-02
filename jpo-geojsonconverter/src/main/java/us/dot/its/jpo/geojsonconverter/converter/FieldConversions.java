@@ -775,7 +775,10 @@ public class FieldConversions {
         if (minuteDate == null) return null;
         if (dSecond == null) return minuteDate;
         SecondNanos secondNanos = convertDSecond(dSecond);
-        return minuteDate.withSecond(secondNanos.secondOfMinute()).withNano(secondNanos.nanoOfSecond());
+        // Reserved/unavailable seconds convey no additional precision beyond the known minute.
+        if (secondNanos == null) return minuteDate;
+        // Duration additions normalize leap-second values (60000-60999) into the following minute.
+        return minuteDate.plusSeconds(secondNanos.secondOfMinute()).plusNanos(secondNanos.nanoOfSecond());
     }
 
 

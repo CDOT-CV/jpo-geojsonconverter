@@ -7,11 +7,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import us.dot.its.jpo.asn.j2735.r2024.Common.*;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.DistanceUnits;
 import us.dot.its.jpo.asn.j2735.r2024.SignalRequestMessage.DeltaTime;
 
 import java.time.Duration;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -849,6 +852,44 @@ public class FieldConversionsTest {
     }
 
     // ========== Minute of Year and DSecond Conversion Tests ==========
+
+    @ParameterizedTest
+    @CsvSource({
+            ", 2024-01-01T16:40:00Z",
+            "0, 2024-01-01T16:40:00Z",
+            "45123, 2024-01-01T16:40:45.123Z",
+            "59999, 2024-01-01T16:40:59.999Z",
+            "60000, 2024-01-01T16:41:00Z",
+            "60999, 2024-01-01T16:41:00.999Z",
+            "61000, 2024-01-01T16:40:00Z",
+            "65535, 2024-01-01T16:40:00Z"
+    })
+    void timestampPreservesKnownMinuteAndNormalizesSeconds(Long milliseconds, String expectedTimestamp) {
+        var ingestTime = ZonedDateTime.parse("2024-06-15T14:30:12.345Z");
+        var moy = new MinuteOfTheYear(1000L);
+        var seconds = milliseconds == null ? null : new DSecond(milliseconds);
+        var expected = ZonedDateTime.parse(expectedTimestamp).withZoneSameInstant(ZoneId.of("UTC"));
+
+        assertEquals(expected, FieldConversions.convertMinuteOfYearAndDSecond(moy, ingestTime, seconds));
+        assertEquals(expected, FieldConversions.convertMinuteOfYearAndDSecond(moy, 2024, seconds));
+        assertNull(FieldConversions.convertMinuteOfYearAndDSecond(null, ingestTime, seconds));
+        assertNull(FieldConversions.convertMinuteOfYearAndDSecond(null, 2024, seconds));
+        var invalidMoy = new MinuteOfTheYear(527040L);
+        assertNull(FieldConversions.convertMinuteOfYearAndDSecond(invalidMoy, ingestTime, seconds));
+        assertNull(FieldConversions.convertMinuteOfYearAndDSecond(invalidMoy, 2024, seconds));
+    }
+
+    @Test
+    void secondSixtyNormalizesAcrossYearBoundary() {
+        var moy = new MinuteOfTheYear(525599L);
+        var seconds = new DSecond(60999L);
+        var ingestTime = ZonedDateTime.parse("2023-01-01T00:00:01Z");
+        var expected = ZonedDateTime.parse("2023-01-01T00:00:00.999Z")
+                .withZoneSameInstant(ZoneId.of("UTC"));
+
+        assertEquals(expected, FieldConversions.convertMinuteOfYearAndDSecond(moy, ingestTime, seconds));
+        assertEquals(expected, FieldConversions.convertMinuteOfYearAndDSecond(moy, 2022, seconds));
+    }
 
     @Test
     public void testConvertMinuteOfYearAndDSecond_WithIngestTime() {

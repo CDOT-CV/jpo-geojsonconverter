@@ -1,5 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.validator;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class TimJsonValidator extends AbstractJsonValidator {
 
+    @Autowired
     public TimJsonValidator() {
         super("classpath:schemas/tim.schema.json");
     }
