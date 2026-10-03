@@ -47,7 +47,7 @@ public class TimGeometryConverterTest {
     private OdeMessageFrameData timMF;
 
     @BeforeEach
-    public void setup() throws IOException {
+    void setup() throws IOException {
         geometryConverter = new TimGeometryConverter();
         timConverter = new TimConverter(geometryConverter);
 
@@ -61,7 +61,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testCreateGeometryFromDataFrame() {
+    void testCreateGeometryFromDataFrame() {
         // Extract ASN.1 data
         TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
         TravelerDataFrame dataFrame = messageFrame.getValue().getDataFrames().get(0);
@@ -89,7 +89,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testCreateGeometryFromDataFrameNoDataLoss() {
+    void testCreateGeometryFromDataFrameNoDataLoss() {
         // Extract ASN.1 data from incoming TIM
         TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
         TravelerInformation travelerInfo = messageFrame.getValue();
@@ -186,7 +186,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testCreateGeometryFromRegion() {
+    void testCreateGeometryFromRegion() {
         // Extract ASN.1 data
         TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
         GeographicalPath region = messageFrame.getValue().getDataFrames().get(0).getRegions().get(0);
@@ -206,7 +206,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testCalculateCenterLocationFromRegionAnchors() {
+    void testCalculateCenterLocationFromRegionAnchors() {
         // Extract ASN.1 data
         TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
         TravelerInformation travelerInfo = messageFrame.getValue();
@@ -226,7 +226,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testCalculateCenterLocationReturnsNullWithoutAnchors() {
+    void testCalculateCenterLocationReturnsNullWithoutAnchors() {
         TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
         TravelerInformation travelerInfo = messageFrame.getValue();
 
@@ -240,7 +240,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testCalculateCenterLocationUnwrapsLongitudeAcrossAntimeridian() {
+    void testCalculateCenterLocationUnwrapsLongitudeAcrossAntimeridian() {
         TravelerInformation travelerInfo = travelerInformation();
         while (travelerInfo.getDataFrames().size() > 1) {
             travelerInfo.getDataFrames().removeLast();
@@ -260,14 +260,14 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testAverageLongitudeKeepsNearbyLongitudesUnchanged() {
+    void testAverageLongitudeKeepsNearbyLongitudesUnchanged() {
         assertEquals(15.0, TimGeometryConverter.averageLongitude(List.of(10.0, 20.0)), 0.000001);
         assertEquals(-84.45, TimGeometryConverter.averageLongitude(List.of(-84.4, -84.5)), 0.000001);
         assertEquals(180.0, Math.abs(TimGeometryConverter.averageLongitude(List.of(179.0, -179.0))), 0.000001);
     }
 
     @Test
-    public void testAverageLongitudeIsIndependentOfInputOrder() {
+    void testAverageLongitudeIsIndependentOfInputOrder() {
         List<Double> firstOrder = List.of(-180.0, 0.0, 179.0, 0.0);
         List<Double> secondOrder = List.of(0.0, 0.0, 179.0, -180.0);
         List<Double> thirdOrder = List.of(179.0, 0.0, -180.0, 0.0);
@@ -279,12 +279,12 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testAverageLongitudeFallsBackWhenAnchorsCancel() {
+    void testAverageLongitudeFallsBackWhenAnchorsCancel() {
         assertEquals(10.0, TimGeometryConverter.averageLongitude(List.of(10.0, -170.0)), 0.000001);
     }
 
     @Test
-    public void testRegionTypeDetermination() {
+    void testRegionTypeDetermination() {
         // Extract ASN.1 data
         TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
         GeographicalPath region = messageFrame.getValue().getDataFrames().get(0).getRegions().get(0);
@@ -298,7 +298,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testClosedPathPolygonGeometry() {
+    void testClosedPathPolygonGeometry() {
         // Extract ASN.1 data - test the 4th dataframe which contains a closed path
         TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
         TravelerDataFrame dataFrame = messageFrame.getValue().getDataFrames().get(3); // 4th dataframe (index 3)
@@ -337,7 +337,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testClosedPathWithFewerThanThreeDistinctPositionsProducesNoGeometry() {
+    void testClosedPathWithFewerThanThreeDistinctPositionsProducesNoGeometry() {
         GeographicalPath region = travelerInformation().getDataFrames().get(3).getRegions().getFirst();
         Node_LLmD_64b firstAbsolute = new Node_LLmD_64b();
         firstAbsolute.setLon(new Longitude(-1040000000L));
@@ -358,7 +358,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testCircleGeometry() {
+    void testCircleGeometry() {
         // Extract ASN.1 data - test the 3rd dataframe which contains a circle
         TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
         TravelerDataFrame dataFrame = messageFrame.getValue().getDataFrames().get(2); // 3rd dataframe (index 2)
@@ -423,7 +423,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testCircleAtPositiveAntimeridianPreservesRadius() {
+    void testCircleAtPositiveAntimeridianPreservesRadius() {
         GeographicalPath region = travelerInformation().getDataFrames().get(2).getRegions().getFirst();
         Circle circle = region.getDescription().getGeometry().getCircle();
         circle.getCenter().setLong_(new Longitude(1800000000));
@@ -449,7 +449,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testNullAnchorWithLatLonNodes() {
+    void testNullAnchorWithLatLonNodes() {
         // Extract ASN.1 data - search for a dataframe with null anchor and LatLon nodes
         TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
         TravelerInformation travelerInfo = messageFrame.getValue();
@@ -533,7 +533,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testNullAnchorWithOffsetNodes() {
+    void testNullAnchorWithOffsetNodes() {
         // Test that offset nodes (LL1-LL6) without anchor return empty/null geometry
         // Extract ASN.1 data
         TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
@@ -586,7 +586,7 @@ public class TimGeometryConverterTest {
                                     LineString lineString = (LineString) geometry;
                                     // If geometry is created, it should be empty or have default coordinates
                                     // In our implementation, we skip processing offset nodes without anchor
-                                    assertTrue(lineString.getCoordinates().length == 0,
+                                    assertEquals(0, lineString.getCoordinates().length,
                                             "Offset nodes without anchor should not produce coordinates");
                                 }
                                 return;
@@ -599,7 +599,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testAllLlOffsetChoicesAndAttributesProduceProfiles() {
+    void testAllLlOffsetChoicesAndAttributesProduceProfiles() {
         GeographicalPath region = firstRegion();
         region.getDescription().getPath().setOffset(createLlOffsetChoice(createLlNodes()));
 
@@ -619,7 +619,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testAnchorIsNotTreatedAsPathNodeOffsetInformation() {
+    void testAnchorIsNotTreatedAsPathNodeOffsetInformation() {
         GeographicalPath region = firstRegion();
         region.getDescription().getPath().setOffset(createLlOffsetChoice());
 
@@ -627,7 +627,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testAbsoluteLlNodeWithoutAnchorProducesLineString() {
+    void testAbsoluteLlNodeWithoutAnchorProducesLineString() {
         GeographicalPath region = firstRegion();
         region.setAnchor(null);
         NodeOffsetPointLL delta = new NodeOffsetPointLL();
@@ -658,7 +658,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testAbsoluteXyLatLonNodeProducesGeometryWithOrWithoutAnchor() {
+    void testAbsoluteXyLatLonNodeProducesGeometryWithOrWithoutAnchor() {
         GeographicalPath region = firstRegion();
         Node_LLmD_64b absolute = new Node_LLmD_64b();
         absolute.setLon(new Longitude(-1040000000));
@@ -689,7 +689,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testUnavailableLlAbsoluteNodeClearsReferenceUntilValidAbsoluteNodeRecoversIt() {
+    void testUnavailableLlAbsoluteNodeClearsReferenceUntilValidAbsoluteNodeRecoversIt() {
         GeographicalPath region = firstRegion();
         region.setAnchor(null);
 
@@ -707,7 +707,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testUnavailableXyAbsoluteNodeClearsReferenceUntilValidAbsoluteNodeRecoversIt() {
+    void testUnavailableXyAbsoluteNodeClearsReferenceUntilValidAbsoluteNodeRecoversIt() {
         GeographicalPath region = firstRegion();
         region.setAnchor(null);
 
@@ -729,7 +729,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testUnavailableAnchorDoesNotSeedLlOrXyRelativeOffsets() {
+    void testUnavailableAnchorDoesNotSeedLlOrXyRelativeOffsets() {
         GeographicalPath region = firstRegion();
         Position3D unavailableAnchor = new Position3D();
         unavailableAnchor.setLong_(new Longitude(1800000001L));
@@ -751,7 +751,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testRelativeLlOffsetsNormalizeEastAndWestAntimeridianCrossings() {
+    void testRelativeLlOffsetsNormalizeEastAndWestAntimeridianCrossings() {
         for (long anchorLongitude : new long[] {1799999990L, -1799999990L}) {
             GeographicalPath region = regionWithAnchorAndPath(anchorLongitude, 400000000L);
             NodeOffsetPointLL relative = new NodeOffsetPointLL();
@@ -778,7 +778,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testRelativeXyOffsetsNormalizeEastAndWestAntimeridianCrossings() {
+    void testRelativeXyOffsetsNormalizeEastAndWestAntimeridianCrossings() {
         for (long anchorLongitude : new long[] {1799999990L, -1799999990L}) {
             GeographicalPath region = regionWithAnchorAndPath(anchorLongitude, 400000000L);
             NodeOffsetPointXY relative = new NodeOffsetPointXY();
@@ -816,7 +816,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testOnePositionPathDoesNotProduceLineString() {
+    void testOnePositionPathDoesNotProduceLineString() {
         GeographicalPath region = firstRegion();
         region.setAnchor(null);
         region.getDescription().getPath().setOffset(
@@ -826,7 +826,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testDegenerateAndSelfIntersectingPolygonRingsAreOmitted() {
+    void testDegenerateAndSelfIntersectingPolygonRingsAreOmitted() {
         GeographicalPath degenerate = sampleClosedPathRegion();
         degenerate.getDescription().getPath().setOffset(createLlOffsetChoice(
                 node(absoluteLlNode(0L, 0L), null, null), node(absoluteLlNode(10000000L, 10000000L), null, null),
@@ -841,7 +841,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testInvalidRegionRetainsAlignedIndexesAndNullGeometrySerializesExplicitly() {
+    void testInvalidRegionRetainsAlignedIndexesAndNullGeometrySerializesExplicitly() {
         TravelerInformation information = travelerInformation();
         TravelerDataFrame dataFrame = information.getDataFrames().getFirst();
         GeographicalPath onePositionRegion = dataFrame.getRegions().getLast();
@@ -863,7 +863,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testRelativeLlNodeWithoutAnchorProducesNoGeometry() {
+    void testRelativeLlNodeWithoutAnchorProducesNoGeometry() {
         GeographicalPath region = firstRegion();
         region.setAnchor(null);
         region.getDescription().getPath().setOffset(createLlOffsetChoice(createLlNodes()[0]));
@@ -872,7 +872,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    public void testMultipleClosedRegionsProduceClosedMultiPolygon() {
+    void testMultipleClosedRegionsProduceClosedMultiPolygon() {
         TravelerDataFrame dataFrame = travelerInformation().getDataFrames().get(3);
         TravelerDataFrame.SequenceOfRegions regions = new TravelerDataFrame.SequenceOfRegions();
         regions.add(dataFrame.getRegions().getFirst());

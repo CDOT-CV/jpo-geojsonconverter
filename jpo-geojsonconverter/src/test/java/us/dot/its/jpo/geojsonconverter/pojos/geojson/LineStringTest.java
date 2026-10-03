@@ -71,7 +71,7 @@ public class LineStringTest {
 
         assertEquals(geometry, equalGeometry);
         assertEquals(geometry.hashCode(), equalGeometry.hashCode());
-        assertNotEquals(geometry, null);
+        assertNotEquals(null, geometry);
 
         LineString nullCoordinates = new LineString(null);
         assertEquals(nullCoordinates, new LineString(null));

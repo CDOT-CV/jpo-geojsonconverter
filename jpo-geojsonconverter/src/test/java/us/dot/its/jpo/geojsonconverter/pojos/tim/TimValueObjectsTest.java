@@ -1,9 +1,7 @@
 package us.dot.its.jpo.geojsonconverter.pojos.tim;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
@@ -21,7 +19,6 @@ class TimValueObjectsTest {
         assertEquals(List.of(-105.0, 40.0), value.getCoordinates());
         assertEquals(12L, value.getDwidthOffset());
         assertEquals(34L, value.getDelevationOffset());
-        assertEquals(value, value);
         assertEquals(value, equalValue);
         assertEquals(equalValue, value);
         assertEquals(value.hashCode(), equalValue.hashCode());
@@ -29,13 +26,13 @@ class TimValueObjectsTest {
         assertNotEquals(value, new PathNodeData(List.of(-104.0, 40.0), 12L, 34L));
         assertNotEquals(value, new PathNodeData(List.of(-105.0, 40.0), 13L, 34L));
         assertNotEquals(value, new PathNodeData(List.of(-105.0, 40.0), 12L, 35L));
-        assertNotEquals(value, null);
+        assertNotEquals(null, value);
         assertNotEquals(value, new Object());
 
         PathNodeData nullValues = new PathNodeData(null, null, null);
         assertEquals(nullValues, new PathNodeData(null, null, null));
         assertNotEquals(value, nullValues);
-        assertNotNull(nullValues.hashCode());
+        assertEquals(nullValues.hashCode(), new PathNodeData(null, null, null).hashCode());
         assertTrue(nullValues.toString().contains("null"));
     }
 
@@ -46,7 +43,6 @@ class TimValueObjectsTest {
 
         assertEquals(Arrays.asList(1L, null), value.getElevationOffsets());
         assertEquals(List.of(2L, 3L), value.getLaneWidthOffsets());
-        assertEquals(value, value);
         assertEquals(value, equalValue);
         assertEquals(value.hashCode(), equalValue.hashCode());
         assertTrue(value.toString().contains("elevationOffsets"));

@@ -9,13 +9,13 @@ import org.junit.jupiter.api.Test;
 
 import us.dot.its.jpo.geojsonconverter.serialization.serializers.JsonSerializer;
 
-public class RsuTimPartitionerTest {
+class RsuTimPartitionerTest {
 
     private static final String TOPIC = "topic.ProcessedTim";
     private static final int NUM_PARTITIONS = 37;
 
     @Test
-    public void testKeysWithSameRsuUseSamePartition() {
+    void testKeysWithSameRsuUseSamePartition() {
         RsuTimKey firstKey = new RsuTimKey("192.0.2.10", "packet-a", 1);
         RsuTimKey secondKey = new RsuTimKey("192.0.2.10", "packet-b", 2);
         var partitioner = new RsuTimPartitioner<RsuTimKey, Object>();
@@ -25,7 +25,7 @@ public class RsuTimPartitionerTest {
     }
 
     @Test
-    public void testMissingRsuFallsBackToFullKeyHash() {
+    void testMissingRsuFallsBackToFullKeyHash() {
         RsuTimKey key = new RsuTimKey(null, "packet-a", 1);
         var serializer = new JsonSerializer<RsuTimKey>();
         byte[] serializedKey = serializer.serialize(TOPIC, key);
@@ -36,7 +36,7 @@ public class RsuTimPartitionerTest {
     }
 
     @Test
-    public void testUnserializableKeyThrowsSerializationException() {
+    void testUnserializableKeyThrowsSerializationException() {
         Object unserializableKey = new UnserializableKey();
         var partitioner = new RsuTimPartitioner<Object, Object>();
 

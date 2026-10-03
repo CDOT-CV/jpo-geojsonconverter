@@ -26,7 +26,7 @@ public class TimTransformerTest {
     private OdeMessageFrameData timMF;
 
     @BeforeEach
-    public void setup() throws IOException {
+    void setup() throws IOException {
         // Load sample TIM JSON file
         String timJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/sample.ode-tim.json")));
 
@@ -41,7 +41,7 @@ public class TimTransformerTest {
     }
 
     @Test
-    public void testApplyWithValidTim() {
+    void testApplyWithValidTim() {
         // Test successful TIM conversion
         DeserializedRawMessageFrame deserializedRawTim = new DeserializedRawMessageFrame();
         deserializedRawTim.setOdeMessageFrameData(timMF);
@@ -70,7 +70,7 @@ public class TimTransformerTest {
     }
 
     @Test
-    public void testApplyWithMissingPacketIdAndMsgCnt() {
+    void testApplyWithMissingPacketIdAndMsgCnt() {
         TravelerInformationMessageFrame messageFrame =
                 (TravelerInformationMessageFrame) timMF.getPayload().getData();
         messageFrame.getValue().setPacketID(null);
@@ -91,7 +91,7 @@ public class TimTransformerTest {
     }
 
     @Test
-    public void testApplyWithValidationFailure() {
+    void testApplyWithValidationFailure() {
         // Test TIM conversion with validation failure
         JsonValidatorResult validatorResult = new JsonValidatorResult();
         Exception testException = new Exception("Critical validation error");
@@ -118,7 +118,7 @@ public class TimTransformerTest {
     }
 
     @Test
-    public void testApplyWithNullInput() {
+    void testApplyWithNullInput() {
         // Test error handling with null input
         KeyValue<RsuTimKey, ProcessedTim> result = timTransformer.apply(null, null);
 
@@ -130,7 +130,7 @@ public class TimTransformerTest {
     }
 
     @Test
-    public void testApplyWithException() {
+    void testApplyWithException() {
         // Test exception handling by providing malformed data
         DeserializedRawMessageFrame deserializedRawTim = new DeserializedRawMessageFrame();
         deserializedRawTim.setOdeMessageFrameData(null); // This should cause an exception

@@ -36,7 +36,7 @@ class RsuTimKeyTest {
         assertNotEquals(full, new RsuTimKey("rsu-b", "packet-a", 7));
         assertNotEquals(full, new RsuTimKey("rsu-a", "packet-b", 7));
         assertNotEquals(full, new RsuTimKey("rsu-a", "packet-a", 8));
-        assertNotEquals(full, null);
+        assertNotEquals(null, full);
         assertNotEquals(full, new Object());
 
         RsuTimKey nullValues = new RsuTimKey(null, null, null);

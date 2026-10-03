@@ -109,7 +109,7 @@ public class SpatProcessedJsonConverterTest {
         assertEquals("172.18.0.1", result.value.getOriginIp());
         assertEquals(8804, result.value.getIntersectionId());
         assertEquals(0, result.value.getRevision());
-        assertNotNull(result.value.getUtcTimeStamp());
+        assertNotNull(result.value.getUtcTimeStampTS());
         assertEquals(8, result.value.getStates().size());
         assertEquals(1, result.value.getStates().get(0).getStateTimeSpeed().size());
         assertNotNull(result.value.getStates().get(0).getStateTimeSpeed().get(0).getTiming().getMinEndTime());
@@ -145,7 +145,7 @@ public class SpatProcessedJsonConverterTest {
 
         assertNotNull(result);
         assertEquals(ProcessedSchemaVersions.PROCESSED_SPAT_SCHEMA_VERSION, result.getSchemaVersion());
-        assertEquals(Instant.parse("2024-06-15T15:30:00Z"), result.getUtcTimeStamp().toInstant());
+        assertEquals(Instant.parse("2024-06-15T15:30:00Z"), result.getUtcTimeStampTS());
         var events = result.getStates().getFirst().getStateTimeSpeed();
         assertEquals(2, events.size());
         var current = events.getFirst().getTiming();
