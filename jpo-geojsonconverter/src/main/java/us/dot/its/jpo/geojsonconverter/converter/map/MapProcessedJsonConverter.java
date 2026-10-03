@@ -26,7 +26,6 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.connectinglanes.*;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.map.*;
 import us.dot.its.jpo.geojsonconverter.utils.BitstringUtils;
-import us.dot.its.jpo.geojsonconverter.utils.J2735DateTimeConverter;
 import us.dot.its.jpo.geojsonconverter.utils.ProcessedSchemaVersions;
 import us.dot.its.jpo.geojsonconverter.validator.CTI4501Validator;
 import us.dot.its.jpo.geojsonconverter.validator.JsonValidatorResult;
@@ -151,7 +150,8 @@ public class MapProcessedJsonConverter
                 intersection.getLaneWidth() != null ? (int) intersection.getLaneWidth().getValue() : null);
         sharedProps.setSpeedLimits(convertSpeedLimitList(intersection.getSpeedLimits()));
         sharedProps.setMapSource(metadata.getSource());
-        sharedProps.setTimeStamp(J2735DateTimeConverter.generateUTCTimestamp(mapData.getTimeStamp(), null, odeDate));
+        ZonedDateTime mapTimestamp = FieldConversions.convertMinuteOfYear(mapData.getTimeStamp(), odeDate);
+        sharedProps.setTimeStamp(mapTimestamp != null ? mapTimestamp : odeDate);
         // Setting validation fields
         sharedProps.setValidationMessages(processedSpatValidationMessages);
         sharedProps.setCti4501Conformant(sharedProps.getValidationMessages().size() == 0);

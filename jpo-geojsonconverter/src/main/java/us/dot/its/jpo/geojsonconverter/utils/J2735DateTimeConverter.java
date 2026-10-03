@@ -115,8 +115,8 @@ public class J2735DateTimeConverter {
      * TimeMark definition: - TimeMark is used to relate a moment in UTC time when a signal phase is predicted to change
      * - Precision of 1/10 of a second - Range of 60 full minutes is supported (0-35999 covers one hour) - Values
      * 36000-36009 are used when a leap second occurs - Values 36010-36110 are reserved for future use - 36111 is used
-     * when the value is undefined or unknown - If value > current time, applies in current hour; if < current time,
-     * applies in next hour
+     * when the value is undefined or unknown - If value is greater than or equal to the current time mark at
+     * decisecond precision, it applies in the current hour; if it is earlier, it applies in the next hour
      *
      * @param originTimestamp Base timestamp to offset from
      * @param timeMark Time mark in deciseconds (1/10 second)
@@ -148,7 +148,7 @@ public class J2735DateTimeConverter {
                     + (currentTime.getNano() / 100_000_000L);
 
             // Determine if TimeMark applies to current or next hour
-            ZonedDateTime result = (value > currentDecis) ? startOfHour.plus(millis, ChronoUnit.MILLIS)
+            ZonedDateTime result = (value >= currentDecis) ? startOfHour.plus(millis, ChronoUnit.MILLIS)
                     : startOfHour.plusHours(1).plus(millis, ChronoUnit.MILLIS);
 
             return result;
@@ -158,6 +158,45 @@ public class J2735DateTimeConverter {
                     e.getMessage());
             log.error(errMsg, e);
             return null;
+        }
+    }
+
+    /**
+     * Resolve a SPaT phase start using its earliest end as the hour reference. The end is resolved in the
+     * current or next UTC hour, then the latest occurrence of the start at or before that end is selected.
+     * This permits both already-started and predicted phases within the one-hour TimeMark window.
+     *
+     * <p>When the end is missing, unavailable, or cannot be resolved, use the existing future-hour inference.
+     * Null and reserved start values retain the behavior of {@link #generateOffsetUTCTimestampForTimeMark}.
+     *
+     * @param originTimestamp Message timestamp used to resolve the earliest end
+     * @param startTime Phase start in deciseconds from the beginning of a UTC hour
+     * @param minEndTime Earliest phase end in deciseconds from the beginning of a UTC hour
+     * @return Phase start in UTC, or the existing null/unavailable result
+     */
+    public static ZonedDateTime generateStartUTCTimestampForTimeMark(ZonedDateTime originTimestamp,
+            TimeMark startTime, TimeMark minEndTime) {
+        try {
+            if (startTime == null || startTime.getValue() < 0 || startTime.getValue() >= 36010
+                    || minEndTime == null || minEndTime.getValue() < 0 || minEndTime.getValue() >= 36010) {
+                return generateOffsetUTCTimestampForTimeMark(originTimestamp, startTime);
+            }
+
+            ZonedDateTime endTimestamp = generateOffsetUTCTimestampForTimeMark(originTimestamp, minEndTime);
+            if (endTimestamp == null) {
+                return generateOffsetUTCTimestampForTimeMark(originTimestamp, startTime);
+            }
+
+            ZonedDateTime startTimestamp = endTimestamp.truncatedTo(ChronoUnit.HOURS)
+                    .plus(startTime.getValue() * 100, ChronoUnit.MILLIS);
+            // Leap-second marks can normalize into the following hour, requiring another subtraction.
+            while (startTimestamp.isAfter(endTimestamp)) {
+                startTimestamp = startTimestamp.minusHours(1);
+            }
+            return startTimestamp;
+        } catch (Exception e) {
+            log.error("Failed to resolve SPaT phase start from earliest end. Message: {}", e.getMessage(), e);
+            return generateOffsetUTCTimestampForTimeMark(originTimestamp, startTime);
         }
     }
 

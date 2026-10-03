@@ -216,7 +216,7 @@ public class SpatProcessedJsonConverter
         TimeMark likelyTime = timing.getLikelyTime();
         TimeMark nextTime = timing.getNextTime();
         timingDetails.setStartTime(
-                J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(utcTimestamp, startTime));
+                J2735DateTimeConverter.generateStartUTCTimestampForTimeMark(utcTimestamp, startTime, minEndTime));
         timingDetails.setMinEndTime(
                 J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(utcTimestamp, minEndTime));
         timingDetails.setMaxEndTime(

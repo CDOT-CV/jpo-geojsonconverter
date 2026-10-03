@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +19,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.networknt.schema.Error;
+import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
+import us.dot.its.jpo.asn.j2735.r2024.MapData.MapDataMessageFrame;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Latitude;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Longitude;
 import us.dot.its.jpo.asn.j2735.r2024.Common.NodeOffsetPointXY;
@@ -81,6 +84,41 @@ public class MapProcessedJsonConverterTest {
         assertTrue(connectingLaneFeatures.length > 0);
         assertEquals("18-6", connectingLaneFeatures[0].getId());
         assertEquals(6, connectingLaneFeatures[0].getProperties().getSignalGroupId());
+    }
+
+    @Test
+    void mapTimestampUsesMinutePrecisionIndependentOfReceivedSeconds() {
+        var first = convertMapTimestamp(1000L, "2026-01-01T00:00:12.345Z");
+        var second = convertMapTimestamp(1000L, "2026-01-01T00:00:56.789Z");
+
+        assertEquals(Instant.parse("2026-01-01T16:40:00Z"), first);
+        assertEquals(first, second);
+    }
+
+    @Test
+    void absentOrUnavailableMapTimestampFallsBackToFullReceivedTimestamp() {
+        assertEquals(Instant.parse("2026-01-01T00:00:12.345Z"),
+                convertMapTimestamp(null, "2026-01-01T00:00:12.345Z"));
+        assertEquals(Instant.parse("2026-01-01T00:00:56.789Z"),
+                convertMapTimestamp(527040L, "2026-01-01T00:00:56.789Z"));
+    }
+
+    @Test
+    void mapTimestampInfersPreviousYearForLastMinuteReceivedOnNewYearsDay() {
+        assertEquals(Instant.parse("2025-12-31T23:59:00Z"),
+                convertMapTimestamp(525599L, "2026-01-01T00:00:01.000Z"));
+    }
+
+    private Instant convertMapTimestamp(Long minuteOfYear, String receivedAt) {
+        mapMF.getMetadata().setOdeReceivedAt(receivedAt);
+        MapDataMessageFrame messageFrame = (MapDataMessageFrame) mapMF.getPayload().getData();
+        messageFrame.getValue().setTimeStamp(
+                minuteOfYear != null ? new MinuteOfTheYear(minuteOfYear) : null);
+
+        KeyValue<RsuIntersectionKey, ProcessedMap<LineString>> converted =
+                mapProcessedJsonConverter.apply(null, rawMap);
+        assertNotNull(converted.value);
+        return converted.value.getProperties().getTimeStamp().toInstant();
     }
 
     @Test

@@ -9,6 +9,10 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import us.dot.its.jpo.asn.j2735.r2024.Common.DSecond;
 import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
 import us.dot.its.jpo.asn.j2735.r2024.SPAT.TimeMark;
@@ -434,6 +438,27 @@ public class J2735DateTimeConverterTest {
     }
 
     @Test
+    public void testGenerateOffsetUTCTimestampForTimeMarkEqualToCurrentDecisecond() {
+        ZonedDateTime currentTime = ZonedDateTime.of(2024, 1, 1, 15, 30, 0, 0, ZoneOffset.UTC);
+        TimeMark timeMark = new TimeMark(18000); // 15:30:00.0
+
+        ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(currentTime, timeMark);
+
+        assertEquals(currentTime, result, "An equal time mark should remain in the current hour");
+    }
+
+    @Test
+    public void testGenerateOffsetUTCTimestampForTimeMarkEqualAtDecisecondPrecision() {
+        ZonedDateTime currentTime = ZonedDateTime.of(2024, 1, 1, 15, 30, 0, 50_000_000, ZoneOffset.UTC);
+        TimeMark timeMark = new TimeMark(18000); // TimeMark precision is one decisecond
+
+        ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(currentTime, timeMark);
+
+        assertEquals(ZonedDateTime.of(2024, 1, 1, 15, 30, 0, 0, ZoneOffset.UTC), result,
+                "The current timestamp and TimeMark should compare at decisecond precision");
+    }
+
+    @Test
     public void testGenerateOffsetUTCTimestampForTimeMarkNoRollover() {
         // Test no rollover - TimeMark in the future should apply to current hour
         ZonedDateTime currentTime = ZonedDateTime.of(2024, 1, 1, 15, 30, 0, 0, ZoneOffset.UTC); // 3:30 PM
@@ -549,13 +574,13 @@ public class J2735DateTimeConverterTest {
 
     @Test
     public void testGenerateOffsetUTCTimestampForTimeMarkZero() {
-        // Test with TimeMark value 0 (start of hour)
+        // An equal TimeMark at the start of the hour remains in the current hour.
         TimeMark timeMark = new TimeMark(0);
 
         ZonedDateTime result = J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(TEST_BASE_DATE, timeMark);
 
         assertNotNull(result, "Result should not be null");
-        assertEquals(TEST_BASE_DATE.getHour() + 1, result.getHour(), "Hour should be next hour due to rollover");
+        assertEquals(TEST_BASE_DATE.getHour(), result.getHour(), "Hour should remain the current hour");
         assertEquals(0, result.getMinute(), "Minute should be 0");
         assertEquals(0, result.getSecond(), "Second should be 0");
         assertEquals(0, result.getNano() / 1_000_000, "Millisecond should be 0");
@@ -596,6 +621,82 @@ public class J2735DateTimeConverterTest {
         assertEquals(59, result.getMinute(), "Minute should be 59");
         assertEquals(59, result.getSecond(), "Second should be 59 (3599900ms = 3599.9s = 59min 59.9s)");
         assertEquals(900, result.getNano() / 1_000_000, "Millisecond should be 900 (9 deciseconds = 900ms)");
+    }
+
+    // ===== generateStartUTCTimestampForTimeMark TESTS =====
+
+    @ParameterizedTest
+    @CsvSource({
+            "2024-06-15T15:30:00Z, 17400, 18100, 2024-06-15T15:29:00Z",
+            "2024-06-15T15:30:00Z, 18600, 19200, 2024-06-15T15:31:00Z",
+            "2024-06-15T15:30:00Z, 600, 1200, 2024-06-15T16:01:00Z",
+            "2024-06-15T15:59:55Z, 100, 200, 2024-06-15T16:00:10Z",
+            "2024-06-15T15:59:55Z, 35700, 100, 2024-06-15T15:59:30Z",
+            "2024-12-31T23:59:55Z, 35700, 100, 2024-12-31T23:59:30Z",
+            "2025-01-01T00:00:05Z, 35950, 100, 2024-12-31T23:59:55Z",
+            "2024-06-15T15:30:00Z, 18000, 18000, 2024-06-15T15:30:00Z",
+            "2024-06-15T15:30:00.05Z, 18000, 18000, 2024-06-15T15:30:00Z",
+            "2024-06-15T15:00:00.05Z, 0, 0, 2024-06-15T15:00:00Z",
+            "2024-06-15T15:59:59.95Z, 35999, 36005, 2024-06-15T15:59:59.9Z",
+            "2024-06-15T15:59:59.9Z, 36000, 100, 2024-06-15T16:00:00Z",
+            "2024-06-15T15:59:59.9Z, 36005, 100, 2024-06-15T16:00:00.5Z",
+            "2024-06-15T15:59:59.9Z, 36009, 36009, 2024-06-15T16:00:00.9Z",
+            "2024-06-15T15:59:59.9Z, 36009, 36000, 2024-06-15T15:00:00.9Z"
+    })
+    void testPhaseStartUsesEarliestEndHour(String origin, long startMark, long endMark, String expectedStart) {
+        ZonedDateTime result = J2735DateTimeConverter.generateStartUTCTimestampForTimeMark(
+                ZonedDateTime.parse(origin), new TimeMark(startMark), new TimeMark(endMark));
+
+        assertEquals(ZonedDateTime.parse(expectedStart), result);
+    }
+
+    @Test
+    void testPhaseStartUsesUtcHourForNonUtcOrigin() {
+        ZonedDateTime result = J2735DateTimeConverter.generateStartUTCTimestampForTimeMark(
+                ZonedDateTime.parse("2024-06-15T21:00:00+05:30"), new TimeMark(17400), new TimeMark(18100));
+
+        assertEquals(ZonedDateTime.parse("2024-06-15T15:29:00Z"), result);
+    }
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(longs = {-1, 36010, 36050, 36110, 36111, 36112})
+    void testUnavailableEndRetainsFutureHourFallback(Long endMark) {
+        ZonedDateTime result = J2735DateTimeConverter.generateStartUTCTimestampForTimeMark(
+                ZonedDateTime.parse("2024-06-15T15:30:00Z"), new TimeMark(17400),
+                endMark == null ? null : new TimeMark(endMark));
+
+        assertEquals(ZonedDateTime.parse("2024-06-15T16:29:00Z"), result);
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {-1, 36010, 36050, 36110, 36111, 36112})
+    void testUnavailableStartRetainsEpochSentinel(long startMark) {
+        ZonedDateTime result = J2735DateTimeConverter.generateStartUTCTimestampForTimeMark(
+                TEST_BASE_DATE, new TimeMark(startMark), new TimeMark(100));
+
+        assertEquals(Instant.EPOCH, result.toInstant());
+    }
+
+    @Test
+    void testMissingPhaseStartRemainsNull() {
+        assertNull(J2735DateTimeConverter.generateStartUTCTimestampForTimeMark(
+                TEST_BASE_DATE, null, new TimeMark(100)));
+    }
+
+    @Test
+    void testUnresolvableEndRetainsFutureHourFallback() {
+        ZonedDateTime origin = ZonedDateTime.of(999999999, 12, 31, 23, 59, 59, 0, ZoneOffset.UTC);
+        ZonedDateTime result = J2735DateTimeConverter.generateStartUTCTimestampForTimeMark(
+                origin, new TimeMark(35999), new TimeMark(100));
+
+        assertEquals(origin.withNano(900_000_000), result);
+    }
+
+    @Test
+    void testMissingOriginRemainsNull() {
+        assertNull(J2735DateTimeConverter.generateStartUTCTimestampForTimeMark(
+                null, new TimeMark(100), new TimeMark(200)));
     }
 
     // ===== generateOffsetUTCTimestampForSecMark TESTS =====
