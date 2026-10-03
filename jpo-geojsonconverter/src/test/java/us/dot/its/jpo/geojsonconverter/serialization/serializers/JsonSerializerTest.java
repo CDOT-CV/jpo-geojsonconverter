@@ -146,7 +146,9 @@ public class JsonSerializerTest {
 
 
 class TestClass {
-    public TestClass() {}
+    public TestClass() {
+        // Keep the fixture constructible by both the tests and Jackson.
+    }
 
     private String prop;
 

@@ -1,15 +1,6 @@
 {
   "$schema" : "https://json-schema.org/draft/2020-12/schema",
   "$defs" : {
-    "Duration" : {
-      "type" : "object",
-      "properties" : {
-        "seconds" : {
-          "type" : "integer",
-          "format" : "int64"
-        }
-      }
-    },
     "ProcessedBasicVehicleRole" : {
       "type" : "string",
       "enum" : [ "BASICVEHICLE", "PUBLICTRANSPORT", "SPECIALTRANSPORT", "DANGEROUSGOODS", "ROADWORK", "ROADRESCUE", "EMERGENCY", "SAFETYCAR", "NONE_UNKNOWN", "TRUCK", "MOTORCYCLE", "ROADSIDESOURCE", "POLICE", "FIRE", "AMBULANCE", "DOT", "TRANSIT", "SLOWMOVING", "STOPNGO", "CYCLIST", "PEDESTRIAN", "NONMOTORIZED", "MILITARY" ]
@@ -34,7 +25,8 @@
           "format" : "date-time"
         },
         "estimatedTimeOfArrivalDurationSeconds" : {
-          "$ref" : "#/$defs/Duration"
+          "type" : "string",
+          "format" : "duration"
         },
         "inboundOnApproachID" : {
           "type" : "integer",

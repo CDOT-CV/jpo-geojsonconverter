@@ -12,7 +12,6 @@ import us.dot.its.jpo.geojsonconverter.pojos.ssm.ProcessedSsm;
 import us.dot.its.jpo.geojsonconverter.validator.JsonValidatorResult;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -35,6 +34,7 @@ public class SsmConverter {
 
     /**
      * Process an SSM MessageFrame
+     * 
      * @param ssmFrame SSM Message Frame
      * @param ingestTime The message ingest time to use to guess the year
      * @return the ProcessedSsm
@@ -95,8 +95,8 @@ public class SsmConverter {
 
             // Warn if more than one intersection in SSM
             if (sslist.size() > 1) {
-                log.warn("There is more than one intersection in the SSM.  This is unsupported.  The ProcessedSsm only " +
-                        "contains the first intersection: {}", ssmFrame);
+                log.warn("There is more than one intersection in the SSM.  This is unsupported.  The ProcessedSsm only "
+                        + "contains the first intersection: {}", ssmFrame);
             }
         } else {
             // Abnormal case: no intersections
@@ -107,8 +107,11 @@ public class SsmConverter {
     }
 
 
-    private void processSignalStatusPackage(final SignalStatusPackage pkg, final ProcessedSignalStatus processed, final int year) {
-        if (pkg == null) { return; }
+    private void processSignalStatusPackage(final SignalStatusPackage pkg, final ProcessedSignalStatus processed,
+            final int year) {
+        if (pkg == null) {
+            return;
+        }
         SignalRequesterInfo requester = pkg.getRequester();
         processRequester(requester, processed);
 
@@ -124,8 +127,8 @@ public class SsmConverter {
 
         PrioritizationResponseStatus status = pkg.getStatus();
         if (status != null) {
-            ProcessedPrioritizationResponseStatus processedStatus
-                    = ProcessedPrioritizationResponseStatus.fromName(status.getName());
+            ProcessedPrioritizationResponseStatus processedStatus =
+                    ProcessedPrioritizationResponseStatus.fromName(status.getName());
             processed.setStatus(processedStatus);
         }
 
@@ -135,7 +138,9 @@ public class SsmConverter {
     }
 
     private void processRequester(final SignalRequesterInfo requester, final ProcessedSignalStatus processed) {
-        if (requester == null) { return; }
+        if (requester == null) {
+            return;
+        }
         VehicleID vehicleId = requester.getId();
         processed.setVehicleID(convertVehicleID(vehicleId));
 
@@ -144,7 +149,7 @@ public class SsmConverter {
 
         RequestID requestId = requester.getRequest();
         if (requestId != null) {
-            processed.setRequestID((int)requestId.getValue());
+            processed.setRequestID((int) requestId.getValue());
         }
 
         processed.setRequesterRole(convertBasicVehicleRole(requester.getRole()));
@@ -155,7 +160,9 @@ public class SsmConverter {
 
 
     private void processETA(final SignalStatusPackage pkg, final ProcessedSignalStatus processed, final int year) {
-        if (pkg == null) { return; }
+        if (pkg == null) {
+            return;
+        }
         ZonedDateTime ts = convertMinuteOfYearAndDSecond(pkg.getMinute(), year, pkg.getSecond());
         processed.setEstimatedTimeOfArrival(ts);
         if (pkg.getDuration() != null) {
@@ -166,7 +173,9 @@ public class SsmConverter {
 
     private void processRequestorType(final RequestorType requestorType, final ProcessedSignalStatus processed) {
         // Use this role if top-level role is missing
-        if (requestorType == null) { return; }
+        if (requestorType == null) {
+            return;
+        }
         if (processed.getRequesterRole() == null) {
             processed.setRequesterRole(convertBasicVehicleRole(requestorType.getRole()));
         }
@@ -174,13 +183,14 @@ public class SsmConverter {
         processed.setRequesterHpmsType(convertVehicleType(requestorType.getHpmsType()));
         Iso3833VehicleType iso = requestorType.getIso3883();
         if (iso != null) {
-            processed.setRequesterIso3833VehicleType((int)iso.getValue());
+            processed.setRequesterIso3833VehicleType((int) iso.getValue());
         }
         processed.setRequestImportanceLevel(convertRequestImportanceLevel(requestorType.getRequest()));
     }
 
     /**
      * Add JSON schema validation results for J2735 and Metadata validation.
+     * 
      * @param properties The properties to add validation messages to
      * @param validatorResult the schema validator result
      */

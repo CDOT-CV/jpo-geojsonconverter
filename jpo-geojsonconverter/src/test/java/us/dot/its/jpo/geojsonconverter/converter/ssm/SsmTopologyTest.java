@@ -1,5 +1,7 @@
 package us.dot.its.jpo.geojsonconverter.converter.ssm;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.apache.kafka.common.serialization.VoidSerializer;
@@ -9,18 +11,21 @@ import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import java.util.stream.Stream;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuVehicleIdKey;
+import us.dot.its.jpo.geojsonconverter.partitioner.RsuIntersectionKey;
 import us.dot.its.jpo.geojsonconverter.pojos.ssm.ProcessedSsm;
 import us.dot.its.jpo.geojsonconverter.serialization.deserializers.JsonDeserializer;
 import us.dot.its.jpo.geojsonconverter.validator.SsmJsonValidator;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -34,6 +39,46 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class SsmTopologyTest {
     final String inputTopicName = "topic.OdeSsmJson";
     final String outputTopicName = "topic.ProcessedSsm";
+
+    @ParameterizedTest
+    @CsvSource({
+            "45123, 2025-01-01T16:40:45.123Z",
+            "59999, 2025-01-01T16:40:59.999Z",
+            "60000, 2025-01-01T16:41:00Z",
+            "60999, 2025-01-01T16:41:00.999Z",
+            "61000, 2025-01-01T16:40:00Z",
+            "65535, 2025-01-01T16:40:00Z"
+    })
+    void secondsBoundariesPreserveConvertedOutput(long seconds, String expectedTimestamp) throws IOException {
+        var json = new ObjectMapper().readTree(loadResource("json/valid.ssm.json"));
+        var message = (ObjectNode) json.at("/payload/data/value/SignalStatusMessage");
+        message.put("timeStamp", 1000);
+        message.put("second", seconds);
+        var status = (ObjectNode) message.at("/status/0/sigStatus/0");
+        status.put("minute", 1000);
+        status.put("second", seconds);
+
+        var topology = SsmTopology.build(inputTopicName, outputTopicName, new SsmJsonValidator(), new SsmConverter());
+        try (var driver = new TopologyTestDriver(topology)) {
+            var input = driver.createInputTopic(inputTopicName, new VoidSerializer(), new StringSerializer());
+            var output = driver.createOutputTopic(outputTopicName,
+                    new JsonDeserializer<>(RsuIntersectionKey.class), new JsonDeserializer<>(ProcessedSsm.class));
+            input.pipeInput(json.toString());
+            var results = output.readKeyValuesToList();
+
+            assertEquals(1, results.size());
+            var result = results.getFirst();
+            assertEquals("172.18.0.1", result.key.getRsuId());
+            assertEquals(12114, result.key.getIntersectionId());
+            assertNotNull(result.value);
+            assertEquals(Instant.parse(expectedTimestamp), result.value.getTimeStamp().toInstant());
+            assertEquals(1, result.value.getStatusList().size());
+            assertEquals(Instant.parse(expectedTimestamp),
+                    result.value.getStatusList().getFirst().getEstimatedTimeOfArrival().toInstant());
+            assertNotNull(result.value.getAsn1());
+            assertEquals(0, result.value.getValidationMessages().size());
+        }
+    }
 
     @ParameterizedTest
     @MethodSource("params")

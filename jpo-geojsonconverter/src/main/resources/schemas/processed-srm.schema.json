@@ -1,15 +1,6 @@
 {
   "$schema" : "https://json-schema.org/draft/2020-12/schema",
   "$defs" : {
-    "Duration" : {
-      "type" : "object",
-      "properties" : {
-        "seconds" : {
-          "type" : "integer",
-          "format" : "int64"
-        }
-      }
-    },
     "Point-1" : {
       "type" : "object",
       "properties" : {
@@ -63,7 +54,8 @@
           "format" : "date-time"
         },
         "estimatedTimeOfArrivalDurationSeconds" : {
-          "$ref" : "#/$defs/Duration"
+          "type" : "string",
+          "format" : "duration"
         },
         "inboundApproachID" : {
           "type" : "integer",
@@ -218,7 +210,8 @@
           "$ref" : "#/$defs/ProcessedTransitVehicleOccupancy"
         },
         "transitScheduleSeconds" : {
-          "$ref" : "#/$defs/Duration"
+          "type" : "string",
+          "format" : "duration"
         },
         "transitStatus" : {
           "$ref" : "#/$defs/ProcessedTransitVehicleStatus"

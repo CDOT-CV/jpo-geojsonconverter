@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +25,7 @@ import us.dot.its.jpo.asn.j2735.r2024.PersonalSafetyMessage.PersonalSafetyMessag
 import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuPsmIdKey;
 import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
+import us.dot.its.jpo.geojsonconverter.utils.J2735DateTimeConverter;
 import us.dot.its.jpo.geojsonconverter.utils.ProcessedSchemaVersions;
 import us.dot.its.jpo.geojsonconverter.validator.JsonValidatorResult;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
@@ -120,8 +120,8 @@ public class PsmProcessedJsonConverter
         processedPsm.getProperties().setValidationMessages(processedPsmValidationMessages);
 
         ZonedDateTime odeDate = Instant.parse(metadata.getOdeReceivedAt()).atZone(ZoneId.of("UTC"));
-        processedPsm.getProperties().setTimeStamp(
-                generateOffsetUTCTimestamp(odeDate, (int) psmMessageFrame.getValue().getSecMark().getValue()));
+        processedPsm.getProperties().setTimeStamp(J2735DateTimeConverter.generateOffsetUTCTimestampForSecMark(odeDate,
+                psmMessageFrame.getValue().getSecMark()));
 
         return processedPsm;
     }
@@ -139,7 +139,8 @@ public class PsmProcessedJsonConverter
         PsmProperties psmProps = new PsmProperties();
         PersonalDeviceUserType personalDeviceUserType = psm.getBasicType();
         if (personalDeviceUserType != null) {
-            var processedPersonalDeviceUserType = ProcessedPersonalDeviceUserType.fromName(personalDeviceUserType.getName());
+            var processedPersonalDeviceUserType =
+                    ProcessedPersonalDeviceUserType.fromName(personalDeviceUserType.getName());
             psmProps.setBasicType(processedPersonalDeviceUserType);
         }
         psmProps.setId(psm.getId().getValue());
@@ -168,45 +169,4 @@ public class PsmProcessedJsonConverter
         return processedPsm;
     }
 
-    public ZonedDateTime generateOffsetUTCTimestamp(ZonedDateTime odeReceivedAt, Integer secMark) {
-        try {
-            if (secMark != null) {
-                int millis = (int) (secMark % 1000);
-                int seconds = (int) (secMark / 1000);
-                ZonedDateTime date = odeReceivedAt;
-                if (secMark == 65535) {
-
-                    // Return UTC time zero if the Zoned Date time is marked as unknown, UTC time zero chosen so that a
-                    // null value can
-                    // represent an empty field in the PSM. But 65535, can represent an intentionally unidentified
-                    // field.
-                    return ZonedDateTime.ofInstant(Instant.ofEpochMilli(0), ZoneId.of("UTC"));
-
-                } else {
-                    // If we are within 10 seconds of the next minute, and the timeMark is a large number, it probably
-                    // means that the time
-                    // rolled over before reception.
-                    // In this case, subtract a minute from the odeReceivedAt so that the true time represents the
-                    // minute in the past.
-                    if (odeReceivedAt.getSecond() < 10 && secMark > 50000) {
-                        date = date.minusMinutes(1);
-                    }
-
-                    date = date.withSecond(seconds);
-                    date = date.withNano(0);
-                    date = date.plus(millis, ChronoUnit.MILLIS);
-                    return date;
-                }
-
-
-            } else {
-                return null;
-            }
-        } catch (Exception e) {
-            String errMsg = String.format(
-                    "Failed to generateOffsetUTCTimestamp - PSMProcessedJsonConverter. Message: %s", e.getMessage());
-            logger.error(errMsg, e);
-            return null;
-        }
-    }
 }

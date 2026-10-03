@@ -1,6 +1,5 @@
 package us.dot.its.jpo.geojsonconverter.pojos.ssm;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -14,9 +13,9 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 
 /**
- * A signal status response within a {@link ProcessedSsm}.
- * Represents a flattened view of an individual DF_SignalStatusPackage frame containing a response to one specific
- * request from a vehicle, and it's parent DF_SignalStatus, representing an intersection.
+ * A signal status response within a {@link ProcessedSsm}. Represents a flattened view of an individual
+ * DF_SignalStatusPackage frame containing a response to one specific request from a vehicle, and it's parent
+ * DF_SignalStatus, representing an intersection.
  */
 @Data
 @NoArgsConstructor
