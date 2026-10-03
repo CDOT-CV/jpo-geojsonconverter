@@ -23,24 +23,24 @@ import static org.hamcrest.Matchers.*;
 
 
 @Slf4j
-public class TimConverter_NodeElevationAndWidthTest {
+class TimConverter_NodeElevationAndWidthTest {
 
     private static final String TIM_WITH_NODE_ELEVATION_AND_WIDTH = "/json/sample.tim-node-elevation-and-width.json";
     private static final String TIM_WITH_NODE_ELEVATION_AND_WIDTH_TWO_REGIONS =
             "/json/sample.tim-node-elevation-and-width-two-regions.json";
 
     @Test
-    public void testElevationProfileMatchesNumberOfOfssetNodes_OneRegion() throws IOException {
+    void testElevationProfileMatchesNumberOfOfssetNodes_OneRegion() throws IOException {
         testElevationAndWidthProfileNumberOfNodes(loadResource(TIM_WITH_NODE_ELEVATION_AND_WIDTH));
     }
 
     @Test
-    public void testElevationAndWidthProfileNumberOfNodes_TwoRegions() throws IOException {
+    void testElevationAndWidthProfileNumberOfNodes_TwoRegions() throws IOException {
         testElevationAndWidthProfileNumberOfNodes(loadResource(TIM_WITH_NODE_ELEVATION_AND_WIDTH_TWO_REGIONS));
     }
 
     @Test
-    public void testLaneWidthOffsetsWithoutDefaultProduceUnknownNodeWidths() throws IOException {
+    void testLaneWidthOffsetsWithoutDefaultProduceUnknownNodeWidths() throws IOException {
         var mapper = DateJsonMapper.getInstance();
         TravelerInformation tim = mapper.readValue(loadResource(TIM_WITH_NODE_ELEVATION_AND_WIDTH),
                 TravelerInformation.class);

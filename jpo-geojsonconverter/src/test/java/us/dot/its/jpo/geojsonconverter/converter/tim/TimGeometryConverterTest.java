@@ -76,7 +76,7 @@ public class TimGeometryConverterTest {
         MultiLineString multiLineString = (MultiLineString) geometry;
         assertNotNull(multiLineString.getCoordinates());
         assertTrue(multiLineString.getCoordinates().length > 0);
-        assertTrue(multiLineString.getCoordinates().length == 2);
+        assertEquals(2, multiLineString.getCoordinates().length);
 
         // verify that both linestrings in the multilinestring are valid
         for (double[][] lineString : multiLineString.getCoordinates()) {

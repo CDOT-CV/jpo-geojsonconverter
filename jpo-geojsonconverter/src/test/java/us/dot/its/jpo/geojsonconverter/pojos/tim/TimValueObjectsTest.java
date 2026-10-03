@@ -48,7 +48,7 @@ class TimValueObjectsTest {
         assertTrue(value.toString().contains("elevationOffsets"));
         assertNotEquals(value, new OffsetInformation(List.of(4L), List.of(2L, 3L)));
         assertNotEquals(value, new OffsetInformation(Arrays.asList(1L, null), List.of(5L)));
-        assertNotEquals(value, null);
+        assertNotEquals(null, value);
         assertNotEquals(value, new Object());
 
         OffsetInformation nullValues = new OffsetInformation(null, null);

@@ -333,8 +333,7 @@ public class MapProcessedJsonConverter
             int laneId = (int) lane.getLaneID().getValue();
             lanePoints.computeIfAbsent(laneId, key -> {
                 LineString laneGeometry = createGeometry(lane, refPoint);
-                double[] coordinates = {laneGeometry.getCoordinates()[0][0], laneGeometry.getCoordinates()[0][1]};
-                return coordinates;
+                return new double[] {laneGeometry.getCoordinates()[0][0], laneGeometry.getCoordinates()[0][1]};
             });
         }
         return lanePoints;

@@ -18,7 +18,7 @@ class GeometryCollectionTest {
         assertEquals("GeometryCollection", collection.getGeoJSONType());
         assertArrayEquals(geometries, collection.getGeometries());
         assertNull(collection.getBbox());
-        assertEquals(collection, new GeometryCollection(geometries.clone()));
+        assertEquals(new GeometryCollection(geometries.clone()), collection);
         assertEquals(collection.hashCode(), new GeometryCollection(geometries.clone()).hashCode());
         assertTrue(collection.toString().contains("geometries"));
         assertNotEquals(collection, new GeometryCollection(new Geometry[] {geometries[0]}));

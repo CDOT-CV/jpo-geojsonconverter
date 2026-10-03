@@ -50,6 +50,7 @@ public class TimConverter {
 
     // Constants
     private static final String UTC_ZONE_ID = "UTC";
+    private static final String UNKNOWN_ITIS_MESSAGE = "unknown";
     private static final int INFINITE_DURATION_VALUE = 32000;
     // ZonedDateTime's last argument is nanoseconds. 999_000_000 is 23:59:59.999Z.
     private static final ZonedDateTime INFINITE_VALIDITY_PERIOD =
@@ -754,15 +755,15 @@ public class TimConverter {
      */
     public static String lookupItisCode(Long itisCode) {
         if (itisCode == null) {
-            return "unknown";
+            return UNKNOWN_ITIS_MESSAGE;
         }
 
         try {
             ITIScodes itisCodes = new ITIScodes(itisCode);
-            return itisCodes.name().orElse("unknown");
+            return itisCodes.name().orElse(UNKNOWN_ITIS_MESSAGE);
         } catch (Exception e) {
             log.debug("Error looking up ITIS code {}: {}", itisCode, e.getMessage());
-            return "unknown";
+            return UNKNOWN_ITIS_MESSAGE;
         }
     }
 

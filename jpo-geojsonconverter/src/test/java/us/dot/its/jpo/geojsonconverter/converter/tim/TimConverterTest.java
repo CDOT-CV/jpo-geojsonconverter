@@ -47,13 +47,13 @@ import us.dot.its.jpo.geojsonconverter.serialization.deserializers.JsonDeseriali
 import us.dot.its.jpo.geojsonconverter.validator.JsonValidatorResult;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 
-public class TimConverterTest {
+class TimConverterTest {
     private TimConverter timConverter;
     private OdeMessageFrameData timMF;
     private TravelerInformation travelerInfo;
 
     @BeforeEach
-    public void setup() throws IOException {
+    void setup() throws IOException {
         // Load sample TIM JSON file
         String timJsonString = new String(Files.readAllBytes(Paths.get("src/test/resources/json/sample.ode-tim.json")));
 
@@ -70,7 +70,7 @@ public class TimConverterTest {
     }
 
     @Test
-    public void testCreateProcessedTimWithValidData() {
+    void testCreateProcessedTimWithValidData() {
         ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, timMF.getMetadata());
 
         assertNotNull(processedTim);
@@ -108,7 +108,7 @@ public class TimConverterTest {
     }
 
     @Test
-    public void testBestPracticePathUsesDirectionalityAndAnchor() {
+    void testBestPracticePathUsesDirectionalityAndAnchor() {
         ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, timMF.getMetadata());
         ProcessedTimFeature<?> feature = processedTim.getDataFrameFeatureCollection().getFeatures().get(0);
         var regionInfo = feature.getProperties().getRegionInfoList().get(0);
@@ -129,7 +129,7 @@ public class TimConverterTest {
     }
 
     @Test
-    public void testBestPracticeCircleUsesGeometryHeadingAndRadiusMeters() {
+    void testBestPracticeCircleUsesGeometryHeadingAndRadiusMeters() {
         ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, timMF.getMetadata());
         ProcessedTimFeature<?> circleFeature = findFeatureWithRegionType(processedTim, ProcessedRegionType.CIRCLE);
         assertNotNull(circleFeature, "Sample TIM should include a circle region");
@@ -153,7 +153,7 @@ public class TimConverterTest {
     }
 
     @Test
-    public void testBestPracticePolygonUsesHeadingDirection() {
+    void testBestPracticePolygonUsesHeadingDirection() {
         ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, timMF.getMetadata());
         ProcessedTimFeature<?> polygonFeature = findFeatureWithRegionType(processedTim, ProcessedRegionType.POLYGON);
         assertNotNull(polygonFeature, "Sample TIM should include a polygon region");
@@ -172,7 +172,7 @@ public class TimConverterTest {
     }
 
     @Test
-    public void testPolygonWithNonCompliantDirectionalityStillConverts() {
+    void testPolygonWithNonCompliantDirectionalityStillConverts() {
         // Regression: preferring ASN directionality for polygons previously threw and dropped the feature
         TravelerDataFrame polygonFrame = findDataFrameWithRegionType(ProcessedRegionType.POLYGON);
         assertNotNull(polygonFrame);
@@ -188,7 +188,7 @@ public class TimConverterTest {
     }
 
     @Test
-    public void testValidityPeriodUsesOdeYearWhenStartYearMissing() {
+    void testValidityPeriodUsesOdeYearWhenStartYearMissing() {
         TravelerDataFrame frame = travelerInfo.getDataFrames().get(0);
         frame.setStartYear(null);
 
@@ -203,7 +203,7 @@ public class TimConverterTest {
     }
 
     @Test
-    public void testValidityStartHasMinutePrecisionIndependentOfReceiveSubseconds() {
+    void testValidityStartHasMinutePrecisionIndependentOfReceiveSubseconds() {
         var metadata = timMF.getMetadata();
         metadata.setOdeReceivedAt("2025-10-07T21:40:19.711Z");
         ProcessedTim first = timConverter.createProcessedTim(travelerInfo, metadata);
@@ -220,7 +220,7 @@ public class TimConverterTest {
     }
 
     @Test
-    public void testZeroStartYearUsesSameYearInferenceAsMissingYearAtNewYearBoundary() {
+    void testZeroStartYearUsesSameYearInferenceAsMissingYearAtNewYearBoundary() {
         var metadata = timMF.getMetadata();
         metadata.setOdeReceivedAt("2025-01-01T00:00:00.000Z");
         TravelerDataFrame frame = travelerInfo.getDataFrames().get(0);
@@ -241,7 +241,7 @@ public class TimConverterTest {
     }
 
     @Test
-    public void testUnresolvableValidityStartRetainsFrameWithoutDerivedEndTime() {
+    void testUnresolvableValidityStartRetainsFrameWithoutDerivedEndTime() {
         TravelerDataFrame frame = travelerInfo.getDataFrames().get(0);
         frame.setStartYear(new DYear(10000));
         frame.setStartTime(new MinuteOfTheYear(100));
@@ -259,7 +259,7 @@ public class TimConverterTest {
     }
 
     @Test
-    public void testMixedPathAndCircleProducesGeometryCollection() {
+    void testMixedPathAndCircleProducesGeometryCollection() {
         TravelerDataFrame pathFrame = findDataFrameWithRegionType(ProcessedRegionType.PATH);
         TravelerDataFrame circleFrame = findDataFrameWithRegionType(ProcessedRegionType.CIRCLE);
         assertNotNull(pathFrame);
@@ -296,7 +296,7 @@ public class TimConverterTest {
     }
 
     @Test
-    public void testUnconvertibleRegionRetainsMetadataWithNullGeometryIndex() {
+    void testUnconvertibleRegionRetainsMetadataWithNullGeometryIndex() {
         TravelerDataFrame pathFrame = findDataFrameWithRegionType(ProcessedRegionType.PATH);
         GeographicalPath pathRegion = pathFrame.getRegions().getFirst();
         GeographicalPath unsupportedRegion = new GeographicalPath();
@@ -321,7 +321,7 @@ public class TimConverterTest {
     }
 
     @Test
-    public void testCreateFailureProcessedTim() {
+    void testCreateFailureProcessedTim() {
         String failureMessage = "Test failure message";
 
         ProcessedTim processedTim = timConverter.createFailureProcessedTim(failureMessage);
@@ -334,7 +334,7 @@ public class TimConverterTest {
     }
 
     @Test
-    public void testJsonValidationMapsSchemaFailures() {
+    void testJsonValidationMapsSchemaFailures() {
         ProcessedTim processedTim = new ProcessedTim();
         JsonValidatorResult validatorResult = new JsonValidatorResult();
         validatorResult.addException(new Exception("schema parse failure"));
@@ -347,7 +347,7 @@ public class TimConverterTest {
     }
 
     @Test
-    public void testConvertsSpeedLimitAndWorkZoneContent() {
+    void testConvertsSpeedLimitAndWorkZoneContent() {
         assertConvertedContent(createSpeedLimitContent(), ProcessedContentType.ROAD_SIGNAGE, "speed-limit Slow down");
         assertConvertedContent(createWorkZoneContent(), ProcessedContentType.COMMERCIAL_SIGNAGE, "speed-limit Work ahead");
         assertConvertedContent(createGenericSignContent(), ProcessedContentType.GENERIC_SIGN, "Turn left speed-limit");
@@ -449,31 +449,31 @@ public class TimConverterTest {
     private static final Long ZERO_ITIS_CODE = 0L;
 
     @Test
-    public void testLookupItisCodeWithValidCode() {
+    void testLookupItisCodeWithValidCode() {
         String result = TimConverter.lookupItisCode(KNOWN_ITIS_CODE_1);
         assertEquals("speed-limit", result);
     }
 
     @Test
-    public void testLookupItisCodeWithUnknownCode() {
+    void testLookupItisCodeWithUnknownCode() {
         String result = TimConverter.lookupItisCode(UNKNOWN_ITIS_CODE);
         assertEquals("unknown", result);
     }
 
     @Test
-    public void testLookupItisCodeWithNullCode() {
+    void testLookupItisCodeWithNullCode() {
         String result = TimConverter.lookupItisCode(null);
         assertEquals("unknown", result);
     }
 
     @Test
-    public void testLookupItisCodeWithNegativeCode() {
+    void testLookupItisCodeWithNegativeCode() {
         String result = TimConverter.lookupItisCode(NEGATIVE_ITIS_CODE);
         assertEquals("unknown", result);
     }
 
     @Test
-    public void testLookupItisCodeWithZeroCode() {
+    void testLookupItisCodeWithZeroCode() {
         String result = TimConverter.lookupItisCode(ZERO_ITIS_CODE);
         assertEquals("unknown", result);
     }

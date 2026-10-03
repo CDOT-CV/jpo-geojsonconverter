@@ -93,49 +93,22 @@ public class J2735DateTimeConverterTest {
         assertEquals(TEST_ODE_DATE.getYear(), result.getYear(), "Should use ODE date year");
     }
 
-    @Test
-    void testGenerateUTCTimestampUsesPreviousYearForLateMoyReceivedOnNewYearsDay() {
-        ZonedDateTime odeReceivedAt = ZonedDateTime.of(2025, 1, 1, 0, 0, 5, 0, ZoneOffset.UTC);
-        MinuteOfTheYear moy = new MinuteOfTheYear(527_039);
-        DSecond dSecond = new DSecond(59_000);
+    @ParameterizedTest(name = "{0}")
+    @CsvSource(value = {
+            "Late MOY uses previous year;2025-01-01T00:00:05Z;527039;59000;2024-12-31T23:59:59Z",
+            "Early MOY keeps current year;2025-01-01T00:00:05Z;60;null;2025-01-01T01:00:05Z",
+            "Non-leap prior year uses December 31;2024-01-01T00:00:05Z;525599;59000;2023-12-31T23:59:59Z",
+            "Leap prior year uses December 30;2025-01-01T00:00:05Z;525599;59000;2024-12-30T23:59:59Z"
+    }, delimiter = ';', nullValues = "null")
+    void testGenerateUTCTimestampChoosesYearAtNewYearsBoundary(String scenario, String odeReceivedAtText,
+            long moyValue, Long dSecondValue, String expectedInstantText) {
+        ZonedDateTime odeReceivedAt = ZonedDateTime.parse(odeReceivedAtText);
+        MinuteOfTheYear moy = new MinuteOfTheYear(moyValue);
+        DSecond dSecond = dSecondValue == null ? null : new DSecond(dSecondValue);
 
         ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, odeReceivedAt);
 
-        assertEquals(Instant.parse("2024-12-31T23:59:59Z"), result.toInstant());
-    }
-
-    @Test
-    void testGenerateUTCTimestampKeepsCurrentYearForEarlyMoyOnNewYearsDay() {
-        ZonedDateTime odeReceivedAt = ZonedDateTime.of(2025, 1, 1, 0, 0, 5, 0, ZoneOffset.UTC);
-        MinuteOfTheYear moy = new MinuteOfTheYear(60);
-
-        ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, null, odeReceivedAt);
-
-        assertEquals(Instant.parse("2025-01-01T01:00:05Z"), result.toInstant());
-    }
-
-    @Test
-    void testGenerateUTCTimestampUsesPreviousYearForNonLeapLastDayReceivedOnNewYearsDay() {
-        // 525599 is the last minute of day 365, which is Dec 31 in a non-leap year.
-        ZonedDateTime odeReceivedAt = ZonedDateTime.of(2024, 1, 1, 0, 0, 5, 0, ZoneOffset.UTC);
-        MinuteOfTheYear moy = new MinuteOfTheYear(525_599);
-        DSecond dSecond = new DSecond(59_000);
-
-        ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, odeReceivedAt);
-
-        assertEquals(Instant.parse("2023-12-31T23:59:59Z"), result.toInstant());
-    }
-
-    @Test
-    void testGenerateUTCTimestampUsesPreviousYearForLeapYearSecondToLastDayReceivedOnNewYearsDay() {
-        // 525599 is still day 365; in a leap year that is Dec 30, the second-to-last day.
-        ZonedDateTime odeReceivedAt = ZonedDateTime.of(2025, 1, 1, 0, 0, 5, 0, ZoneOffset.UTC);
-        MinuteOfTheYear moy = new MinuteOfTheYear(525_599);
-        DSecond dSecond = new DSecond(59_000);
-
-        ZonedDateTime result = J2735DateTimeConverter.generateUTCTimestamp(moy, dSecond, odeReceivedAt);
-
-        assertEquals(Instant.parse("2024-12-30T23:59:59Z"), result.toInstant());
+        assertEquals(Instant.parse(expectedInstantText), result.toInstant());
     }
 
     @Test

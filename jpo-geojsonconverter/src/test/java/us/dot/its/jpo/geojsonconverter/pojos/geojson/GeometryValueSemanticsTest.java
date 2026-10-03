@@ -26,7 +26,7 @@ class GeometryValueSemanticsTest {
         assertTrue(geometry.toString().contains("coordinates"));
         assertNotEquals(geometry, new MultiLineString(new double[][][] {{{-105.0, 40.0}}}));
         assertNotEquals(geometry, new MultiLineString(null));
-        assertNotEquals(geometry, null);
+        assertNotEquals(null, geometry);
         assertNotEquals(geometry, new Object());
         assertEquals(new MultiLineString(null), new MultiLineString(null));
     }
@@ -47,7 +47,7 @@ class GeometryValueSemanticsTest {
         assertTrue(geometry.toString().contains("coordinates"));
         assertNotEquals(geometry, new Polygon(new double[][][] {{{-105.0, 40.0}, {-105.0, 40.0}}}));
         assertNotEquals(geometry, new Polygon(null));
-        assertNotEquals(geometry, null);
+        assertNotEquals(null, geometry);
         assertNotEquals(geometry, new Object());
         assertEquals(new Polygon(null), new Polygon(null));
     }
@@ -68,7 +68,7 @@ class GeometryValueSemanticsTest {
         assertTrue(geometry.toString().contains("coordinates"));
         assertNotEquals(geometry, new MultiPolygon(new double[][][][] {{{{-105.0, 40.0}}}}));
         assertNotEquals(geometry, new MultiPolygon(null));
-        assertNotEquals(geometry, null);
+        assertNotEquals(null, geometry);
         assertNotEquals(geometry, new Object());
         assertEquals(new MultiPolygon(null), new MultiPolygon(null));
     }

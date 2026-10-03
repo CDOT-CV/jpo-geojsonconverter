@@ -364,7 +364,7 @@ public class TimGeometryConverter {
         if (path.getScale() != null) {
             // Zoom is applied as 2^zoom for coordinate scaling
             // A value of 0 is 1:1 zoom (no zoom), 1 is 2:1 zoom, 2 is 4:1 zoom, etc.
-            return Math.pow(2, (double) path.getScale().getValue());
+            return Math.pow(2, path.getScale().getValue());
         }
         return 1.0;
     }
@@ -373,7 +373,7 @@ public class TimGeometryConverter {
      * Extract dwidth and delevation offsets from node attributes.
      * 
      * @param node The node to extract offsets from
-     * @return Array containing [dwidthOffset, delevationOffset] or null if no attributes
+     * @return Two-element array containing [dwidthOffset, delevationOffset]; both entries are null if no attributes
      */
     private Long[] extractNodeOffsets(NodeLL node) {
         if (node.getAttributes() != null) {
@@ -386,14 +386,14 @@ public class TimGeometryConverter {
 
             return new Long[] {dwidthOffset, delevationOffset};
         }
-        return null;
+        return new Long[] {null, null};
     }
 
     /**
      * Extract dwidth and delevation offsets from node attributes.
      * 
      * @param node The node to extract offsets from
-     * @return Array containing [dwidthOffset, delevationOffset] or null if no attributes
+     * @return Two-element array containing [dwidthOffset, delevationOffset]; both entries are null if no attributes
      */
     private Long[] extractNodeOffsets(NodeXY node) {
         if (node.getAttributes() != null) {
@@ -406,7 +406,7 @@ public class TimGeometryConverter {
 
             return new Long[] {dwidthOffset, delevationOffset};
         }
-        return null;
+        return new Long[] {null, null};
     }
 
     /**
