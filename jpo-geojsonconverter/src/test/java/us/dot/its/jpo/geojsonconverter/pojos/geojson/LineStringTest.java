@@ -61,6 +61,22 @@ public class LineStringTest {
         boolean notEquals = otherObject.equals(string);
         assertFalse(notEquals);
     }
+
+    @Test
+    public void testEqualsAcrossEqualAndNullCoordinateValues() {
+        double[][] coordinates = new double[][] { { 39.7392, 104.9903 }, { 39.7390, 104.9907 } };
+        LineString geometry = new LineString(coordinates);
+        LineString equalGeometry = new LineString(
+                new double[][] { { 39.7392, 104.9903 }, { 39.7390, 104.9907 } });
+
+        assertEquals(geometry, equalGeometry);
+        assertEquals(geometry.hashCode(), equalGeometry.hashCode());
+        assertNotEquals(geometry, null);
+
+        LineString nullCoordinates = new LineString(null);
+        assertEquals(nullCoordinates, new LineString(null));
+        assertNotEquals(geometry, nullCoordinates);
+    }
     
     @Test
     public void testToString() {
