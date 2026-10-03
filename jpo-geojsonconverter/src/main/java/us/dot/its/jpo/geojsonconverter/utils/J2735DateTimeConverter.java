@@ -14,6 +14,10 @@ import us.dot.its.jpo.asn.j2735.r2024.SPAT.TimeMark;
 @Slf4j
 public class J2735DateTimeConverter {
 
+    private J2735DateTimeConverter() {
+        // Utility class; prevent instantiation.
+    }
+
     private static final int MINUTES_PER_DAY = 24 * 60;
     private static final int LAST_OR_SECOND_TO_LAST_DAY_OF_YEAR = 365;
     private static final long MINUTE_OF_YEAR_INVALID = 527040L;
@@ -148,10 +152,8 @@ public class J2735DateTimeConverter {
                     + (currentTime.getNano() / 100_000_000L);
 
             // Determine if TimeMark applies to current or next hour
-            ZonedDateTime result = (value >= currentDecis) ? startOfHour.plus(millis, ChronoUnit.MILLIS)
+            return (value >= currentDecis) ? startOfHour.plus(millis, ChronoUnit.MILLIS)
                     : startOfHour.plusHours(1).plus(millis, ChronoUnit.MILLIS);
-
-            return result;
         } catch (Exception e) {
             String errMsg = String.format(
                     "Failed to generateOffsetUTCTimestampForTimeMark - J2735DateTimeConverter. Message: %s",

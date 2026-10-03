@@ -24,6 +24,9 @@ import java.nio.file.Paths;
 
 @Slf4j
 public class SchemaGeneratorUtility {
+    private static final String DEFINITIONS_KEY = "$defs";
+    private static final String PROPERTIES_KEY = "properties";
+
     public static void main(String[] args) {
         System.exit(run(args));
     }
@@ -106,7 +109,7 @@ public class SchemaGeneratorUtility {
             return schema;
         }
 
-        JsonNode definitionsNode = schemaObject.get("$defs");
+        JsonNode definitionsNode = schemaObject.get(DEFINITIONS_KEY);
         if (!(definitionsNode instanceof ObjectNode definitions)) {
             return schema;
         }
@@ -128,9 +131,9 @@ public class SchemaGeneratorUtility {
             return schema;
         }
 
-        JsonNode itemsNode = schemaObject.path("$defs")
+        JsonNode itemsNode = schemaObject.path(DEFINITIONS_KEY)
                 .path("ProcessedElevationProfile")
-                .path("properties")
+                .path(PROPERTIES_KEY)
                 .path("nodeElevationMeters")
                 .path("items");
         if (!(itemsNode instanceof ObjectNode items)) {
@@ -148,9 +151,9 @@ public class SchemaGeneratorUtility {
             return schema;
         }
 
-        JsonNode itemsNode = schemaObject.path("$defs")
+        JsonNode itemsNode = schemaObject.path(DEFINITIONS_KEY)
                 .path("ProcessedLaneWidthProfile")
-                .path("properties")
+                .path(PROPERTIES_KEY)
                 .path("nodeLaneWidthMeters")
                 .path("items");
         if (!(itemsNode instanceof ObjectNode items)) {
@@ -168,7 +171,7 @@ public class SchemaGeneratorUtility {
             return schema;
         }
 
-        JsonNode propertiesNode = schemaObject.get("properties");
+        JsonNode propertiesNode = schemaObject.get(PROPERTIES_KEY);
         if (!(propertiesNode instanceof ObjectNode propertiesObject)) {
             return schema;
         }

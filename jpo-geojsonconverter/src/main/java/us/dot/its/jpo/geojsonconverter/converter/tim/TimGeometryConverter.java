@@ -52,7 +52,7 @@ public class TimGeometryConverter {
         int calculatedPoints = (int) Math.ceil(diameterMeters * POINTS_PER_METER);
 
         // Apply minimum and maximum bounds
-        int adaptivePoints = Math.max(MIN_CIRCLE_POINTS, Math.min(MAX_CIRCLE_POINTS, calculatedPoints));
+        int adaptivePoints = Math.clamp(calculatedPoints, MIN_CIRCLE_POINTS, MAX_CIRCLE_POINTS);
 
         // Ensure we have an even number of points for better symmetry
         if (adaptivePoints % 2 != 0) {
@@ -194,20 +194,7 @@ public class TimGeometryConverter {
 
         if (travelerInfo.getDataFrames() != null) {
             for (TravelerDataFrame dataFrame : travelerInfo.getDataFrames()) {
-                if (dataFrame.getRegions() != null) {
-                    for (GeographicalPath region : dataFrame.getRegions()) {
-                        // Get anchor point coordinates
-                        if (region.getAnchor() != null && region.getAnchor().getLat() != null
-                                && region.getAnchor().getLong_() != null) {
-                            Double lat = FieldConversions.convertLat(region.getAnchor().getLat().getValue());
-                            Double lon = FieldConversions.convertLong(region.getAnchor().getLong_().getValue());
-                            if (lat != null && lon != null) {
-                                longitudes.add(lon);
-                                latitudes.add(lat);
-                            }
-                        }
-                    }
-                }
+                addValidRegionAnchors(dataFrame, longitudes, latitudes);
             }
         }
 
@@ -219,6 +206,30 @@ public class TimGeometryConverter {
         // Create Point geometry using JTS GeometryFactory
         return new GeometryFactory()
                 .createPoint(new Coordinate(averageLongitude(longitudes), average(latitudes)));
+    }
+
+    private void addValidRegionAnchors(TravelerDataFrame dataFrame, List<Double> longitudes, List<Double> latitudes) {
+        if (dataFrame.getRegions() == null) {
+            return;
+        }
+
+        for (GeographicalPath region : dataFrame.getRegions()) {
+            addValidRegionAnchor(region, longitudes, latitudes);
+        }
+    }
+
+    private void addValidRegionAnchor(GeographicalPath region, List<Double> longitudes, List<Double> latitudes) {
+        if (region.getAnchor() == null || region.getAnchor().getLat() == null
+                || region.getAnchor().getLong_() == null) {
+            return;
+        }
+
+        Double latitude = FieldConversions.convertLat(region.getAnchor().getLat().getValue());
+        Double longitude = FieldConversions.convertLong(region.getAnchor().getLong_().getValue());
+        if (latitude != null && longitude != null) {
+            longitudes.add(longitude);
+            latitudes.add(latitude);
+        }
     }
 
     /**
@@ -292,7 +303,7 @@ public class TimGeometryConverter {
                 coordinates.addAll(extractCoordinatesFromOffsetPath(region, description.getPath(), dataFrameIndex,
                         regionIndex));
             } else if (description.getGeometry() != null) {
-                coordinates.addAll(extractCoordinatesFromGeometry(region, description.getGeometry()));
+                coordinates.addAll(extractCoordinatesFromGeometry(description.getGeometry()));
             }
         }
 
@@ -353,7 +364,7 @@ public class TimGeometryConverter {
         if (path.getScale() != null) {
             // Zoom is applied as 2^zoom for coordinate scaling
             // A value of 0 is 1:1 zoom (no zoom), 1 is 2:1 zoom, 2 is 4:1 zoom, etc.
-            return Math.pow(2, path.getScale().getValue());
+            return Math.pow(2, (double) path.getScale().getValue());
         }
         return 1.0;
     }
@@ -568,68 +579,78 @@ public class TimGeometryConverter {
         }
         double zoomFactor = calculateZoomFactor(path);
 
-        // Handle LL (Latitude/Longitude) coordinates
+        // Handle LL (Latitude/Longitude) or XY (Cartesian) coordinates.
         if (path.getOffset().getLl() != null && path.getOffset().getLl().getNodes() != null) {
-            for (int nodeIndex = 0; nodeIndex < path.getOffset().getLl().getNodes().size(); nodeIndex++) {
-                var node = path.getOffset().getLl().getNodes().get(nodeIndex);
-                if (node.getDelta() == null) {
-                    continue;
-                }
+            return processLLOffsetPath(path, pathData, currentCoords, zoomFactor, dataFrameIndex, regionIndex);
+        } else if (path.getOffset().getXy() != null && path.getOffset().getXy().getNodes() != null) {
+            return processXYOffsetPath(path, pathData, currentCoords, zoomFactor, dataFrameIndex, regionIndex);
+        }
+
+        return pathData;
+    }
+
+    private List<PathNodeData> processLLOffsetPath(OffsetSystem path, List<PathNodeData> pathData,
+            double[] currentCoords, double zoomFactor, int dataFrameIndex, int regionIndex) {
+        for (int nodeIndex = 0; nodeIndex < path.getOffset().getLl().getNodes().size(); nodeIndex++) {
+            var node = path.getOffset().getLl().getNodes().get(nodeIndex);
+            boolean shouldAddNode = node.getDelta() != null;
+            if (shouldAddNode) {
                 if (node.getDelta().getNode_LatLon() != null) {
                     currentCoords = absoluteCoordinates(node.getDelta().getNode_LatLon());
                     if (currentCoords == null) {
                         log.warn("Unavailable absolute LL coordinates at {}; skipping node and clearing offset reference",
                                 formatNodePath(dataFrameIndex, regionIndex, "ll", nodeIndex));
-                        continue;
+                        shouldAddNode = false;
                     }
                 } else if (currentCoords == null) {
                     log.warn("Skipping relative LL node at {}; no valid anchor or preceding absolute node",
                             formatNodePath(dataFrameIndex, regionIndex, "ll", nodeIndex));
-                    continue;
+                    shouldAddNode = false;
                 } else {
                     processLLNode(node.getDelta(), zoomFactor, currentCoords);
                 }
-
-                Long[] offsets = extractNodeOffsets(node);
-                Long dwidthOffset = offsets != null ? offsets[0] : null;
-                Long delevationOffset = offsets != null ? offsets[1] : null;
-                currentCoords[0] = normalizeLongitude(currentCoords[0]);
-                pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,
-                        delevationOffset));
+            }
+            if (shouldAddNode) {
+                addPathNode(pathData, currentCoords, extractNodeOffsets(node));
             }
         }
-        // Handle XY (Cartesian) coordinates
-        else if (path.getOffset().getXy() != null && path.getOffset().getXy().getNodes() != null) {
-            for (int nodeIndex = 0; nodeIndex < path.getOffset().getXy().getNodes().size(); nodeIndex++) {
-                var node = path.getOffset().getXy().getNodes().get(nodeIndex);
-                if (node.getDelta() == null) {
-                    continue;
-                }
+        return pathData;
+    }
+
+    private List<PathNodeData> processXYOffsetPath(OffsetSystem path, List<PathNodeData> pathData,
+            double[] currentCoords, double zoomFactor, int dataFrameIndex, int regionIndex) {
+        for (int nodeIndex = 0; nodeIndex < path.getOffset().getXy().getNodes().size(); nodeIndex++) {
+            var node = path.getOffset().getXy().getNodes().get(nodeIndex);
+            boolean shouldAddNode = node.getDelta() != null;
+            if (shouldAddNode) {
                 if (node.getDelta().getNode_LatLon() != null) {
                     currentCoords = absoluteCoordinates(node.getDelta().getNode_LatLon());
                     if (currentCoords == null) {
                         log.warn("Unavailable absolute XY reference coordinates at {}; skipping node and clearing offset reference",
                                 formatNodePath(dataFrameIndex, regionIndex, "xy", nodeIndex));
-                        continue;
+                        shouldAddNode = false;
                     }
                 } else if (currentCoords == null) {
                     log.warn("Skipping relative XY node at {}; no valid anchor or preceding absolute node",
                             formatNodePath(dataFrameIndex, regionIndex, "xy", nodeIndex));
-                    continue;
+                    shouldAddNode = false;
                 } else {
                     processXYNode(node.getDelta(), zoomFactor, currentCoords);
                 }
-
-                Long[] offsets = extractNodeOffsets(node);
-                Long dwidthOffset = offsets != null ? offsets[0] : null;
-                Long delevationOffset = offsets != null ? offsets[1] : null;
-                currentCoords[0] = normalizeLongitude(currentCoords[0]);
-                pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,
-                        delevationOffset));
+            }
+            if (shouldAddNode) {
+                addPathNode(pathData, currentCoords, extractNodeOffsets(node));
             }
         }
-
         return pathData;
+    }
+
+    private void addPathNode(List<PathNodeData> pathData, double[] currentCoords, Long[] offsets) {
+        Long dwidthOffset = offsets != null ? offsets[0] : null;
+        Long delevationOffset = offsets != null ? offsets[1] : null;
+        currentCoords[0] = normalizeLongitude(currentCoords[0]);
+        pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,
+                delevationOffset));
     }
 
     private List<List<Double>> extractCoordinatesFromOffsetPath(GeographicalPath region, OffsetSystem path,
@@ -662,7 +683,7 @@ public class TimGeometryConverter {
                 + ".nodes[" + nodeIndex + "]";
     }
 
-    private List<List<Double>> extractCoordinatesFromGeometry(GeographicalPath region, GeometricProjection geometry) {
+    private List<List<Double>> extractCoordinatesFromGeometry(GeometricProjection geometry) {
         if (geometry == null) {
             return new ArrayList<>();
         }

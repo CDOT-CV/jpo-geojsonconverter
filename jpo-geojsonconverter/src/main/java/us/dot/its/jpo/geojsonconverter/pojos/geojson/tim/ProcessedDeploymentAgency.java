@@ -34,12 +34,11 @@ public enum ProcessedDeploymentAgency {
     // roadSignage = STATE_OR_LOCAL_AGENCY
     // commercialSignage = COMMERCIAL_AGENCY
     public static ProcessedDeploymentAgency fromValue(TravelerInfoType value) {
-        if (value == TravelerInfoType.ROADSIGNAGE) {
-            return ProcessedDeploymentAgency.STATE_OR_LOCAL;
-        } else if (value == TravelerInfoType.COMMERCIALSIGNAGE) {
-            return ProcessedDeploymentAgency.COMMERCIAL;
-        } else {
-            return ProcessedDeploymentAgency.UNKNOWN;
-        }
+        return switch (value) {
+            case null -> ProcessedDeploymentAgency.UNKNOWN;
+            case ROADSIGNAGE -> ProcessedDeploymentAgency.STATE_OR_LOCAL;
+            case COMMERCIALSIGNAGE -> ProcessedDeploymentAgency.COMMERCIAL;
+            default -> ProcessedDeploymentAgency.UNKNOWN;
+        };
     }
 }

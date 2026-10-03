@@ -22,7 +22,7 @@ public abstract class BaseFeature<TId, TGeometry, TProperties> {
     protected final TProperties properties;
 
     @JsonCreator
-    public BaseFeature(@JsonProperty("id") TId id, @JsonProperty("geometry") TGeometry geometry,
+    protected BaseFeature(@JsonProperty("id") TId id, @JsonProperty("geometry") TGeometry geometry,
             @JsonProperty("properties") TProperties properties) {
         this.id = id;
         this.geometry = geometry;

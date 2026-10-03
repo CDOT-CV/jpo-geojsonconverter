@@ -23,7 +23,9 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
@@ -131,7 +133,7 @@ public class SpatProcessedJsonConverter
         for (Exception exception : validationMessages.getExceptions()) {
             ProcessedValidationMessage message = new ProcessedValidationMessage();
             message.setMessage(exception.getMessage());
-            message.setException(exception.getStackTrace().toString());
+            message.setException(Arrays.toString(exception.getStackTrace()));
             processedMessages.add(message);
         }
         for (Error validationMessage : validationMessages.getValidationMessages()) {
@@ -168,9 +170,8 @@ public class SpatProcessedJsonConverter
         MinuteOfTheYear intersectionMoy = intersectionState.getMoy();
         DSecond intersectionDSecond = intersectionState.getTimeStamp();
         ZonedDateTime odeDate = Instant.parse(metadata.getOdeReceivedAt()).atZone(ZoneId.of("UTC"));
-        return intersectionMoy != null
-                ? J2735DateTimeConverter.generateUTCTimestamp(intersectionMoy, intersectionDSecond, odeDate)
-                : J2735DateTimeConverter.generateUTCTimestamp(spatMoy, intersectionDSecond, odeDate);
+        return J2735DateTimeConverter.generateUTCTimestamp(
+                intersectionMoy != null ? intersectionMoy : spatMoy, intersectionDSecond, odeDate);
     }
 
     private List<ProcessedMovementState> convertMovementStates(IntersectionState intersectionState,
@@ -233,11 +234,9 @@ public class SpatProcessedJsonConverter
         if (advisorySpeedList == null) {
             return null;
         }
-        ProcessedAdvisorySpeedList processedAdvisorySpeedList = new ProcessedAdvisorySpeedList();
-        for (AdvisorySpeed advisorySpeed : advisorySpeedList) {
-            processedAdvisorySpeedList.add(convertAdvisorySpeed(advisorySpeed));
-        }
-        return processedAdvisorySpeedList;
+        return advisorySpeedList.stream()
+                .map(this::convertAdvisorySpeed)
+                .collect(Collectors.toCollection(ProcessedAdvisorySpeedList::new));
     }
 
     private ProcessedAdvisorySpeed convertAdvisorySpeed(AdvisorySpeed advisorySpeed) {

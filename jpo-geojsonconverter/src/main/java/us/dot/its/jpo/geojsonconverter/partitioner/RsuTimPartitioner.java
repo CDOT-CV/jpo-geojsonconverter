@@ -15,10 +15,10 @@ public class RsuTimPartitioner<K, V> implements StreamPartitioner<K, V> {
     public Integer partition(String topic, K key, V value, int numPartitions) {
         byte[] partitionBytes = null;
 
-        if (key instanceof RsuTimKey rsuTimKey) {
-            if (rsuTimKey.getRsuId() != null && !rsuTimKey.getRsuId().isEmpty()) {
-                partitionBytes = rsuTimKey.getRsuId().getBytes(StandardCharsets.UTF_8);
-            }
+        if (key instanceof RsuTimKey rsuTimKey
+                && rsuTimKey.getRsuId() != null
+                && !rsuTimKey.getRsuId().isEmpty()) {
+            partitionBytes = rsuTimKey.getRsuId().getBytes(StandardCharsets.UTF_8);
         }
 
         // Packet IDs are unique per TIM and therefore do not provide useful grouping. When RSU identity is absent,

@@ -24,6 +24,10 @@ import us.dot.its.jpo.geojsonconverter.validator.TimJsonValidator;
 @Slf4j
 public class TimTopology {
 
+    private TimTopology() {
+        // Utility class; use the static topology builder.
+    }
+
     public static Topology build(String timOdeJsonTopic, String timProcessedJsonTopic,
             TimJsonValidator timJsonValidator, TimConverter timConverter) {
         StreamsBuilder builder = new StreamsBuilder();
@@ -32,7 +36,7 @@ public class TimTopology {
         // TIM conversion derives the processed key from the message contents.
         KStream<Void, Bytes> rawOdeTimStream = builder
                 .<byte[], Bytes>stream(timOdeJsonTopic, Consumed.with(Serdes.ByteArray(), Serdes.Bytes()))
-                .selectKey((key, value) -> (Void) null);
+                .selectKey((key, value) -> null);
 
         // Validate the JSON and write validation errors to the log at warn level
         // Passes the raw JSON along unchanged, even if there are validation errors.
@@ -70,7 +74,7 @@ public class TimTopology {
 
         processedJsonTimStream.to(
                 // Push the ProcessedTim to the output topic partitioned by RsuTimKey
-                timProcessedJsonTopic, Produced.with(JsonSerdes.RsuTimKey(), JsonSerdes.ProcessedTim(),
+                timProcessedJsonTopic, Produced.with(JsonSerdes.rsuTimKey(), JsonSerdes.ProcessedTim(),
                         new RsuTimPartitioner<RsuTimKey, ProcessedTim>()));
 
         return builder.build();

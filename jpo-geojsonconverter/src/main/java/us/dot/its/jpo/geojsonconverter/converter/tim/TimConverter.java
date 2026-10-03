@@ -517,19 +517,7 @@ public class TimConverter {
                 }
                 break;
             case CIRCLE:
-                regionInfo = new ProcessedCircleRegionInfo();
-                if (region.getDescription() != null && region.getDescription().getGeometry() != null
-                        && region.getDescription().getGeometry().getCircle() != null) {
-                    Circle circle = region.getDescription().getGeometry().getCircle();
-                    if (circle.getRadius() != null) {
-                        long radiusValue = circle.getRadius().getValue();
-                        DistanceUnits units = circle.getUnits();
-                        Double radiusMeters = FieldConversions.convertDistanceToMeters(radiusValue, units);
-                        if (radiusMeters != null) {
-                            ((ProcessedCircleRegionInfo) regionInfo).setRadius(radiusMeters);
-                        }
-                    }
-                }
+                regionInfo = createCircleRegionInfo(region);
                 break;
             case POLYGON:
                 regionInfo = new ProcessedPolygonRegionInfo();
@@ -544,6 +532,23 @@ public class TimConverter {
         regionInfo.setRegionType(regionType);
         regionInfo.setElevationProfile(elevationProfile);
 
+        return regionInfo;
+    }
+
+    private ProcessedCircleRegionInfo createCircleRegionInfo(GeographicalPath region) {
+        ProcessedCircleRegionInfo regionInfo = new ProcessedCircleRegionInfo();
+        if (region.getDescription() != null && region.getDescription().getGeometry() != null
+                && region.getDescription().getGeometry().getCircle() != null) {
+            Circle circle = region.getDescription().getGeometry().getCircle();
+            if (circle.getRadius() != null) {
+                long radiusValue = circle.getRadius().getValue();
+                DistanceUnits units = circle.getUnits();
+                Double radiusMeters = FieldConversions.convertDistanceToMeters(radiusValue, units);
+                if (radiusMeters != null) {
+                    regionInfo.setRadius(radiusMeters);
+                }
+            }
+        }
         return regionInfo;
     }
 

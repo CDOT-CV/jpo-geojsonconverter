@@ -154,7 +154,7 @@ public class MapProcessedJsonConverter
         sharedProps.setTimeStamp(mapTimestamp != null ? mapTimestamp : odeDate);
         // Setting validation fields
         sharedProps.setValidationMessages(processedSpatValidationMessages);
-        sharedProps.setCti4501Conformant(sharedProps.getValidationMessages().size() == 0);
+        sharedProps.setCti4501Conformant(sharedProps.getValidationMessages().isEmpty());
 
         return sharedProps;
     }
@@ -331,11 +331,11 @@ public class MapProcessedJsonConverter
         HashMap<Integer, double[]> lanePoints = new HashMap<>();
         for (GenericLane lane : intersection.getLaneSet()) {
             int laneId = (int) lane.getLaneID().getValue();
-            if (!lanePoints.containsKey(laneId)) {
+            lanePoints.computeIfAbsent(laneId, key -> {
                 LineString laneGeometry = createGeometry(lane, refPoint);
                 double[] coordinates = {laneGeometry.getCoordinates()[0][0], laneGeometry.getCoordinates()[0][1]};
-                lanePoints.put(laneId, coordinates);
-            }
+                return coordinates;
+            });
         }
         return lanePoints;
     }

@@ -54,7 +54,7 @@ public class JsonSerdes {
                 new JsonDeserializer<>(RsuIntersectionKey.class));
     }
 
-    public static Serde<RsuTimKey> RsuTimKey() {
+    public static Serde<RsuTimKey> rsuTimKey() {
         return Serdes.serdeFrom(new JsonSerializer<RsuTimKey>(), new JsonDeserializer<>(RsuTimKey.class));
     }
 
