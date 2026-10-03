@@ -145,7 +145,10 @@ public class TimConverterTest {
         ProcessedHeadingDirectionInfo headingInfo = (ProcessedHeadingDirectionInfo) circleInfo.getDirectionInfo();
         assertEquals(ProcessedDirectionType.HEADING, headingInfo.getDirectionType());
         assertNotNull(headingInfo.getHeadingList());
-        assertTrue(headingInfo.getHeadingList().size() > 0);
+        // F00F selects bits 12-15 and 0-3, a 180-degree range centered on north.
+        assertEquals(1, headingInfo.getHeadingList().size());
+        assertEquals(0.0, headingInfo.getHeadingList().getFirst().getHeading(), 0.000001);
+        assertEquals(180.0, headingInfo.getHeadingList().getFirst().getRange(), 0.000001);
         assertInstanceOf(Polygon.class, circleFeature.getGeometry());
     }
 
@@ -161,7 +164,10 @@ public class TimConverterTest {
         ProcessedHeadingDirectionInfo headingInfo = (ProcessedHeadingDirectionInfo) regionInfo.getDirectionInfo();
         assertEquals(ProcessedDirectionType.HEADING, headingInfo.getDirectionType());
         assertNotNull(headingInfo.getHeadingList());
-        assertTrue(headingInfo.getHeadingList().size() > 0);
+        // 03C0 selects bits 6-9, a 90-degree range centered on south.
+        assertEquals(1, headingInfo.getHeadingList().size());
+        assertEquals(180.0, headingInfo.getHeadingList().getFirst().getHeading(), 0.000001);
+        assertEquals(90.0, headingInfo.getHeadingList().getFirst().getRange(), 0.000001);
         assertInstanceOf(Polygon.class, polygonFeature.getGeometry());
     }
 

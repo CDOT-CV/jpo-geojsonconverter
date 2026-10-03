@@ -593,6 +593,7 @@ public class TimGeometryConverter {
                 Long[] offsets = extractNodeOffsets(node);
                 Long dwidthOffset = offsets != null ? offsets[0] : null;
                 Long delevationOffset = offsets != null ? offsets[1] : null;
+                currentCoords[0] = normalizeLongitude(currentCoords[0]);
                 pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,
                         delevationOffset));
             }
@@ -622,6 +623,7 @@ public class TimGeometryConverter {
                 Long[] offsets = extractNodeOffsets(node);
                 Long dwidthOffset = offsets != null ? offsets[0] : null;
                 Long delevationOffset = offsets != null ? offsets[1] : null;
+                currentCoords[0] = normalizeLongitude(currentCoords[0]);
                 pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,
                         delevationOffset));
             }

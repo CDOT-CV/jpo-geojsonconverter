@@ -416,7 +416,7 @@
                                 "directionType": "HEADING",
                                 "headingList": [
                                     {
-                                        "heading": 348.75,
+                                        "heading": 0.0,
                                         "range": 180.0
                                     }
                                 ]
@@ -501,7 +501,7 @@
                                 "directionType": "HEADING",
                                 "headingList": [
                                     {
-                                        "heading": 168.75,
+                                        "heading": 180.0,
                                         "range": 90.0
                                     }
                                 ]

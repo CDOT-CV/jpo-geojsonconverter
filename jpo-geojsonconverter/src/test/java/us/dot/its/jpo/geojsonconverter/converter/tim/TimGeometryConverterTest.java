@@ -751,6 +751,71 @@ public class TimGeometryConverterTest {
     }
 
     @Test
+    public void testRelativeLlOffsetsNormalizeEastAndWestAntimeridianCrossings() {
+        for (long anchorLongitude : new long[] {1799999990L, -1799999990L}) {
+            GeographicalPath region = regionWithAnchorAndPath(anchorLongitude, 400000000L);
+            NodeOffsetPointLL relative = new NodeOffsetPointLL();
+            Node_LL_24B offset = new Node_LL_24B();
+            long longitudeOffset = anchorLongitude > 0 ? 1000L : -1000L;
+            offset.setLon(new OffsetLL_B12(longitudeOffset));
+            offset.setLat(new OffsetLL_B12(0L));
+            relative.setNode_LL1(offset);
+            region.getDescription().getPath().setOffset(
+                    createLlOffsetChoice(node(relative, 7L, 3L), node(relative, 8L, 4L)));
+
+            LineString line = assertInstanceOf(LineString.class, geometryConverter.createGeometryFromRegion(region));
+            double anchor = FieldConversions.convertLong(anchorLongitude);
+            double delta = FieldConversions.convertLongWithZoom(longitudeOffset, 1.0);
+            assertEquals(2, line.getCoordinates().length);
+            assertEquals(normalizeLongitudeForTest(anchor + delta), line.getCoordinates()[0][0], 0.0000001);
+            assertEquals(normalizeLongitudeForTest(anchor + 2 * delta), line.getCoordinates()[1][0], 0.0000001);
+            assertEquals(7L, geometryConverter.extractOffsetInformation(region).getLaneWidthOffsets().getFirst());
+            assertEquals(4L, geometryConverter.extractOffsetInformation(region).getElevationOffsets().getLast());
+            for (double[] coordinate : line.getCoordinates()) {
+                assertTrue(coordinate[0] >= -180.0 && coordinate[0] <= 180.0);
+            }
+        }
+    }
+
+    @Test
+    public void testRelativeXyOffsetsNormalizeEastAndWestAntimeridianCrossings() {
+        for (long anchorLongitude : new long[] {1799999990L, -1799999990L}) {
+            GeographicalPath region = regionWithAnchorAndPath(anchorLongitude, 400000000L);
+            NodeOffsetPointXY relative = new NodeOffsetPointXY();
+            Node_XY_20b offset = new Node_XY_20b();
+            long eastCentimeters = anchorLongitude > 0 ? 100L : -100L;
+            offset.setX(new Offset_B10(eastCentimeters));
+            offset.setY(new Offset_B10(0L));
+            relative.setNode_XY1(offset);
+            NodeSetXY nodes = new NodeSetXY();
+            nodes.add(xyNode(relative));
+            nodes.add(xyNode(relative));
+            NodeListXY nodeList = new NodeListXY();
+            nodeList.setNodes(nodes);
+            OffsetSystem.OffsetChoice choice = new OffsetSystem.OffsetChoice();
+            choice.setXy(nodeList);
+            region.getDescription().getPath().setOffset(choice);
+
+            LineString line = assertInstanceOf(LineString.class, geometryConverter.createGeometryFromRegion(region));
+            double anchor = FieldConversions.convertLong(anchorLongitude);
+            double delta = FieldConversions.convertJ2735XY(eastCentimeters, 0L, 40.0, 1.0)[0];
+            assertEquals(2, line.getCoordinates().length);
+            assertEquals(normalizeLongitudeForTest(anchor + delta), line.getCoordinates()[0][0], 0.0000001);
+            assertEquals(normalizeLongitudeForTest(anchor + 2 * delta), line.getCoordinates()[1][0], 0.0000001);
+            for (double[] coordinate : line.getCoordinates()) {
+                assertTrue(coordinate[0] >= -180.0 && coordinate[0] <= 180.0);
+            }
+        }
+    }
+
+    private double normalizeLongitudeForTest(double longitude) {
+        double normalized = longitude % 360.0;
+        if (normalized > 180.0) normalized -= 360.0;
+        else if (normalized < -180.0) normalized += 360.0;
+        return normalized;
+    }
+
+    @Test
     public void testOnePositionPathDoesNotProduceLineString() {
         GeographicalPath region = firstRegion();
         region.setAnchor(null);
@@ -840,6 +905,14 @@ public class TimGeometryConverterTest {
         anchor.setLong_(new Longitude(longitude));
         anchor.setLat(new Latitude(latitude));
         region.setAnchor(anchor);
+        return region;
+    }
+
+    private GeographicalPath regionWithAnchorAndPath(long longitude, long latitude) {
+        GeographicalPath region = regionWithAnchor(longitude, latitude);
+        GeographicalPath.DescriptionChoice description = new GeographicalPath.DescriptionChoice();
+        description.setPath(new OffsetSystem());
+        region.setDescription(description);
         return region;
     }
 

@@ -636,17 +636,17 @@ public class FieldConversions {
 
 
     /**
-     * Convert sector bit position to heading degrees.
+     * Convert sector bit position to its lower boundary in heading degrees.
      *
      * @param sectorBit The sector bit position (0-15)
-     * @return Heading in degrees
+     * @return Sector lower boundary in degrees
      */
     public static double sectorBitToHeading(int sectorBit) {
         return sectorBit * HEADING_SECTOR_DEGREES;
     }
 
     /**
-     * Convert a range of sector bits to heading degrees and range.
+     * Convert a range of sector bits to its center heading and total angular range.
      *
      * @param startBit The starting sector bit position (0-15)
      * @param endBit The ending sector bit position (0-15, inclusive). When {@code startBit > endBit} the range wraps
@@ -659,9 +659,8 @@ public class FieldConversions {
         int numberOfSectors =
                 wrapsAcrossNorth ? (MAX_HEADING_SECTORS - startBit) + (endBit + 1) : endBit - startBit + 1;
         double totalRange = numberOfSectors * HEADING_SECTOR_DEGREES;
-        // Sector bits identify discrete headings, so the center lies halfway between the first and last
-        // sector headings. The same calculation works for ranges that wrap through north.
-        double centerHeading = (startHeading + (numberOfSectors - 1) * HEADING_SECTOR_DEGREES / 2.0) % 360.0;
+        // Start at the first sector's lower boundary and advance halfway through the full angular range.
+        double centerHeading = (startHeading + totalRange / 2.0) % 360.0;
 
         return new double[] {centerHeading, totalRange};
     }

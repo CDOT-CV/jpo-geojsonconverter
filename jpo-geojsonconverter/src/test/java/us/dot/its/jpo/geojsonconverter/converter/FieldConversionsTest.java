@@ -591,17 +591,18 @@ public class FieldConversionsTest {
         double[] result = FieldConversions.sectorRangeToHeadingAndRange(0, 2);
         assertThat(result, notNullValue());
         assertThat(result.length, equalTo(2));
-        assertThat(result[0], equalTo(22.5)); // Center heading
+        assertThat(result[0], equalTo(33.75)); // Center heading
         assertThat(result[1], equalTo(67.5)); // Total range (3 sectors * 22.5)
     }
 
     @Test
     public void testSectorRangeCentersCoverSingleAdjacentWrappedAndAllSectors() {
-        assertHeadingRange(0, 0, 0.0, 22.5);
-        assertHeadingRange(1, 1, 22.5, 22.5);
-        assertHeadingRange(1, 3, 45.0, 67.5);
-        assertHeadingRange(14, 1, 348.75, 90.0);
-        assertHeadingRange(0, 15, 168.75, 360.0);
+        assertHeadingRange(0, 0, 11.25, 22.5);
+        assertHeadingRange(1, 1, 33.75, 22.5);
+        assertHeadingRange(0, 2, 33.75, 67.5);
+        assertHeadingRange(1, 3, 56.25, 67.5);
+        assertHeadingRange(14, 1, 0.0, 90.0);
+        assertHeadingRange(0, 15, 180.0, 360.0);
     }
 
     private void assertHeadingRange(int startSector, int endSector, double expectedHeading, double expectedRange) {
@@ -825,7 +826,7 @@ public class FieldConversionsTest {
         assertThat(result[0][1], equalTo(1));
 
         double[] headingAndRange = FieldConversions.sectorRangeToHeadingAndRange(result[0][0], result[0][1]);
-        assertThat(headingAndRange[0], equalTo(0.0));
+        assertThat(headingAndRange[0], equalTo(11.25));
         assertThat(headingAndRange[1], equalTo(67.5));
     }
 

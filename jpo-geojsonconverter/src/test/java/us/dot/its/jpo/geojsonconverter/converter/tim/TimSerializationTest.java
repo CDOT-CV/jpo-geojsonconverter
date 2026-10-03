@@ -12,10 +12,13 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformationMessageFrame;
 import us.dot.its.jpo.geojsonconverter.pojos.common.Ieee1609Dot2SignedDataMetadata;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.MultiLineString;
+import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedHeadingDirectionInfo;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
 import us.dot.its.jpo.geojsonconverter.serialization.deserializers.JsonDeserializer;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
@@ -70,6 +73,30 @@ class TimSerializationTest {
             assertEquals(Instant.parse("2026-06-10T23:59:05.885Z"), signedDataMetadata.getGenerationTime());
             assertEquals(Instant.parse("2026-06-04T19:42:18Z"), signedDataMetadata.getCertificateValidityStart());
             assertEquals(Instant.parse("2026-06-11T20:42:18Z"), signedDataMetadata.getCertificateValidityEnd());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"sample.processed-tim.json", "sample.processed-tim-cert-present.json"})
+    void referenceHeadingsMatchOriginalHeadingSlices(String fixture) throws IOException {
+        String json = loadResource("classpath:json/" + fixture);
+        try (JsonDeserializer<ProcessedTim> deserializer = new JsonDeserializer<>(ProcessedTim.class)) {
+            ProcessedTim processedTim = deserializer.deserialize("test-topic", json.getBytes(StandardCharsets.UTF_8));
+            var headings = processedTim.getDataFrameFeatureCollection().getFeatures().stream()
+                    .flatMap(feature -> feature.getProperties().getRegionInfoList().stream())
+                    .map(region -> region.getDirectionInfo())
+                    .filter(ProcessedHeadingDirectionInfo.class::isInstance)
+                    .map(ProcessedHeadingDirectionInfo.class::cast)
+                    .toList();
+
+            assertEquals(2, headings.size());
+            assertEquals(1, headings.get(0).getHeadingList().size());
+            assertEquals(1, headings.get(1).getHeadingList().size());
+            // Circle F00F wraps across north; polygon 03C0 spans sectors 6-9 around south.
+            assertEquals(0.0, headings.get(0).getHeadingList().getFirst().getHeading());
+            assertEquals(180.0, headings.get(0).getHeadingList().getFirst().getRange());
+            assertEquals(180.0, headings.get(1).getHeadingList().getFirst().getHeading());
+            assertEquals(90.0, headings.get(1).getHeadingList().getFirst().getRange());
         }
     }
 }
