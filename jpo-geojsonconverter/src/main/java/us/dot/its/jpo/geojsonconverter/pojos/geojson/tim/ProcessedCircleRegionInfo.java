@@ -29,7 +29,7 @@ public class ProcessedCircleRegionInfo extends ProcessedRegionInfoBase {
 
     /**
      * Override to ensure only heading-based direction info is allowed for circle regions.
-     * 
+     *
      * @param directionInfo The direction info to set (must be ProcessedHeadingDirectionInfo)
      * @throws IllegalArgumentException if direction info is not heading-based
      */

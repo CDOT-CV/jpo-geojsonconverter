@@ -42,7 +42,7 @@ public class TimGeometryConverter {
     /**
      * Calculate the optimal number of points for circle approximation based on diameter. Uses adaptive scaling to
      * balance accuracy with performance.
-     * 
+     *
      * @param diameterMeters Diameter of the circle in meters
      * @return Number of points to use for circle approximation
      */
@@ -356,7 +356,7 @@ public class TimGeometryConverter {
 
     /**
      * Calculate zoom factor from path scale.
-     * 
+     *
      * @param path The OffsetSystem path
      * @return Zoom factor (2^zoom)
      */
@@ -371,7 +371,7 @@ public class TimGeometryConverter {
 
     /**
      * Extract dwidth and delevation offsets from node attributes.
-     * 
+     *
      * @param node The node to extract offsets from
      * @return Two-element array containing [dwidthOffset, delevationOffset]; both entries are null if no attributes
      */
@@ -391,7 +391,7 @@ public class TimGeometryConverter {
 
     /**
      * Extract dwidth and delevation offsets from node attributes.
-     * 
+     *
      * @param node The node to extract offsets from
      * @return Two-element array containing [dwidthOffset, delevationOffset]; both entries are null if no attributes
      */
@@ -412,7 +412,7 @@ public class TimGeometryConverter {
     /**
      * Process J2735 NodeOffsetPointLL (Latitude/Longitude) node and update current coordinates with calculated latitude
      * and longitude of the node.
-     * 
+     *
      * @param node The node to process
      * @param zoomFactor Zoom scaling factor
      * @param currentCoords Current coordinates [lon, lat] to update. For LatLon nodes (absolute coordinates), this may
@@ -483,7 +483,7 @@ public class TimGeometryConverter {
     /**
      * Process an XY node and update the current coordinates. Relative XY node variants require a current reference
      * point; {@code node-LatLon} supplies an absolute point and establishes that reference itself.
-     * 
+     *
      * @param node The node to process
      * @param zoomFactor Zoom scaling factor
      * @param currentCoords Current coordinates [lon, lat] to update
@@ -552,7 +552,7 @@ public class TimGeometryConverter {
 
     /**
      * Process offset path nodes and return their coordinates and offset information.
-     * 
+     *
      * @param region The geographical path region
      * @param path The offset system path
      * @return List of PathNodeData containing coordinates and offset information
@@ -720,7 +720,7 @@ public class TimGeometryConverter {
     /**
      * Create circle points geodesically on WGS84. This avoids UTM zone-boundary and polar distortion while preserving
      * the source radius at every generated vertex.
-     * 
+     *
      * @param centerLon Center longitude in degrees
      * @param centerLat Center latitude in degrees
      * @param radiusMeters Radius in meters

@@ -38,7 +38,8 @@ public class JsonSerdes {
     }
 
     public static Serde<ProcessedSpat> ProcessedSpat() {
-        return Serdes.serdeFrom(new JsonSerializer<ProcessedSpat>(), new JsonDeserializer<>(ProcessedSpat.class));
+        return Serdes.serdeFrom(new JsonSerializer<ProcessedSpat>(),
+                new JsonDeserializer<>(ProcessedSpat.class));
     }
 
     public static Serde<ProcessedBsm<Point>> ProcessedBsm() {

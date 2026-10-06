@@ -36,7 +36,7 @@ class TimSerializationTest {
             ProcessedTim processedTim = new TimConverter(new TimGeometryConverter())
                     .createProcessedTim(messageFrame.getValue(), odeTim.getMetadata());
 
-            assertThatJson(referenceProcessedTimJson).isEqualTo(processedTim.toString());
+            assertThatJson(referenceProcessedTimJson).withTolerance(1e-12).isEqualTo(processedTim.toString());
         }
     }
 

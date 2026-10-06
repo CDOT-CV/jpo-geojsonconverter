@@ -20,5 +20,5 @@ public class SpatJsonValidator extends AbstractJsonValidator {
     public SpatJsonValidator(String schemaLocation) {
         super(schemaLocation);
     }
-
+    
 }

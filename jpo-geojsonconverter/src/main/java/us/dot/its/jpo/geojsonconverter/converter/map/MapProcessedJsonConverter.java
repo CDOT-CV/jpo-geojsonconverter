@@ -150,8 +150,7 @@ public class MapProcessedJsonConverter
                 intersection.getLaneWidth() != null ? (int) intersection.getLaneWidth().getValue() : null);
         sharedProps.setSpeedLimits(convertSpeedLimitList(intersection.getSpeedLimits()));
         sharedProps.setMapSource(metadata.getSource());
-        ZonedDateTime mapTimestamp = FieldConversions.convertMinuteOfYear(mapData.getTimeStamp(), odeDate);
-        sharedProps.setTimeStamp(mapTimestamp != null ? mapTimestamp : odeDate);
+        sharedProps.setTimeStamp(generateUTCTimestamp(mapData.getTimeStamp(), odeDate));
         // Setting validation fields
         sharedProps.setValidationMessages(processedSpatValidationMessages);
         sharedProps.setCti4501Conformant(sharedProps.getValidationMessages().size() == 0);
@@ -446,6 +445,30 @@ public class MapProcessedJsonConverter
         processedMapObject.setProperties(processedMapProps);
 
         return processedMapObject;
+    }
+
+    public ZonedDateTime generateUTCTimestamp(MinuteOfTheYear moy, ZonedDateTime odeDate) { // 2022-10-31T15:40:26.687292Z
+        ZonedDateTime date = null;
+        try {
+            int year = odeDate.getYear();
+            String dateString;
+            long minutes;
+            if (moy != null) {
+                minutes = moy.getValue(); // minutes from beginning of year
+                dateString = String.format("%d-01-01T00:00:00.00Z", year);
+                date = Instant.parse(dateString).atZone(ZoneId.of("UTC"));
+                date = date.plusMinutes(minutes);
+            } else {
+                date = odeDate;
+            }
+
+        } catch (Exception e) {
+            String errMsg = String.format("Failed to generateUTCTimestamp - SpatProcessedJsonConverter. Message: %s",
+                    e.getMessage());
+            logger.error(errMsg, e);
+        }
+
+        return date;
     }
 
     public List<MapNode> nodeConversionList(NodeSetXY nodeXYs) { // 2022-10-31T15:40:26.687292Z

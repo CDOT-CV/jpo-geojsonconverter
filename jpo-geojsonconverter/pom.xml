@@ -40,7 +40,6 @@
         <!-- Allow override of github organization when publishing artifacts to github -->
         <github_organization>usdot-jpo-ode</github_organization>
         <jsonschema.generator.version>4.38.0</jsonschema.generator.version>
-        <lombok.version>1.18.30</lombok.version>
     </properties>
     <dependencies>
         <!-- Spring Boot Dependencies -->
@@ -165,7 +164,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
+            <version>1.18.30</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -177,12 +176,6 @@
             <artifactId>jts-core</artifactId>
             <version>1.19.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-math3</artifactId>
-            <version>3.6.1</version>
-        </dependency>
-        <!-- Geotools for geodetic calculations -->
         <dependency>
             <groupId>org.geotools</groupId>
             <artifactId>gt-referencing</artifactId>
@@ -220,44 +213,17 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
     <repositories>
         <repository>
             <id>osgeo</id>
             <name>OSGeo Release Repository</name>
             <url>https://repo.osgeo.org/repository/release/</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
+            <snapshots><enabled>false</enabled></snapshots>
         </repository>
     </repositories>
-
     <build>
         <finalName>${project.artifactId}</finalName>
         <plugins>
-            <!-- Explicitly register annotation processors. When annotationProcessorPaths
-                 is set, Maven does not auto-discover processors from the classpath. -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <annotationProcessorPaths>
-                        <path>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                            <version>${lombok.version}</version>
-                        </path>
-                        <path>
-                            <groupId>org.springframework.boot</groupId>
-                            <artifactId>spring-boot-configuration-processor</artifactId>
-                            <version>${spring-boot.version}</version>
-                        </path>
-                    </annotationProcessorPaths>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
@@ -351,7 +317,6 @@
             </build>
         </profile>
     </profiles>
-
     <!-- GitHub Artifact publishing configuration -->
     <distributionManagement>
         <repository>

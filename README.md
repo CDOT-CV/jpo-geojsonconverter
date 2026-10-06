@@ -167,143 +167,143 @@ Example ProcessedSpat message:
 
 ```json
 {
- "schemaVersion": 2,
- "messageType": "SPAT",
- "odeReceivedAt": "2025-07-16T22:55:40.636Z",
- "originIp": "172.18.0.1",
- "asn1": "0381004003807C00134700081132000000E437070010434257925790010232119A11CE800C10D095E495E400808684AF24AF20050434257925790030232119A11CE801C10D095E495E401008684AF24AF200",
- "validationMessages": [
-  {
-   "message": "CTI-4501 conformance issue: the SPAT 'timeStamp' DE_MinuteOfTheYear is missing"
-  },
-  {
-   "message": "CTI-4501 conformance issue: the intersections 'id.region' DE_RoadRegulatorID is missing"
-  },
-  {
-   "message": "CTI-4501 conformance issue: the state-time-speed 'timing.startTime' DE_TimeMark is missing"
-  },
-  {
-   "message": "CTI-4501 conformance issue: the state-time-speed 'timing.nextTime' DE_TimeMark is missing"
-  }
- ],
- "intersectionId": 8804,
- "cti4501Conformant": false,
- "revision": 0,
- "status": {
-  "manualControlIsEnabled": false,
-  "stopTimeIsActivated": false,
-  "failureFlash": false,
-  "preemptIsActive": false,
-  "signalPriorityIsActive": false,
-  "fixedTimeOperation": false,
-  "trafficDependentOperation": false,
-  "standbyOperation": false,
-  "failureMode": false,
-  "off": false,
-  "recentMAPmessageUpdate": false,
-  "recentChangeInMAPassignedLanesIDsUsed": false,
-  "noValidMAPisAvailableAtThisTime": false,
-  "noValidSPATisAvailableAtThisTime": false
- },
- "utcTimeStamp": "2025-07-16T22:55:58.423Z",
- "states": [
-  {
-   "signalGroup": 1,
-   "stateTimeSpeed": [
-    {
-     "eventState": "stop-And-Remain",
-     "timing": {
-      "minEndTime": "2025-07-16T22:31:58.6Z",
-      "maxEndTime": "2025-07-16T22:31:58.6Z"
-     }
-    }
-   ]
-  },
-  {
-   "signalGroup": 2,
-   "stateTimeSpeed": [
-    {
-     "eventState": "protected-Movement-Allowed",
-     "timing": {
-      "minEndTime": "2025-07-16T22:30:02.4Z",
-      "maxEndTime": "2025-07-16T22:30:23.4Z"
-     }
-    }
-   ]
-  },
-  {
-   "signalGroup": 3,
-   "stateTimeSpeed": [
-    {
-     "eventState": "stop-And-Remain",
-     "timing": {
-      "minEndTime": "2025-07-16T22:31:58.6Z",
-      "maxEndTime": "2025-07-16T22:31:58.6Z"
-     }
-    }
-   ]
-  },
-  {
-   "signalGroup": 4,
-   "stateTimeSpeed": [
-    {
-     "eventState": "stop-And-Remain",
-     "timing": {
-      "minEndTime": "2025-07-16T22:31:58.6Z",
-      "maxEndTime": "2025-07-16T22:31:58.6Z"
-     }
-    }
-   ]
-  },
-  {
-   "signalGroup": 5,
-   "stateTimeSpeed": [
-    {
-     "eventState": "stop-And-Remain",
-     "timing": {
-      "minEndTime": "2025-07-16T22:31:58.6Z",
-      "maxEndTime": "2025-07-16T22:31:58.6Z"
-     }
-    }
-   ]
-  },
-  {
-   "signalGroup": 6,
-   "stateTimeSpeed": [
-    {
-     "eventState": "protected-Movement-Allowed",
-     "timing": {
-      "minEndTime": "2025-07-16T22:30:02.4Z",
-      "maxEndTime": "2025-07-16T22:30:23.4Z"
-     }
-    }
-   ]
-  },
-  {
-   "signalGroup": 7,
-   "stateTimeSpeed": [
-    {
-     "eventState": "stop-And-Remain",
-     "timing": {
-      "minEndTime": "2025-07-16T22:31:58.6Z",
-      "maxEndTime": "2025-07-16T22:31:58.6Z"
-     }
-    }
-   ]
-  },
-  {
-   "signalGroup": 8,
-   "stateTimeSpeed": [
-    {
-     "eventState": "stop-And-Remain",
-     "timing": {
-      "minEndTime": "2025-07-16T22:31:58.6Z",
-      "maxEndTime": "2025-07-16T22:31:58.6Z"
-     }
-    }
-   ]
-  }
- ]
+	"schemaVersion": 2,
+	"messageType": "SPAT",
+	"odeReceivedAt": "2025-07-16T22:55:40.636Z",
+	"originIp": "172.18.0.1",
+	"asn1": "0381004003807C00134700081132000000E437070010434257925790010232119A11CE800C10D095E495E400808684AF24AF20050434257925790030232119A11CE801C10D095E495E401008684AF24AF200",
+	"validationMessages": [
+		{
+			"message": "CTI-4501 conformance issue: the SPAT 'timeStamp' DE_MinuteOfTheYear is missing"
+		},
+		{
+			"message": "CTI-4501 conformance issue: the intersections 'id.region' DE_RoadRegulatorID is missing"
+		},
+		{
+			"message": "CTI-4501 conformance issue: the state-time-speed 'timing.startTime' DE_TimeMark is missing"
+		},
+		{
+			"message": "CTI-4501 conformance issue: the state-time-speed 'timing.nextTime' DE_TimeMark is missing"
+		}
+	],
+	"intersectionId": 8804,
+	"cti4501Conformant": false,
+	"revision": 0,
+	"status": {
+		"manualControlIsEnabled": false,
+		"stopTimeIsActivated": false,
+		"failureFlash": false,
+		"preemptIsActive": false,
+		"signalPriorityIsActive": false,
+		"fixedTimeOperation": false,
+		"trafficDependentOperation": false,
+		"standbyOperation": false,
+		"failureMode": false,
+		"off": false,
+		"recentMAPmessageUpdate": false,
+		"recentChangeInMAPassignedLanesIDsUsed": false,
+		"noValidMAPisAvailableAtThisTime": false,
+		"noValidSPATisAvailableAtThisTime": false
+	},
+	"utcTimeStamp": "2025-07-16T22:55:58.423Z",
+	"states": [
+		{
+			"signalGroup": 1,
+			"stateTimeSpeed": [
+				{
+					"eventState": "stop-And-Remain",
+					"timing": {
+						"minEndTime": "2025-07-16T22:31:58.6Z",
+						"maxEndTime": "2025-07-16T22:31:58.6Z"
+					}
+				}
+			]
+		},
+		{
+			"signalGroup": 2,
+			"stateTimeSpeed": [
+				{
+					"eventState": "protected-Movement-Allowed",
+					"timing": {
+						"minEndTime": "2025-07-16T22:30:02.4Z",
+						"maxEndTime": "2025-07-16T22:30:23.4Z"
+					}
+				}
+			]
+		},
+		{
+			"signalGroup": 3,
+			"stateTimeSpeed": [
+				{
+					"eventState": "stop-And-Remain",
+					"timing": {
+						"minEndTime": "2025-07-16T22:31:58.6Z",
+						"maxEndTime": "2025-07-16T22:31:58.6Z"
+					}
+				}
+			]
+		},
+		{
+			"signalGroup": 4,
+			"stateTimeSpeed": [
+				{
+					"eventState": "stop-And-Remain",
+					"timing": {
+						"minEndTime": "2025-07-16T22:31:58.6Z",
+						"maxEndTime": "2025-07-16T22:31:58.6Z"
+					}
+				}
+			]
+		},
+		{
+			"signalGroup": 5,
+			"stateTimeSpeed": [
+				{
+					"eventState": "stop-And-Remain",
+					"timing": {
+						"minEndTime": "2025-07-16T22:31:58.6Z",
+						"maxEndTime": "2025-07-16T22:31:58.6Z"
+					}
+				}
+			]
+		},
+		{
+			"signalGroup": 6,
+			"stateTimeSpeed": [
+				{
+					"eventState": "protected-Movement-Allowed",
+					"timing": {
+						"minEndTime": "2025-07-16T22:30:02.4Z",
+						"maxEndTime": "2025-07-16T22:30:23.4Z"
+					}
+				}
+			]
+		},
+		{
+			"signalGroup": 7,
+			"stateTimeSpeed": [
+				{
+					"eventState": "stop-And-Remain",
+					"timing": {
+						"minEndTime": "2025-07-16T22:31:58.6Z",
+						"maxEndTime": "2025-07-16T22:31:58.6Z"
+					}
+				}
+			]
+		},
+		{
+			"signalGroup": 8,
+			"stateTimeSpeed": [
+				{
+					"eventState": "stop-And-Remain",
+					"timing": {
+						"minEndTime": "2025-07-16T22:31:58.6Z",
+						"maxEndTime": "2025-07-16T22:31:58.6Z"
+					}
+				}
+			]
+		}
+	]
 }
 ```
 
@@ -325,57 +325,57 @@ When an OdeBsmJson message is processed through the jpo-geojsonconverter, a Proc
 
 ```json
 {
- "type": "Feature",
- "geometry": {
-  "type": "Point",
-  "coordinates": [
-   -105.0317754,
-   40.5659938
-  ]
- },
- "properties": {
-  "schemaVersion": 2,
-  "messageType": "BSM",
-  "odeReceivedAt": "2025-07-15T12:25:38.620Z",
-  "timeStamp": "2025-07-15T12:25:25.399Z",
-  "originIp": "172.18.0.1",
-  "asn1": "001480B8494C4C950CD8CDE6E9651116579F22A424DD78FFFFF00761E4FD7EB7D07F7FFF80005F11D1020214C1C0FFC7C016AFF4017A0FF65403B0FD204C20FFCCC04F8FE40C420FFE6404CEFE60E9A10133408FCFDE1438103AB4138F00E1EEC1048EC160103E237410445C171104E26BC103DC4154305C2C84103B1C1C8F0A82F42103F34262D1123198103DAC25FB12034CE10381C259F12038CA103574251B10E3B2210324C23AD0F23D8EFFFE0000209340D10000004264BF00",
-  "validationMessages": [],
-  "accelSet": {
-   "accelLat": 0.0,
-   "accelLong": 0.27,
-   "accelVert": 0.0,
-   "accelYaw": 0.0
-  },
-  "accuracy": {
-   "semiMajor": 9.3,
-   "semiMinor": 12.05
-  },
-  "brakes": {
-   "wheelBrakes": {
-    "unavailable": true,
-    "leftFront": false,
-    "leftRear": false,
-    "rightFront": false,
-    "rightRear": false
-   },
-   "traction": "unavailable",
-   "abs": "unavailable",
-   "scs": "unavailable",
-   "brakeBoost": "unavailable",
-   "auxBrakes": "unavailable"
-  },
-  "heading": 313.25,
-  "id": "31325433",
-  "msgCnt": 37,
-  "secMark": 25399,
-  "size": {
-   "width": 190,
-   "length": 570
-  },
-  "speed": 0.28,
-  "transmission": "unavailable"
- }
+	"type": "Feature",
+	"geometry": {
+		"type": "Point",
+		"coordinates": [
+			-105.0317754,
+			40.5659938
+		]
+	},
+	"properties": {
+		"schemaVersion": 2,
+		"messageType": "BSM",
+		"odeReceivedAt": "2025-07-15T12:25:38.620Z",
+		"timeStamp": "2025-07-15T12:25:25.399Z",
+		"originIp": "172.18.0.1",
+		"asn1": "001480B8494C4C950CD8CDE6E9651116579F22A424DD78FFFFF00761E4FD7EB7D07F7FFF80005F11D1020214C1C0FFC7C016AFF4017A0FF65403B0FD204C20FFCCC04F8FE40C420FFE6404CEFE60E9A10133408FCFDE1438103AB4138F00E1EEC1048EC160103E237410445C171104E26BC103DC4154305C2C84103B1C1C8F0A82F42103F34262D1123198103DAC25FB12034CE10381C259F12038CA103574251B10E3B2210324C23AD0F23D8EFFFE0000209340D10000004264BF00",
+		"validationMessages": [],
+		"accelSet": {
+			"accelLat": 0.0,
+			"accelLong": 0.27,
+			"accelVert": 0.0,
+			"accelYaw": 0.0
+		},
+		"accuracy": {
+			"semiMajor": 9.3,
+			"semiMinor": 12.05
+		},
+		"brakes": {
+			"wheelBrakes": {
+				"unavailable": true,
+				"leftFront": false,
+				"leftRear": false,
+				"rightFront": false,
+				"rightRear": false
+			},
+			"traction": "unavailable",
+			"abs": "unavailable",
+			"scs": "unavailable",
+			"brakeBoost": "unavailable",
+			"auxBrakes": "unavailable"
+		},
+		"heading": 313.25,
+		"id": "31325433",
+		"msgCnt": 37,
+		"secMark": 25399,
+		"size": {
+			"width": 190,
+			"length": 570
+		},
+		"speed": 0.28,
+		"transmission": "unavailable"
+	}
 }
 ```
 
@@ -405,29 +405,29 @@ Example ProcessedPsm message:
 
 ```json
 {
- "type": "Feature",
- "geometry": {
-  "type": "Point",
-  "coordinates": [
-   -74.27614369999999,
-   40.2397377
-  ]
- },
- "properties": {
-  "schemaVersion": 2,
-  "messageType": "PSM",
-  "odeReceivedAt": "2025-07-25T10:09:36.120Z",
-  "timeStamp": "2025-07-25T10:09:03.564Z",
-  "originIp": "172.18.0.1",
-  "asn1": "00201A0000021BD86891DE75F84DA101C13F042E2214141FFF00022C2000270000000163B2CC79860100",
-  "validationMessages": [],
-  "basicType": "aPEDESTRIAN",
-  "id": "24779D7E",
-  "msgCnt": 26,
-  "secMark": 3564,
-  "speed": 0.0,
-  "heading": 111.22500000000001
- }
+	"type": "Feature",
+	"geometry": {
+		"type": "Point",
+		"coordinates": [
+			-74.27614369999999,
+			40.2397377
+		]
+	},
+	"properties": {
+		"schemaVersion": 2,
+		"messageType": "PSM",
+		"odeReceivedAt": "2025-07-25T10:09:36.120Z",
+		"timeStamp": "2025-07-25T10:09:03.564Z",
+		"originIp": "172.18.0.1",
+		"asn1": "00201A0000021BD86891DE75F84DA101C13F042E2214141FFF00022C2000270000000163B2CC79860100",
+		"validationMessages": [],
+		"basicType": "aPEDESTRIAN",
+		"id": "24779D7E",
+		"msgCnt": 26,
+		"secMark": 3564,
+		"speed": 0.0,
+		"heading": 111.22500000000001
+	}
 }
 ```
 
@@ -439,21 +439,21 @@ Validation with reference to the [CTI-4501 specification](https://www.ite.org/IT
 
 The RTCM decoding functionality can be configured with the `rtcm.full.decode` setting in `application.yaml`.
 
-- If `rtcm.full.decode=true`, the app uses the native `gpsd-client` library to fully decode the RTCM payloads.
-- If `rtcm.full.decode=false`, it uses pure Java methods to partially decode the payload.  In partial mode it is only capable of extracting the message types and station IDs for RTCM rev 3 messages.
+* If `rtcm.full.decode=true`, the app uses the native `gpsd-client` library to fully decode the RTCM payloads.
+* If `rtcm.full.decode=false`, it uses pure Java methods to partially decode the payload.  In partial mode it is only capable of extracting the message types and station IDs for RTCM rev 3 messages.
 
 `ProcessedRtcm` fields:
 
-- *type* - Always 'Feature'
-- *geometry* - Point geometry, location of the station from the `FullPositionVector` frame.
-- *properties* - Selected properties from the message frame, and decoded from the binary RTCM messages, including:
-  - *msgCnt* - Message count
-  - *rev* - Must equal "rtcmRev3" to be CTI-4501 compliant, although it is possible to decode rev 2 messages in full decode mode.
-  - *messageTypes* - A list of message types from the decoded messages.
-  - *stationId* - The station ID from the decoded messages.
-  - *messages* - A list of fully or partially decoded messages.
-    - *hex* - The hex-encoded raw RTCM message.
-    - *decodedMessage* - The decoded message in JSON format. There are numerous message types, and the structure of this node varies depending on type.
+* *type* - Always 'Feature'
+* *geometry* - Point geometry, location of the station from the `FullPositionVector` frame.
+* *properties* - Selected properties from the message frame, and decoded from the binary RTCM messages, including:
+  * *msgCnt* - Message count
+  * *rev* - Must equal "rtcmRev3" to be CTI-4501 compliant, although it is possible to decode rev 2 messages in full decode mode.
+  * *messageTypes* - A list of message types from the decoded messages.
+  * *stationId* - The station ID from the decoded messages.
+  * *messages* - A list of fully or partially decoded messages.  
+    * *hex* - The hex-encoded raw RTCM message.
+    * *decodedMessage* - The decoded message in JSON format. There are numerous message types, and the structure of this node varies depending on type.
 
 Example `ProcessedRtcm` message:
 
@@ -592,6 +592,7 @@ Example `ProcessedSrm` message:
 }
 ```
 
+
 ### ProcessedSsm
 
 The GeoJSON Converter produces `ProcessedSsm` messages from `SignalStatusMessage` (SSM) message frames received from the ODE.
@@ -644,6 +645,17 @@ Example `ProcessedSsm` message:
   "validationMessages": []
 }
 ```
+
+
+[Back to top](#toc)
+
+<!--
+#########################################
+############# Configuration #############
+#########################################
+ -->
+
+<a name="configuration"/>
 
 ### ProcessedTim
 
@@ -973,7 +985,7 @@ A GitHub token is required to pull artifacts from GitHub repositories. This is r
 6. Click "Generate token" and copy the token.
 7. Copy the token name and token value into your `.env` file.
 8. Create a copy of [settings.xml](jpo-geojsonconverter/settings.xml) and save it to `~/.m2/settings.xml`
-9. Set `MAVEN_GITHUB_TOKEN` to the token value and `MAVEN_GITHUB_ORG` to the organization that publishes the selected `jpo-ode` dependency. This branch uses `jpo-ode` version `7.0.0-alpha1`, which is published under `CDOT-CV`; use `usdot-jpo-ode` for versions published by the upstream organization. The repository's [settings.xml](jpo-geojsonconverter/settings.xml) reads both variables:
+9. Update the variables in your `~/.m2/settings.xml` with the token value and target jpo-ode organization. Here is an example filled in `settings.xml` file:
 
 ```XML
 <?xml version="1.0" encoding="UTF-8"?>
@@ -984,8 +996,8 @@ A GitHub token is required to pull artifacts from GitHub repositories. This is r
     <servers>
         <server>
             <id>github</id>
-            <username>YOUR_GITHUB_USERNAME</username>
-            <password>${env.MAVEN_GITHUB_TOKEN}</password>
+            <username>jpo_geojsonconverter</username>
+            <password>ghp_token-string-value</password>
         </server>
     </servers>
     <profiles>
@@ -995,7 +1007,7 @@ A GitHub token is required to pull artifacts from GitHub repositories. This is r
                 <repository>
                     <id>github</id>
                     <name>GitHub Apache Maven Packages</name>
-                    <url>https://maven.pkg.github.com/${env.MAVEN_GITHUB_ORG}/jpo-ode</url>
+                    <url>https://maven.pkg.github.com/usdot-jpo-ode/jpo-ode</url>
                     <snapshots>
                         <enabled>false</enabled>
                     </snapshots>
@@ -1005,28 +1017,6 @@ A GitHub token is required to pull artifacts from GitHub repositories. This is r
     </profiles>
 </settings>
 ```
-
-#### Non-Docker build and test
-
-From the `jpo-geojsonconverter` module directory, export the package credentials and run the Maven wrapper. `verify` compiles the application and runs the complete unit-test suite.
-
-Linux/macOS:
-
-```bash
-export MAVEN_GITHUB_TOKEN="YOUR_TOKEN"
-export MAVEN_GITHUB_ORG="CDOT-CV"
-./mvnw --settings settings.xml clean verify
-```
-
-Windows PowerShell:
-
-```powershell
-$env:MAVEN_GITHUB_TOKEN = "YOUR_TOKEN"
-$env:MAVEN_GITHUB_ORG = "CDOT-CV"
-.\mvnw.cmd --settings settings.xml clean verify
-```
-
-To run one test class while iterating, replace `clean verify` with `-Dtest=TimGeometryConverterTest test`.
 
 #### Step 4 - Build and run jpo-geojsonconverter application
 
@@ -1208,7 +1198,7 @@ permissions and limitations under the [License](http://www.apache.org/licenses/L
 
 ## 7. Contributing
 
-Please read our [contributing guide](https://github.com/usdot-jpo-ode/jpo-ode/blob/develop/docs/contributing_guide.md) to learn about our development process, how to propose pull requests and improvements, and how to build and test your changes to this project.
+Please read our [contributing guide](docs/contributing_guide.md) to learn about our development process, how to propose pull requests and improvements, and how to build and test your changes to this project.
 
 ### Source Repositories - GitHub
 

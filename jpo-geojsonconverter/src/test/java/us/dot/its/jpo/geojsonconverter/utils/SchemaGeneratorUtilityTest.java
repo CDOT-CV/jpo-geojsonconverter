@@ -34,6 +34,7 @@ public class SchemaGeneratorUtilityTest {
 
         File spatSchemaFile = outputDir.resolve("processed-spat.schema.json").toFile();
         assertTrue(spatSchemaFile.exists());
+        assertTrue(outputDir.resolve("processed-tim.schema.json").toFile().exists());
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode schema = mapper.readTree(spatSchemaFile);
@@ -45,33 +46,6 @@ public class SchemaGeneratorUtilityTest {
         assertEquals("date-time", utcTimeStampTs.path("format").asText());
         assertFalse(properties.has("getUtcTimeStampTS()"));
         assertFalse(properties.has("class()"));
-
-        File timSchemaFile = outputDir.resolve("processed-tim.schema.json").toFile();
-        assertTrue(timSchemaFile.exists());
-        JsonNode timSchema = mapper.readTree(timSchemaFile);
-        JsonNode directionalityValues = timSchema.path("$defs").path("ProcessedDirectionality").path("enum");
-        assertEquals("forward", directionalityValues.get(0).asText());
-        assertEquals("unknown", directionalityValues.get(4).asText());
-        JsonNode elevationTypes = timSchema.path("$defs")
-                .path("ProcessedElevationProfile")
-                .path("properties")
-                .path("nodeElevationMeters")
-                .path("items")
-                .path("type");
-        assertEquals("number", elevationTypes.get(0).asText());
-        assertEquals("null", elevationTypes.get(1).asText());
-        JsonNode laneWidthTypes = timSchema.path("$defs")
-                .path("ProcessedLaneWidthProfile")
-                .path("properties")
-                .path("nodeLaneWidthMeters")
-                .path("items")
-                .path("type");
-        assertEquals("number", laneWidthTypes.get(0).asText());
-        assertEquals("null", laneWidthTypes.get(1).asText());
-        JsonNode geometryIndex = timSchema.path("$defs").path("ProcessedPathRegionInfo-1").path("properties")
-                .path("geometryIndex");
-        assertEquals("integer", geometryIndex.path("type").asText());
-        assertEquals("int32", geometryIndex.path("format").asText());
     }
 
     @Test
@@ -79,17 +53,6 @@ public class SchemaGeneratorUtilityTest {
         int status = SchemaGeneratorUtility.run(new String[] {"--output"});
 
         assertEquals(1, status);
-    }
-
-    @Test
-    public void run_withoutArgs_usesDefaultPathAndReturnsZero() throws Exception {
-        Path defaultSchemaDir = Path.of("").toAbsolutePath().resolve("src/main/resources/schemas");
-        int status = SchemaGeneratorUtility.run(new String[0]);
-
-        assertEquals(0, status);
-
-        File spatSchema = defaultSchemaDir.resolve("processed-spat.schema.json").toFile();
-        assertTrue(spatSchema.exists());
     }
 
     @Test

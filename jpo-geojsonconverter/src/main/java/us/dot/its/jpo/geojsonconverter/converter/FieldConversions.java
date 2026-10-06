@@ -98,7 +98,7 @@ public class FieldConversions {
     /**
      * Converts a J2735 longitude value to decimal degrees. Longitude ::= INTEGER (-1799999999..1800000001) LSB = 1/10
      * microdegree, providing a range of plus-minus 180 degrees.
-     * 
+     *
      * @param j2735Long J2735 longitude value
      * @return Longitude in decimal degrees, or null if unavailable
      */
@@ -113,7 +113,7 @@ public class FieldConversions {
     /**
      * Converts a J2735 latitude value to decimal degrees. Latitude ::= INTEGER (-900000000..900000001) LSB = 1/10
      * microdegree, providing a range of plus-minus 90 degrees.
-     * 
+     *
      * @param j2735Lat J2735 latitude value
      * @return Latitude in decimal degrees, or null if unavailable
      */
@@ -127,7 +127,7 @@ public class FieldConversions {
 
     /**
      * Convert J2735 longitude value to decimal degrees with zoom scaling.
-     * 
+     *
      * @param j2735Long J2735 longitude value
      * @param zoomFactor Zoom scaling factor (2^zoom)
      * @return Longitude in decimal degrees
@@ -142,7 +142,7 @@ public class FieldConversions {
 
     /**
      * Convert J2735 latitude value to decimal degrees with zoom scaling.
-     * 
+     *
      * @param j2735Lat J2735 latitude value
      * @param zoomFactor Zoom scaling factor (2^zoom)
      * @return Latitude in decimal degrees
@@ -163,7 +163,7 @@ public class FieldConversions {
      * ({@code 2^zoom}). Degree deltas are solved on the WGS84 ellipsoid so that ground distance is preserved as the
      * length of a degree changes with latitude.
      *
-     * @param j2735X J2735 X offset in centimeters east
+     * @param j2735X J2735 X offset in centimeters eas
      * @param j2735Y J2735 Y offset in centimeters north
      * @param currentLat Reference latitude in decimal degrees
      * @param zoomFactor Zoom scaling factor ({@code 2^zoom})
@@ -209,7 +209,7 @@ public class FieldConversions {
     /**
      * Converts a J2735 lateral/longitudinal acceleration value to m/s^2. Acceleration ::= INTEGER (-2000..2001) LSB
      * units are 0.01 m/s^2. Values outside the range are clamped to ±20.0 m/s^2.
-     * 
+     *
      * @param accelLatLong J2735 acceleration value
      * @return Acceleration in m/s^2, or null if unavailable
      */
@@ -228,7 +228,7 @@ public class FieldConversions {
     /**
      * Converts a J2735 vertical acceleration value to G units. VerticalAcceleration ::= INTEGER (-127..127) LSB units
      * of 0.02 G steps over -2.52 to +2.54 G.
-     * 
+     *
      * @param accelVert J2735 vertical acceleration value
      * @return Vertical acceleration in G units, or null if unavailable
      */
@@ -243,7 +243,7 @@ public class FieldConversions {
     /**
      * Converts a J2735 yaw rate value to degrees per second. YawRate ::= INTEGER (-32767..32767) LSB units of 0.01
      * degrees per second (signed).
-     * 
+     *
      * @param accelYaw J2735 yaw rate value
      * @return Yaw rate in degrees per second, or null if out of range
      */
@@ -258,7 +258,7 @@ public class FieldConversions {
     /**
      * Converts a J2735 semi-major axis accuracy value to meters. SemiMajorAxisAccuracy ::= INTEGER (0..255) Range
      * 0-12.7 meters, LSB = 0.05m. Value 255 indicates unavailable.
-     * 
+     *
      * @param semiMajor J2735 semi-major axis accuracy value
      * @return Semi-major axis accuracy in meters, or null if unavailable
      */
@@ -273,7 +273,7 @@ public class FieldConversions {
     /**
      * Converts a J2735 semi-minor axis accuracy value to meters. SemiMinorAxisAccuracy ::= INTEGER (0..255) Range
      * 0-12.7 meters, LSB = 0.05m. Value 255 indicates unavailable.
-     * 
+     *
      * @param semiMinor J2735 semi-minor axis accuracy value
      * @return Semi-minor axis accuracy in meters, or null if unavailable
      */
@@ -289,7 +289,7 @@ public class FieldConversions {
      * Converts a J2735 semi-major axis orientation value to degrees. SemiMajorAxisOrientation ::= INTEGER (0..65535)
      * Orientation relative to true north (0~359.9945078786 degrees). LSB units of 360/65535 deg = 0.0054932479. Value
      * 65535 indicates unavailable.
-     * 
+     *
      * @param orientation J2735 orientation value
      * @return Orientation in degrees relative to true north, or null if unavailable
      */
@@ -304,7 +304,7 @@ public class FieldConversions {
     /**
      * Converts a J2735 steering wheel angle value to degrees. SteeringWheelAngle ::= INTEGER (-126..127) LSB units of
      * 1.5 degrees, a range of -189 to +189 degrees. Value 127 indicates unavailable.
-     * 
+     *
      * @param angle J2735 steering wheel angle value
      * @return Steering wheel angle in degrees, or null if unavailable
      */
@@ -319,7 +319,7 @@ public class FieldConversions {
     /**
      * Converts a J2735 heading value to degrees. Heading ::= INTEGER (0..28800) LSB of 0.0125 degrees, providing a
      * range of 0 to 359.9875 degrees.
-     * 
+     *
      * @param angle J2735 heading value
      * @return Heading in degrees, or null if out of range
      */
@@ -333,7 +333,7 @@ public class FieldConversions {
 
     /**
      * Converts a J2735 lane width value from centimeters to meters.
-     * 
+     *
      * @param laneWidth J2735 LaneWidth value in centimeters
      * @return Lane width in meters, or null if laneWidth is null
      */
@@ -347,7 +347,7 @@ public class FieldConversions {
     /**
      * Converts a J2735 speed value to meters per second. Speed ::= INTEGER (0..8191) Units of 0.02 m/s. Value 8191
      * indicates speed is unavailable.
-     * 
+     *
      * @param speed J2735 speed value
      * @return Speed in m/s, or null if unavailable
      */
@@ -362,7 +362,7 @@ public class FieldConversions {
     /**
      * Converts a J2735 DDateTime value to epoch milliseconds. Validates all required date/time components and collects
      * validation messages.
-     * 
+     *
      * @param validationMessages List to collect validation error messages
      * @param dDateTime J2735 DDateTime value
      * @return Epoch milliseconds, or null if any required field is missing
@@ -420,7 +420,7 @@ public class FieldConversions {
 
     /**
      * Converts a J2735 DYear value to an integer. Value 0 represents unknown year.
-     * 
+     *
      * @param dYear J2735 DYear value
      * @return Year as integer, or null if dYear is null or unknown
      */
@@ -434,7 +434,7 @@ public class FieldConversions {
 
     /**
      * Converts a J2735 DMonth value to an integer. Value 0 represents unknown month.
-     * 
+     *
      * @param dMonth J2735 DMonth value
      * @return Month as integer (1-12), or null if dMonth is null or unknown
      */
@@ -448,7 +448,7 @@ public class FieldConversions {
 
     /**
      * Converts a J2735 DDay value to an integer. Value 0 represents unknown day.
-     * 
+     *
      * @param dDay J2735 DDay value
      * @return Day of month as integer (1-31), or null if dDay is null or unknown
      */
@@ -463,7 +463,7 @@ public class FieldConversions {
     /**
      * Converts a J2735 DHour value to an integer. Per J2735 (2024) sec 7.34: Values 24-30 are used for schedule
      * adherence, and 31 represents unknown hours. Values > 23 are treated as unavailable.
-     * 
+     *
      * @param dHour J2735 DHour value
      * @return Hour as integer (0-23), or null if dHour is null or unavailable
      */
@@ -479,7 +479,7 @@ public class FieldConversions {
 
     /**
      * Converts a J2735 DMinute value to an integer. Per J2735 (2024) sec 7.37: Value 60 represents unknown minute.
-     * 
+     *
      * @param dMinute J2735 DMinute value
      * @return Minute as integer (0-59), or null if dMinute is null or unknown
      */
@@ -514,10 +514,10 @@ public class FieldConversions {
 
 
     /**
-     * Convert time zone offset
+     * Convert time zone offse
      *
      * @param dOffset Offset in minutes
-     * @return Java ZoneOffset
+     * @return Java ZoneOffse
      */
     public static ZoneOffset convertDOffset(DOffset dOffset) {
         if (dOffset == null) return ZoneOffset.UTC;
@@ -585,7 +585,7 @@ public class FieldConversions {
     }
 
     /**
-     * Parse heading sectors as ranges from Asn1Bitstring, merging adjacent sectors into continuous ranges. Each bit
+     * Parse heading sectors as ranges from Asn1Bitstring, merging adjacent sectors into continuous ranges. Each bi
      * represents a 22.5-degree sector starting from North (0°) and moving clockwise. Sectors that wrap across north
      * (bits 15 and 0) are merged into one range whose start bit is greater than its end bit.
      *
@@ -676,7 +676,7 @@ public class FieldConversions {
 
     /**
      * Converts a distance value from the specified distance units to meters.
-     * 
+     *
      * @param distance The distance value in the specified units
      * @param units The distance units enum value
      * @return Distance converted to meters, or null if units is null
@@ -695,14 +695,14 @@ public class FieldConversions {
             case FOOT -> distance * FOOT_TO_METERS; // 1 ft = 0.3048 m
             case YARD -> distance * YARD_TO_METERS; // 1 yd = 0.9144 m
             case MILE -> distance * MILE_TO_METERS; // 1 mi = 1609.344 m
-            default -> (double) distance; // Default to meters if unknown unit
+            default -> (double) distance; // Default to meters if unknown uni
         };
     }
 
     /**
      * Produce a ZonedDateTime from a minute of the year, and ingest time, adjusting for the edge case where the message
      * is produced on New Year's Eve and ingested on New Year's Day.
-     * 
+     *
      * @param minuteOfTheYear J2735 Minute-of-the-year Integer
      * @param ingestTime The ingest time
      * @return A ZonedDateTime for the minute of the year
@@ -731,7 +731,7 @@ public class FieldConversions {
 
     /**
      * Convert Minute of Year to ZonedDateTime. Requires knowing what year it is. Value of 527040 represents "invalid"
-     * 
+     *
      * @param minuteOfTheYear DE_MinuteOfYear
      * @param year The year
      * @return ZonedDateTime for the year at the beginning of the minute
@@ -747,7 +747,7 @@ public class FieldConversions {
 
     /**
      * Converts J2735 MinuteOfTheYear and DSecond to ZonedDateTime using ingest time for year determination.
-     * 
+     *
      * @param minuteOfTheYear J2735 MinuteOfTheYear value
      * @param ingestTime The ingest time used to determine the year
      * @param dSecond J2735 DSecond value for sub-minute precision
@@ -761,7 +761,7 @@ public class FieldConversions {
 
     /**
      * Converts J2735 MinuteOfTheYear and DSecond to ZonedDateTime using a specified year.
-     * 
+     *
      * @param minuteOfTheYear J2735 MinuteOfTheYear value
      * @param year The year to use for conversion
      * @param dSecond J2735 DSecond value for sub-minute precision
@@ -787,7 +787,7 @@ public class FieldConversions {
 
     /**
      * Converts a J2735 MsgCount value to an integer.
-     * 
+     *
      * @param msgCount J2735 MsgCount value
      * @return Message count as integer, or null if msgCount is null
      */
@@ -798,7 +798,7 @@ public class FieldConversions {
 
     /**
      * Converts a J2735 IntersectionReferenceID to a RegionIntersectionId record.
-     * 
+     *
      * @param intersectionReferenceID J2735 IntersectionReferenceID value
      * @return RegionIntersectionId containing region and intersection ID, or both null if input is null
      */
@@ -816,7 +816,7 @@ public class FieldConversions {
 
     /**
      * Converts a J2735 VehicleID to a String. VehicleID is a CHOICE of EntityID (Octet string) or StationID (integer).
-     * 
+     *
      * @param vehicleID J2735 VehicleID value
      * @return Vehicle ID as String, or null if vehicleID is null or has no value
      */
@@ -837,7 +837,7 @@ public class FieldConversions {
     /**
      * Converts a J2735 IntersectionAccessPoint to an AccessPointID record. IntersectionAccessPoint is a CHOICE of
      * LaneID, ConnectionID, or ApproachID.
-     * 
+     *
      * @param iap J2735 IntersectionAccessPoint value
      * @return AccessPointID containing lane, approach, and connection IDs, or all null if input is null
      */
@@ -865,7 +865,7 @@ public class FieldConversions {
 
     /**
      * Converts a J2735 BasicVehicleRole to a ProcessedBasicVehicleRole enum.
-     * 
+     *
      * @param role J2735 BasicVehicleRole value
      * @return ProcessedBasicVehicleRole enum value, or null if role is null or has no name
      */
@@ -878,7 +878,7 @@ public class FieldConversions {
 
     /**
      * Converts a J2735 RequestSubRole to a ProcessedRequestSubRole enum.
-     * 
+     *
      * @param role J2735 RequestSubRole value
      * @return ProcessedRequestSubRole enum value, or null if role is null or has no name
      */
@@ -891,7 +891,7 @@ public class FieldConversions {
 
     /**
      * Converts a J2735 VehicleType to a ProcessedVehicleType enum.
-     * 
+     *
      * @param vehicleType J2735 VehicleType value
      * @return ProcessedVehicleType enum value, or null if vehicleType is null or has no name
      */
@@ -904,7 +904,7 @@ public class FieldConversions {
 
     /**
      * Converts a J2735 RequestImportanceLevel to a ProcessedRequestImportanceLevel enum.
-     * 
+     *
      * @param importanceLevel J2735 RequestImportanceLevel value
      * @return ProcessedRequestImportanceLevel enum value, or null if importanceLevel is null or has no name
      */
@@ -920,7 +920,7 @@ public class FieldConversions {
      * DeltaTime ::= INTEGER (-122 .. 121) -- Supporting a range of +/- 20 minute in steps of 10 seconds -- the value of
      * -121 shall be used when more than -20 minutes -- the value of +120 shall be used when more than +20 minutes --
      * the value -122 shall be used when the value is unavailable
-     * 
+     *
      * @param deltaTime The difference from scheduled time
      * @return Duration in seconds
      */
