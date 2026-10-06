@@ -1,5 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.pojos.geojson.srm;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -10,10 +11,12 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 
 /**
- * A SignalRequest within a ProcessedSrm. Includes information about the request, but does not include requestor
- * information or location.
+ * A SignalRuest within a ProcessedSrm.
+ * Includes information about the request, but does not include
+ * requestor information or location.
  */
 @Data
 @NoArgsConstructor

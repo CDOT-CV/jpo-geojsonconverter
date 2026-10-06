@@ -69,9 +69,6 @@ public class SsmTransformer
 
         // Process message frame
         ProcessedSsm processedSsm =  converter.processSsm(ssm, odeReceivedAt);
-        if (processedSsm == null) {
-            throw new IllegalStateException("SSM conversion returned no processed message");
-        }
 
         // Add metadata
         processedSsm.setOdeReceivedAt(odeReceivedAt);

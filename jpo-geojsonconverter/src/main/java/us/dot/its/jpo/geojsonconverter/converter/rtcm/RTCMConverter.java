@@ -29,8 +29,6 @@ import static us.dot.its.jpo.geojsonconverter.converter.FieldConversions.*;
 @Slf4j
 public class RTCMConverter {
 
-    private static final String UNEXPECTED_ANCHOR_FIELD_SUFFIX = "present but should not included.";
-
     private final RTCMDecoder decoder;
 
     @Autowired
@@ -171,37 +169,37 @@ public class RTCMConverter {
         if (anchor.getHeading() != null) {
             properties.addValidationMessage(
                     "CTI-4501 conformance issue: The anchorPoint (DF_FullPositionVector) 'heading' field is present " +
-                            UNEXPECTED_ANCHOR_FIELD_SUFFIX);
+                            "but should not included.");
         }
 
         if (anchor.getSpeed() != null) {
             properties.addValidationMessage(
                     "CTI-4501 conformance issue: The anchorPoint (DF_FullPositionVector) 'speed' field is present " +
-                            UNEXPECTED_ANCHOR_FIELD_SUFFIX);
+                            "but should not included.");
         }
 
         if (anchor.getPosAccuracy() != null) {
             properties.addValidationMessage(
                     "CTI-4501 conformance issue: The anchorPoint (DF_FullPositionVector) 'posAccuracy' field is " +
-                            UNEXPECTED_ANCHOR_FIELD_SUFFIX);
+                            "present but should not included.");
         }
 
         if (anchor.getTimeConfidence() != null) {
             properties.addValidationMessage(
                     "CTI-4501 conformance issue: The anchorPoint (DF_FullPositionVector) 'timeConfidence' field is " +
-                            UNEXPECTED_ANCHOR_FIELD_SUFFIX);
+                            "present but should not included.");
         }
 
         if (anchor.getPosConfidence() != null) {
             properties.addValidationMessage(
                     "CTI-4501 conformance issue: The anchorPoint (DF_FullPositionVector) 'posConfidence' field is " +
-                            UNEXPECTED_ANCHOR_FIELD_SUFFIX);
+                            "present but should not included.");
         }
 
         if (anchor.getSpeedConfidence() != null) {
             properties.addValidationMessage(
                     "CTI-4501 conformance issue: The anchorPoint (DF_FullPositionVector) 'speedConfidence' field is " +
-                            UNEXPECTED_ANCHOR_FIELD_SUFFIX);
+                            "present but should not included.");
         }
 
     }

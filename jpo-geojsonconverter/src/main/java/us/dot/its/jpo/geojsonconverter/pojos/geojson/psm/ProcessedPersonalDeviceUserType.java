@@ -2,6 +2,7 @@ package us.dot.its.jpo.geojsonconverter.pojos.geojson.psm;
 
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
+import us.dot.its.jpo.geojsonconverter.pojos.common.ProcessedSpeedConfidence;
 
 import java.util.Objects;
 

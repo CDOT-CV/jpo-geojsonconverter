@@ -2,8 +2,8 @@ package us.dot.its.jpo.geojsonconverter.converter.spat;
 
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.asn.j2735.r2024.Common.DSecond;
-import us.dot.its.jpo.asn.j2735.r2024.Common.IntersectionReferenceID;
 import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
+import us.dot.its.jpo.asn.j2735.r2024.Common.IntersectionReferenceID;
 import us.dot.its.jpo.asn.j2735.r2024.Common.SpeedConfidence;
 import us.dot.its.jpo.asn.j2735.r2024.SPAT.*;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuIntersectionKey;
@@ -23,9 +23,7 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.kstream.KeyValueMapper;
@@ -92,90 +90,73 @@ public class SpatProcessedJsonConverter
 
     public ProcessedSpat createProcessedSpat(SPAT spat, OdeMessageFrameMetadata metadata,
             JsonValidatorResult validationMessages) {
+        // Create an IntersectionState from the SPAT for easier readability
         IntersectionState intersectionState = spat.getIntersections().get(0);
+
+        // Build the ProcessedSpat object representing the intersection state
         ProcessedSpat processedSpat = new ProcessedSpat();
         processedSpat.setOdeReceivedAt(metadata.getOdeReceivedAt()); // ISO 8601: 2022-11-11T16:36:10.529530Z
         processedSpat.setOriginIp(metadata.getOriginIp());
         processedSpat.setAsn1(metadata.getAsn1());
         processedSpat.setName(intersectionState.getName() != null ? intersectionState.getName().getValue() : null);
-        processedSpat.setIntersectionReferenceID(convertIntersectionReferenceId(intersectionState.getId()));
-        List<ProcessedValidationMessage> processedSpatValidationMessages =
-                createValidationMessages(spat, validationMessages);
+        IntersectionReferenceID intersectionReferenceID = intersectionState.getId();
+        ProcessedIntersectionReferenceID processedIntersectionReferenceID = new ProcessedIntersectionReferenceID();
+        processedIntersectionReferenceID.setId(
+                intersectionReferenceID.getId() != null ? (int) intersectionReferenceID.getId().getValue() : null);
+        processedIntersectionReferenceID.setRegion(
+                intersectionReferenceID.getRegion() != null ? (int) intersectionReferenceID.getRegion().getValue()
+                        : null);
+        processedSpat.setIntersectionReferenceID(processedIntersectionReferenceID);
+
+        // Handle validation messages for the J2735 and CTI-4501 SPaT conformance validation
+        List<ProcessedValidationMessage> processedSpatValidationMessages = new ArrayList<ProcessedValidationMessage>();
+        for (Exception exception : validationMessages.getExceptions()) {
+            ProcessedValidationMessage object = new ProcessedValidationMessage();
+            object.setMessage(exception.getMessage());
+            object.setException(exception.getStackTrace().toString());
+            processedSpatValidationMessages.add(object);
+        }
+        for (Error vm : validationMessages.getValidationMessages()) {
+            ProcessedValidationMessage object = new ProcessedValidationMessage();
+            object.setMessage(vm.getMessage());
+            final var schemaLocation = vm.getSchemaLocation();
+            if (schemaLocation != null) {
+                object.setSchemaPath(schemaLocation.toString());
+            } else {
+                log.warn("validationMessage.schemaLocation is null");
+            }
+            final var evaluationPath = vm.getEvaluationPath();
+            if (evaluationPath != null) {
+                object.setJsonPath(vm.getEvaluationPath().toString());
+            }
+
+            processedSpatValidationMessages.add(object);
+        }
+        processedSpatValidationMessages.addAll(CTI4501Validator.spatValidation(spat));
         processedSpat.setValidationMessages(processedSpatValidationMessages);
-        processedSpat.setCti4501Conformant(processedSpatValidationMessages.isEmpty());
+        processedSpat.setCti4501Conformant(processedSpat.getValidationMessages().size() == 0);
+
         processedSpat.setRevision(
                 intersectionState.getRevision() != null ? (int) intersectionState.getRevision().getValue() : null);
         ProcessedIntersectionStatusObject processedStatus = new ProcessedIntersectionStatusObject();
         BitstringUtils.processBitstring(processedStatus, intersectionState.getStatus());
         processedSpat.setStatus(processedStatus);
-        processedSpat.setEnabledLanes(convertEnabledLanes(intersectionState));
-        ZonedDateTime utcTimestamp = resolveUtcTimestamp(spat, intersectionState, metadata);
-        processedSpat.setUtcTimeStamp(utcTimestamp);
-        processedSpat.setStates(convertMovementStates(intersectionState, utcTimestamp));
-        return processedSpat;
-    }
-
-    private ProcessedIntersectionReferenceID convertIntersectionReferenceId(
-            IntersectionReferenceID intersectionReferenceID) {
-        ProcessedIntersectionReferenceID processedId = new ProcessedIntersectionReferenceID();
-        processedId.setId(intersectionReferenceID.getId() != null
-                ? (int) intersectionReferenceID.getId().getValue()
-                : null);
-        processedId.setRegion(intersectionReferenceID.getRegion() != null
-                ? (int) intersectionReferenceID.getRegion().getValue()
-                : null);
-        return processedId;
-    }
-
-    private List<ProcessedValidationMessage> createValidationMessages(SPAT spat,
-            JsonValidatorResult validationMessages) {
-        List<ProcessedValidationMessage> processedMessages = new ArrayList<>();
-        for (Exception exception : validationMessages.getExceptions()) {
-            ProcessedValidationMessage message = new ProcessedValidationMessage();
-            message.setMessage(exception.getMessage());
-            message.setException(Arrays.toString(exception.getStackTrace()));
-            processedMessages.add(message);
-        }
-        for (Error validationMessage : validationMessages.getValidationMessages()) {
-            ProcessedValidationMessage message = new ProcessedValidationMessage();
-            message.setMessage(validationMessage.getMessage());
-            final var schemaLocation = validationMessage.getSchemaLocation();
-            if (schemaLocation != null) {
-                message.setSchemaPath(schemaLocation.toString());
-            } else {
-                log.warn("validationMessage.schemaLocation is null");
-            }
-            final var evaluationPath = validationMessage.getEvaluationPath();
-            if (evaluationPath != null) {
-                message.setJsonPath(evaluationPath.toString());
-            }
-            processedMessages.add(message);
-        }
-        processedMessages.addAll(CTI4501Validator.spatValidation(spat));
-        return processedMessages;
-    }
-
-    private List<Integer> convertEnabledLanes(IntersectionState intersectionState) {
         List<Integer> enabledLanes = new ArrayList<>();
         if (intersectionState.getEnabledLanes() != null) {
             enabledLanes.addAll(
                     intersectionState.getEnabledLanes().stream().map(laneId -> (int) laneId.getValue()).toList());
         }
-        return enabledLanes;
-    }
+        processedSpat.setEnabledLanes(enabledLanes);
 
-    private ZonedDateTime resolveUtcTimestamp(SPAT spat, IntersectionState intersectionState,
-            OdeMessageFrameMetadata metadata) {
+        // Use the shared J2735 conversion, preferring the intersection timestamp.
         MinuteOfTheYear spatMoy = spat.getTimeStamp();
         MinuteOfTheYear intersectionMoy = intersectionState.getMoy();
         DSecond intersectionDSecond = intersectionState.getTimeStamp();
         ZonedDateTime odeDate = Instant.parse(metadata.getOdeReceivedAt()).atZone(ZoneId.of("UTC"));
-        return J2735DateTimeConverter.generateUTCTimestamp(
+        ZonedDateTime utcTimestamp = J2735DateTimeConverter.generateUTCTimestamp(
                 intersectionMoy != null ? intersectionMoy : spatMoy, intersectionDSecond, odeDate);
-    }
+        processedSpat.setUtcTimeStamp(utcTimestamp);
 
-    private List<ProcessedMovementState> convertMovementStates(IntersectionState intersectionState,
-            ZonedDateTime utcTimestamp) {
         List<ProcessedMovementState> processedMovementStateList = new ArrayList<ProcessedMovementState>();
         for (MovementState signalGroupState : intersectionState.getStates()) {
             ProcessedMovementState processedMovementState = new ProcessedMovementState();
@@ -188,76 +169,82 @@ public class SpatProcessedJsonConverter
             List<ProcessedMovementEvent> processedMovementEventList = new ArrayList<ProcessedMovementEvent>();
             if (signalGroupState.getState_time_speed() != null) {
                 for (MovementEvent incomingMovementEvent : signalGroupState.getState_time_speed()) {
-                    processedMovementEventList.add(convertMovementEvent(incomingMovementEvent, utcTimestamp));
+                    ProcessedMovementEvent processedMovementEvent = new ProcessedMovementEvent();
+                    MovementPhaseState phaseState = incomingMovementEvent.getEventState();
+                    if (phaseState != null) {
+                        ProcessedMovementPhaseState processedMovementPhaseState =
+                                ProcessedMovementPhaseState.fromName(phaseState.getName());
+                        processedMovementEvent.setEventState(processedMovementPhaseState);
+                    }
+
+
+                    // Convert optional TimeMarks with the shared timestamp helpers.
+                    TimingChangeDetails spatTimingDetails = new TimingChangeDetails();
+                    TimeMark startTime = incomingMovementEvent.getTiming().getStartTime();
+                    TimeMark minEndTime = incomingMovementEvent.getTiming().getMinEndTime();
+                    TimeMark maxEndTime = incomingMovementEvent.getTiming().getMaxEndTime();
+                    TimeMark likelyTime = incomingMovementEvent.getTiming().getLikelyTime();
+                    TimeMark nextTime = incomingMovementEvent.getTiming().getNextTime();
+                    spatTimingDetails.setStartTime(
+                            J2735DateTimeConverter.generateStartUTCTimestampForTimeMark(utcTimestamp, startTime, minEndTime));
+                    spatTimingDetails.setMinEndTime(
+                            J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(utcTimestamp, minEndTime));
+                    spatTimingDetails.setMaxEndTime(
+                            J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(utcTimestamp, maxEndTime));
+                    spatTimingDetails.setLikelyTime(
+                            J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(utcTimestamp, likelyTime));
+                    spatTimingDetails.setNextTime(
+                            J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(utcTimestamp, nextTime));
+                    spatTimingDetails.setConfidence(incomingMovementEvent.getTiming().getConfidence() != null
+                            ? (int) incomingMovementEvent.getTiming().getConfidence().getValue()
+                            : null);
+                    processedMovementEvent.setTiming(spatTimingDetails);
+
+                    // Set the speeds if they exist, otherwise set to null
+                    processedMovementEvent.setSpeeds(convertAdvisorySpeedList(incomingMovementEvent.getSpeeds()));
+
+                    processedMovementEventList.add(processedMovementEvent);
                 }
             }
             processedMovementState.setStateTimeSpeed(processedMovementEventList);
             processedMovementStateList.add(processedMovementState);
         }
-        return processedMovementStateList;
-    }
 
-    private ProcessedMovementEvent convertMovementEvent(MovementEvent movementEvent, ZonedDateTime utcTimestamp) {
-        ProcessedMovementEvent processedEvent = new ProcessedMovementEvent();
-        MovementPhaseState phaseState = movementEvent.getEventState();
-        if (phaseState != null) {
-            processedEvent.setEventState(ProcessedMovementPhaseState.fromName(phaseState.getName()));
-        }
-        processedEvent.setTiming(convertTimingDetails(movementEvent, utcTimestamp));
-        processedEvent.setSpeeds(convertAdvisorySpeedList(movementEvent.getSpeeds()));
-        return processedEvent;
-    }
-
-    private TimingChangeDetails convertTimingDetails(MovementEvent movementEvent, ZonedDateTime utcTimestamp) {
-        var timing = movementEvent.getTiming();
-        TimingChangeDetails timingDetails = new TimingChangeDetails();
-        TimeMark startTime = timing.getStartTime();
-        TimeMark minEndTime = timing.getMinEndTime();
-        TimeMark maxEndTime = timing.getMaxEndTime();
-        TimeMark likelyTime = timing.getLikelyTime();
-        TimeMark nextTime = timing.getNextTime();
-        timingDetails.setStartTime(
-                J2735DateTimeConverter.generateStartUTCTimestampForTimeMark(utcTimestamp, startTime, minEndTime));
-        timingDetails.setMinEndTime(
-                J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(utcTimestamp, minEndTime));
-        timingDetails.setMaxEndTime(
-                J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(utcTimestamp, maxEndTime));
-        timingDetails.setLikelyTime(
-                J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(utcTimestamp, likelyTime));
-        timingDetails.setNextTime(
-                J2735DateTimeConverter.generateOffsetUTCTimestampForTimeMark(utcTimestamp, nextTime));
-        timingDetails.setConfidence(timing.getConfidence() != null ? (int) timing.getConfidence().getValue() : null);
-        return timingDetails;
+        processedSpat.setStates(processedMovementStateList);
+        return processedSpat;
     }
 
     private ProcessedAdvisorySpeedList convertAdvisorySpeedList(AdvisorySpeedList advisorySpeedList) {
-        if (advisorySpeedList == null) {
-            return null;
-        }
-        return advisorySpeedList.stream()
-                .map(this::convertAdvisorySpeed)
-                .collect(Collectors.toCollection(ProcessedAdvisorySpeedList::new));
-    }
+        if (advisorySpeedList != null) {
+            ProcessedAdvisorySpeedList processedAdvisorySpeedList = new ProcessedAdvisorySpeedList();
+            for (AdvisorySpeed advisorySpeed : advisorySpeedList) {
+                ProcessedAdvisorySpeed processedAdvisorySpeed = new ProcessedAdvisorySpeed();
 
-    private ProcessedAdvisorySpeed convertAdvisorySpeed(AdvisorySpeed advisorySpeed) {
-        ProcessedAdvisorySpeed processedAdvisorySpeed = new ProcessedAdvisorySpeed();
-        processedAdvisorySpeed.setSpeed(
-                advisorySpeed.getSpeed() != null ? (int) advisorySpeed.getSpeed().getValue() : null);
-        processedAdvisorySpeed.setClass_(advisorySpeed.getClass_() != null
-                ? (int) advisorySpeed.getClass_().getValue()
-                : null);
-        processedAdvisorySpeed.setDistance(advisorySpeed.getDistance() != null
-                ? (int) advisorySpeed.getDistance().getValue()
-                : null);
-        AdvisorySpeedType advisorySpeedType = advisorySpeed.getType();
-        if (advisorySpeedType != null) {
-            processedAdvisorySpeed.setType(ProcessedAdvisorySpeedType.fromName(advisorySpeedType.getName()));
+                Integer speed = advisorySpeed.getSpeed() != null ? (int) advisorySpeed.getSpeed().getValue() : null;
+                processedAdvisorySpeed.setSpeed(speed);
+
+                Integer class_ = advisorySpeed.getClass_() != null ? (int) advisorySpeed.getClass_().getValue() : null;
+                processedAdvisorySpeed.setClass_(class_);
+
+                Integer distance =
+                        advisorySpeed.getDistance() != null ? (int) advisorySpeed.getDistance().getValue() : null;
+                processedAdvisorySpeed.setDistance(distance);
+
+                AdvisorySpeedType advisorySpeedType = advisorySpeed.getType();
+                if (advisorySpeedType != null) {
+                    processedAdvisorySpeed.setType(ProcessedAdvisorySpeedType.fromName(advisorySpeedType.getName()));
+                }
+
+                SpeedConfidence speedConfidence = advisorySpeed.getConfidence();
+                if (speedConfidence != null) {
+                    processedAdvisorySpeed.setConfidence(ProcessedSpeedConfidence.fromName(speedConfidence.getName()));
+                }
+
+                processedAdvisorySpeedList.add(processedAdvisorySpeed);
+            }
+            return processedAdvisorySpeedList;
         }
-        SpeedConfidence speedConfidence = advisorySpeed.getConfidence();
-        if (speedConfidence != null) {
-            processedAdvisorySpeed.setConfidence(ProcessedSpeedConfidence.fromName(speedConfidence.getName()));
-        }
-        return processedAdvisorySpeed;
+        return null;
     }
 
     public ProcessedSpat createFailureProcessedSpat(JsonValidatorResult validatorResult, String message) {
