@@ -6,7 +6,105 @@
 
 The JPO Intersection GeoJSON Converter is a real-time validator and data converter of JPO-ODE MAP and SPaT JSON based on the SAE J2735 message standard. Messages are consumed from Kafka and validated based on both the SAE J2735 standard and the more robust Connected Transportation Interoperability (CTI) Intersection Implementation Guide Message Requirements (Section 3.3.3). Message validation occurs simultaneously as the GeoJSON converter converts the JPO-ODE MAP and SPaT messages into mappable geoJSON. The JPO Intersection GeoJSON Converter outputs the resulting geoJSON onto Kafka topics. These messages contain validation information that identifies all issues encountered with validation, if any.
 
-![alt text](docs/jpo-geojsonconverter_arch_diagram.png "jpo-geojsonconverter Design Diagram")
+```mermaid
+flowchart LR
+
+%% Column 0: The Source
+subgraph COL0 ["Source"]
+    direction TB %% <-- Keep columns vertical
+    ODE["ODE (Operational Data Environment)"]
+end
+
+%% Column 1: Input Topics
+subgraph COL1 ["Kafka - Input Topics"]
+    direction TB
+    A_Map["topic.OdeMapJson"]
+    A_Spat["topic.OdeSpatJson"]
+    A_Bsm["topic.OdeBsmJson"]
+    A_Psm["topic.OdePsmJson"]
+    A_Rtcm["topic.OdeRtcmJson"]
+    A_Srm["topic.OdeSrmJson"]
+    A_Ssm["topic.OdeSsmJson"]
+    A_Tim["topic.OdeTimJson"]
+end
+
+%% Column 2: Processing
+subgraph COL2 ["Processing Service<br/>(jpo-geojsonconverter)"]
+    direction TB
+    V_Map["Validate MAP"] --> C_Map["Convert MAP"]
+    V_Spat["Validate SPaT"] --> C_Spat["Convert SPaT"]
+    V_Bsm["Validate BSM"] --> C_Bsm["Convert BSM"]
+    V_Psm["Validate PSM"] --> C_Psm["Convert PSM"]
+    V_Rtcm["Validate RTCM"] --> C_Rtcm["Convert RTCM"]
+    V_Srm["Validate SRM"] --> C_Srm["Convert SRM"]
+    V_Ssm["Validate SSM"] --> C_Ssm["Convert SSM"]
+    V_Tim["Validate TIM"] --> C_Tim["Convert TIM"]
+end
+
+%% Column 3: Output Topics
+subgraph COL3 ["Kafka - Output Topics"]
+    direction TB
+    O_Map["topic.ProcessedMap"]
+    O_MapWKT["topic.ProcessedMapWKT"]
+    O_Spat["topic.ProcessedSpat"]
+    O_Bsm["topic.ProcessedBsm"]
+    O_Psm["topic.ProcessedPsm"]
+    O_Rtcm["topic.ProcessedRtcm"]
+    O_Srm["topic.ProcessedSrm"]
+    O_Ssm["topic.ProcessedSsm"]
+    O_Tim["topic.ProcessedTim"]
+end
+
+%% ------------------------
+%% Wiring: ODE → Input
+%% ------------------------
+ODE --> A_Map
+ODE --> A_Spat
+ODE --> A_Bsm
+ODE --> A_Psm
+ODE --> A_Rtcm
+ODE --> A_Srm
+ODE --> A_Ssm
+ODE --> A_Tim
+
+%% ------------------------
+%% Wiring: Input → Validator
+%% ------------------------
+A_Map --> V_Map
+A_Spat --> V_Spat
+A_Bsm --> V_Bsm
+A_Psm --> V_Psm
+A_Rtcm --> V_Rtcm
+A_Srm --> V_Srm
+A_Ssm --> V_Ssm
+A_Tim --> V_Tim
+
+%% ------------------------
+%% Wiring: Converter → Output
+%% ------------------------
+C_Map --> O_Map
+C_Map --> O_MapWKT
+C_Spat --> O_Spat
+C_Bsm --> O_Bsm
+C_Psm --> O_Psm
+C_Rtcm --> O_Rtcm
+C_Srm --> O_Srm
+C_Ssm --> O_Ssm
+C_Tim --> O_Tim
+
+%% ------------------------
+%% Node Coloring
+%% ------------------------
+classDef odeStyle fill:#ff9800,stroke:#e65100,color:#000,stroke-width:2px;
+classDef kafka fill:#9c27b0,stroke:#6a1b9a,color:#fff,stroke-width:2px;
+classDef val fill:#000,stroke:#ff9800,color:#fff,stroke-width:2px;
+classDef conv fill:#2196f3,stroke:#1565c0,color:#fff,stroke-width:2px;
+
+class ODE odeStyle
+class A_Map,A_Spat,A_Bsm,A_Psm,A_Rtcm,A_Srm,A_Ssm,A_Tim,O_Map,O_MapWKT,O_Spat,O_Bsm,O_Psm,O_Rtcm,O_Srm,O_Ssm,O_Tim kafka
+class V_Map,V_Spat,V_Bsm,V_Psm,V_Rtcm,V_Srm,V_Ssm,V_Tim val
+class C_Map,C_Spat,C_Bsm,C_Psm,C_Rtcm,C_Srm,C_Ssm,C_Tim conv
+```
 
 The message validation has been included in the jpo-geojsonconverter in order to prevent too many small microservices from being created. The extent of the current validation that occurs is surface level and is supported by simple verification against a schema that is based on J2735 and the CTI Intersection Implementation Guide. There may be reason to eventually break this feature out into a new, separate repository if more complex validation must be performed.
 
@@ -556,6 +654,224 @@ Example `ProcessedSsm` message:
 ############# Configuration #############
 #########################################
  -->
+
+<a name="configuration"/>
+
+### ProcessedTim
+
+The GeoJSON Converter produces `ProcessedTim` messages from `TravelerInformationMessage` (TIM) message frames received from the ODE.
+
+ODE TIMs are structurally validated against the TIM JSON schema. Content-level validation against Interoperability Technical Working Group (ITWG) or Connecting The West (CTW) best practices is planned for a follow-up work item.
+
+#### Transformation Process
+
+When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `ProcessedTim` message is created through the following transformation steps:
+
+1. **Message Structure**: The `ProcessedTim` is a single JSON object containing:
+   - Root-level metadata (message type, timestamps, origin IP, ASN.1 data, etc.)
+   - A `dataFrameFeatureCollection` containing GeoJSON Feature objects, one for each dataframe within the incoming TIM.
+   - A `location` field containing a representative region-anchor point for coarse MongoDB 2dsphere indexing
+   - Optional IEEE 1609.2 signed-message metadata, including certificate validity timestamps when supplied by the ODE
+   - `validationMessages` for J2735/ODE JSON schema issues
+
+2. **Data Frame to Feature Conversion**: Each `TravelerDataFrame` in the TIM message becomes a GeoJSON Feature in the `dataFrameFeatureCollection`:
+   - Each data frame within a TIM is assigned a sequential feature ID (0, 1, 2, ...)
+   - The geometry is derived from the regions defined in the data frame
+   - Properties are extracted from the data frame metadata and content
+
+3. **Region Geometry Processing**: Regions within each data frame are converted to GeoJSON geometries based on their type:
+   - **PATH**: Converted to `LineString` geometry from LL/XY offsets or explicit LL latitude/longitude nodes
+   - **CIRCLE**: Converted to a WGS84 geodesic `Polygon`, preserving the encoded radius across UTM-zone boundaries. The circle is approximated with an adaptive number of vertices based on diameter (12-64 vertices)
+   - **POLYGON**: Converted to `Polygon` geometry from closed paths
+   - If a data frame contains multiple regions, they are combined in source-region order into `MultiLineString`, `MultiPolygon`, or `GeometryCollection` geometries
+   - Regions crossing the antimeridian are cut into bounded pieces: closed paths and circles become `MultiPolygon`, and open paths become `MultiLineString`. A split region is kept as one component inside a `GeometryCollection`, even for a single-region frame, so its `geometryIndex` addresses every piece of that source region.
+
+4. **Path Processing**: For PATH regions, coordinates are calculated using:
+   - An anchor point (absolute lat/lon) as the starting coordinate when one is present
+   - LL or XY offset nodes accumulated from an anchor; LL offsets may also follow an explicit absolute LL node
+   - Explicit latitude/longitude nodes in LL or XY node lists, which can establish a path without an anchor
+   - Unavailable absolute coordinates clear the current reference; relative nodes are skipped until a valid anchor or absolute node establishes a new one
+   - Elevation and lane-width profiles retain source-node order, including attributes on nodes with unavailable coordinates. Synthetic vertices inserted when cutting geometry have no additional source-node profile entries.
+   - Zoom scaling factors (2^scale) applied to offset calculations
+   - Computed lanes and legacy `oldRegion` definitions are not currently supported
+
+5. **Content Processing**: The content field is processed to extract:
+   - **ITIS Codes**: Converted to both numeric codes and human-readable phrases using the generated J2735 `ITIScodes` POJO from `jpo-asn-pojos`
+   - **Unknown ITIS Codes**: Preserved numerically and assigned the phrase `unknown`; new standard codes are added by updating the J2735 ASN.1 bundle in `jpo-asn-pojos`
+   - **Text Content**: Plain text items are preserved as-is
+   - **Content Type**: Determined from the J2735 content choice: ADVISORY, ROAD_SIGNAGE, COMMERCIAL_SIGNAGE, GENERIC_SIGN, or EXIT_SERVICE. Existing values are preserved; the latter two were added for the previously unsupported choices.
+   - **Combined Sentence**: All content items are concatenated in order to form a readable sentence
+
+6. **Validity Period Calculation**: The validity period is calculated from:
+   - Start time: Derived at minute precision from `startYear` and `startTime` (MinuteOfTheYear). A missing or zero year is inferred from ODE receive time; when the encoded start time cannot be resolved, the frame is retained without a derived finite end time.
+   - End time: Calculated by adding `durationTime` (in minutes) to the start time
+   - Infinite duration: If `durationTime` equals 32000, the validity period is marked as infinite with an end time of "9999-12-31T23:59:59.999Z"
+   - This period describes TIM applicability, not certificate validity. When present, signature generation time and certificate validity are reported separately in root-level `signedDataMetadata`; `isCertPresent` records whether the incoming message included the certificate.
+
+7. **Region Information Extraction**: For each region, the following information is extracted:
+   - **Region Type**: Determined by checking for circle geometry, closed path flag, or path existence
+   - **Elevation Profile**: Default elevation from anchor point, plus node-level elevation offsets
+   - **Lane Width Profile**: Default width from region, plus node-level width offsets (for PATH regions only)
+   - **Direction Information**: Either directionality (forward/backward/both) or heading sectors (bitstring converted to heading ranges)
+   - **Geometry Index**: Zero-based position of the region in the feature geometry. For `Multi*` geometries it indexes the corresponding coordinate component; for `GeometryCollection` it indexes `geometries`. It is omitted when a region cannot be converted.
+   - Invalid one-position lines and degenerate or self-intersecting polygon rings are omitted from geometry; their region metadata remains present with no geometry index.
+
+8. **Representative Location Calculation**: The `location` field is the average of all valid region anchors across the data frames. Longitudes use a circular mean, which is independent of anchor order and keeps dateline-spanning TIMs near ±180. It supports coarse containment or proximity filtering only; it may fall outside the rendered TIM geometry, so consumers must use `dataFrameFeatureCollection` for geometry intersection or roadway-traversal queries. The field is omitted when no valid anchors are available.
+
+9. **Validation Messages**: ODE TIMs are structurally validated against the TIM JSON schema. Schema failures are recorded in a root-level `validationMessages` list, matching ProcessedBsm/ProcessedPsm/ProcessedSrm/ProcessedSsm. Content-level Interoperability Technical Working Group (ITWG) or Connecting The West (CTW) best-practice checking is planned for a follow-up that pulls in the TIM validator library.
+
+10. **Kafka Key Generation**: ProcessedTim messages have an `RsuTimKey` containing:
+    - RSU IP address (originIp)
+    - Packet ID (from the TIM message)
+    - Message count (msgCnt)
+    and are partitioned using the `RsuTimPartitioner` as follows:
+    - If the RSU ID/origin IP is present, messages are grouped by that value
+    - If the RSU ID is missing, the complete serialized key is distributed with Kafka's Murmur2 hash; Packet ID is not used alone because it is unique per TIM and provides no useful grouping
+
+[ProcessedTim schema can be found here.](<jpo-geojsonconverter/src/main/resources/schemas/processed-tim.schema.json>)
+
+Example `ProcessedTim` message:
+
+```JSON
+{
+ "schemaVersion": 2,
+ "messageType": "TIM",
+ "odeReceivedAt": "2025-10-15T20:19:28.543Z",
+ "originIp": "172.27.0.1",
+ "asn1": "001F606015120C16D30800002B8ACCEF28080000FD2A2419F4010007A5270F4454E3EBF36000002EE2000022D02890237A6C0011020086C910100001FA525E83B102000F4A4E1E88A9C7D7E6C000005DC4000045A0512046F4D80064010C188C888400",
+ "msgCnt": 1,
+ "timeStamp": "2025-08-19T18:20:28.543Z",
+ "packetId": "16D30800002B8ACCEF",
+ "location": {
+  "type": "Point",
+  "coordinates": [
+   -84.4027175,
+   33.7569813
+  ]
+ },
+ "validationMessages": [],
+ "dataFrameFeatureCollection": {
+  "features": [
+   {
+    "type": "Feature",
+    "id": 0,
+    "geometry": {
+     "type": "LineString",
+     "coordinates": [
+      [
+       -84.4027126287049,
+       33.75693611995482
+      ],
+      [
+       -84.40270505113875,
+       33.75760914062784
+      ]
+     ]
+    },
+    "properties": {
+     "deploymentAgencyType": "STATE_OR_LOCAL",
+     "validityPeriod": {
+      "startTime": "2025-08-19T18:20:28.543Z",
+      "endTime": "9999-12-31T23:59:59.999Z",
+      "infinite": true
+     },
+     "priority": 2,
+     "regionInfoList": [
+      {
+       "regionType": "PATH",
+       "elevationProfile": {},
+       "directionInfo": {
+        "directionType": "DIRECTIONALITY",
+        "directionality": "forward"
+       },
+       "laneWidthProfile": {
+        "defaultWidthMeters": 15.0
+       }
+      }
+     ],
+     "content": {
+      "type": "COMMERCIAL_SIGNAGE",
+      "contentItems": [
+       {
+        "type": "ITIS_CODE",
+        "itisCode": 1025,
+        "itisPhrase": "road-construction"
+       },
+       {
+        "type": "ITIS_CODE",
+        "itisCode": 6948,
+        "itisPhrase": "fines-doubled"
+       }
+      ],
+      "sentence": "road-construction fines-doubled"
+     }
+    }
+   },
+   {
+    "type": "Feature",
+    "id": 1,
+    "geometry": {
+     "type": "LineString",
+     "coordinates": [
+      [
+       -84.4027126287049,
+       33.75693611995482
+      ],
+      [
+       -84.40270505113875,
+       33.75760914062784
+      ]
+     ]
+    },
+    "properties": {
+     "deploymentAgencyType": "STATE_OR_LOCAL",
+     "validityPeriod": {
+      "startTime": "2025-07-29T00:00:28.543Z",
+      "endTime": "2025-08-19T00:00:28.543Z",
+      "infinite": false
+     },
+     "priority": 2,
+     "regionInfoList": [
+      {
+       "regionType": "PATH",
+       "elevationProfile": {},
+       "directionInfo": {
+        "directionType": "DIRECTIONALITY",
+        "directionality": "forward"
+       },
+       "laneWidthProfile": {
+        "defaultWidthMeters": 15.0
+       }
+      }
+     ],
+     "content": {
+      "type": "ROAD_SIGNAGE",
+      "contentItems": [
+       {
+        "type": "ITIS_CODE",
+        "itisCode": 268,
+        "itisPhrase": "speed-limit"
+       },
+       {
+        "type": "ITIS_CODE",
+        "itisCode": 12569,
+        "itisPhrase": "n25"
+       },
+       {
+        "type": "ITIS_CODE",
+        "itisCode": 8720,
+        "itisPhrase": "mPH"
+       }
+      ],
+      "sentence": "speed-limit n25 mPH"
+     }
+    }
+   }
+  ],
+  "type": "FeatureCollection"
+ }
+}
+```
 
 <a name="configuration"/>
 
