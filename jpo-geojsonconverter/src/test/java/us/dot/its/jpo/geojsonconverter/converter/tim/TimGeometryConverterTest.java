@@ -431,20 +431,20 @@ public class TimGeometryConverterTest {
         circle.setRadius(new Radius_B12(1000));
         circle.setUnits(DistanceUnits.METER);
 
-        Polygon polygon = assertInstanceOf(Polygon.class, geometryConverter.createGeometryFromRegion(region));
-        double[][] ring = polygon.getCoordinates()[0];
-        double[] firstPoint = ring[0];
-
-        GeodeticCalculator calculator = new GeodeticCalculator(DefaultGeographicCRS.WGS84);
-        calculator.setStartingGeographicPoint(180.0, 40.0);
-        calculator.setDestinationGeographicPoint(firstPoint[0], firstPoint[1]);
-        assertEquals(1000.0, calculator.getOrthodromicDistance(), 0.05);
-        assertEquals(ring[0][0], ring[ring.length - 1][0], 0.000001);
-        assertEquals(ring[0][1], ring[ring.length - 1][1], 0.000001);
-
-        for (double[] coordinate : ring) {
-            assertTrue(coordinate[0] >= -180.0 && coordinate[0] <= 180.0);
-            assertTrue(coordinate[1] >= -90.0 && coordinate[1] <= 90.0);
+        MultiPolygon polygon = assertInstanceOf(MultiPolygon.class, geometryConverter.createGeometryFromRegion(region));
+        assertEquals(2, polygon.getCoordinates().length);
+        for (double[][][] component : polygon.getCoordinates()) {
+            double[][] ring = component[0];
+            assertEquals(ring[0][0], ring[ring.length - 1][0], 0.000001);
+            assertEquals(ring[0][1], ring[ring.length - 1][1], 0.000001);
+            GeodeticCalculator calculator = new GeodeticCalculator(DefaultGeographicCRS.WGS84);
+            calculator.setStartingGeographicPoint(180.0, 40.0);
+            for (double[] coordinate : ring) {
+                calculator.setDestinationGeographicPoint(coordinate[0], coordinate[1]);
+                assertEquals(1000.0, calculator.getOrthodromicDistance(), 0.05);
+                assertTrue(coordinate[0] >= -180.0 && coordinate[0] <= 180.0);
+                assertTrue(coordinate[1] >= -90.0 && coordinate[1] <= 90.0);
+            }
         }
     }
 

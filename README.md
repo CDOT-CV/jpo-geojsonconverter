@@ -684,12 +684,14 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
    - **CIRCLE**: Converted to a WGS84 geodesic `Polygon`, preserving the encoded radius across UTM-zone boundaries. The circle is approximated with an adaptive number of vertices based on diameter (12-64 vertices)
    - **POLYGON**: Converted to `Polygon` geometry from closed paths
    - If a data frame contains multiple regions, they are combined in source-region order into `MultiLineString`, `MultiPolygon`, or `GeometryCollection` geometries
+   - Regions crossing the antimeridian are cut into bounded pieces: closed paths and circles become `MultiPolygon`, and open paths become `MultiLineString`. A split region is kept as one component inside a `GeometryCollection`, even for a single-region frame, so its `geometryIndex` addresses every piece of that source region.
 
 4. **Path Processing**: For PATH regions, coordinates are calculated using:
    - An anchor point (absolute lat/lon) as the starting coordinate when one is present
    - LL or XY offset nodes accumulated from an anchor; LL offsets may also follow an explicit absolute LL node
    - Explicit latitude/longitude nodes in LL or XY node lists, which can establish a path without an anchor
    - Unavailable absolute coordinates clear the current reference; relative nodes are skipped until a valid anchor or absolute node establishes a new one
+   - Elevation and lane-width profiles retain source-node order, including attributes on nodes with unavailable coordinates. Synthetic vertices inserted when cutting geometry have no additional source-node profile entries.
    - Zoom scaling factors (2^scale) applied to offset calculations
    - Computed lanes and legacy `oldRegion` definitions are not currently supported
 

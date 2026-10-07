@@ -152,20 +152,28 @@ public class TimGeometryConverter {
             return null;
         }
 
-        List<PathNodeData> pathData = processOffsetPathWithOffsets(region, region.getDescription().getPath(),
-                dataFrameIndex, regionIndex);
-        if (pathData.isEmpty()) {
+        // Attributes persist from their source node onward even when its position
+        // is unavailable. Extract them before geometry filtering or seam cutting.
+        OffsetSystem path = region.getDescription().getPath();
+        if (path.getOffset() == null) return null;
+        List<Long[]> nodeOffsets = new ArrayList<>();
+        if (path.getOffset().getLl() != null && path.getOffset().getLl().getNodes() != null) {
+            for (NodeLL node : path.getOffset().getLl().getNodes()) nodeOffsets.add(extractNodeOffsets(node));
+        } else if (path.getOffset().getXy() != null && path.getOffset().getXy().getNodes() != null) {
+            for (NodeXY node : path.getOffset().getXy().getNodes()) nodeOffsets.add(extractNodeOffsets(node));
+        }
+        if (nodeOffsets.isEmpty()) {
             return null;
         }
 
-        List<Long> elevationOffsets = new ArrayList<>(pathData.size());
-        List<Long> laneWidthOffsets = new ArrayList<>(pathData.size());
+        List<Long> elevationOffsets = new ArrayList<>(nodeOffsets.size());
+        List<Long> laneWidthOffsets = new ArrayList<>(nodeOffsets.size());
         boolean hasElevationOffset = false;
         boolean hasLaneWidthOffset = false;
 
-        for (PathNodeData nodeData : pathData) {
-            Long elevationOffset = nodeData.getDelevationOffset();
-            Long laneWidthOffset = nodeData.getDwidthOffset();
+        for (Long[] offsets : nodeOffsets) {
+            Long elevationOffset = offsets[1];
+            Long laneWidthOffset = offsets[0];
             elevationOffsets.add(elevationOffset);
             laneWidthOffsets.add(laneWidthOffset);
             hasElevationOffset |= elevationOffset != null;
@@ -330,6 +338,12 @@ public class TimGeometryConverter {
     private Geometry aggregateRegionGeometries(List<Geometry> geometries) {
         if (geometries.isEmpty()) {
             return null;
+        }
+        // A split region occupies one component so its geometryIndex includes all
+        // pieces, including when that region is the only one in the data frame.
+        if (geometries.stream().anyMatch(geometry -> geometry instanceof MultiPolygon
+                || geometry instanceof MultiLineString)) {
+            return new GeometryCollection(geometries.toArray(new Geometry[0]));
         }
         if (geometries.size() == 1) {
             return geometries.getFirst();
@@ -779,7 +793,7 @@ public class TimGeometryConverter {
         return normalized;
     }
 
-    private LineString createLineStringFromCoordinates(List<List<Double>> coordinates, String regionPath) {
+    private Geometry createLineStringFromCoordinates(List<List<Double>> coordinates, String regionPath) {
         if (coordinates == null || coordinates.size() < 2) {
             log.warn("Cannot create a LineString with fewer than two positions at {}", regionPath);
             return null;
@@ -794,10 +808,10 @@ public class TimGeometryConverter {
             }
         }
 
-        return new LineString(coordinateArray);
+        return TimLineGeometry.toGeoJson(coordinateArray);
     }
 
-    private Polygon createPolygonFromCoordinates(List<List<Double>> coordinates, String regionPath) {
+    private Geometry createPolygonFromCoordinates(List<List<Double>> coordinates, String regionPath) {
         if (coordinates == null || coordinates.isEmpty()) {
             return null;
         }
@@ -821,7 +835,6 @@ public class TimGeometryConverter {
 
         org.locationtech.jts.geom.Coordinate[] jtsCoordinates =
                 new org.locationtech.jts.geom.Coordinate[closedCoordinates.size()];
-        double[][][] coordinateArray = new double[1][closedCoordinates.size()][2];
         for (int i = 0; i < closedCoordinates.size(); i++) {
             List<Double> coord = closedCoordinates.get(i);
             if (coord == null || coord.size() < 2 || coord.get(0) == null || coord.get(1) == null
@@ -829,8 +842,6 @@ public class TimGeometryConverter {
                 log.warn("Cannot create a polygon from an invalid coordinate at {}", regionPath);
                 return null;
             }
-            coordinateArray[0][i][0] = coord.get(0); // longitude
-            coordinateArray[0][i][1] = coord.get(1); // latitude
             jtsCoordinates[i] = new org.locationtech.jts.geom.Coordinate(coord.get(0), coord.get(1));
         }
 
@@ -838,7 +849,7 @@ public class TimGeometryConverter {
         org.locationtech.jts.geom.LinearRing shell;
         org.locationtech.jts.geom.Polygon jtsPolygon;
         try {
-            shell = jtsFactory.createLinearRing(jtsCoordinates);
+            shell = jtsFactory.createLinearRing(TimPolygonGeometry.unwrapRing(jtsCoordinates));
             jtsPolygon = jtsFactory.createPolygon(shell);
         } catch (IllegalArgumentException e) {
             log.warn("Cannot create a valid polygon ring at {}: {}", regionPath, e.getMessage());
@@ -850,7 +861,7 @@ public class TimGeometryConverter {
             return null;
         }
 
-        return new Polygon(coordinateArray);
+        return TimPolygonGeometry.toGeoJson(jtsPolygon);
     }
 
     private static int countDistinctPositions(List<List<Double>> coordinates) {

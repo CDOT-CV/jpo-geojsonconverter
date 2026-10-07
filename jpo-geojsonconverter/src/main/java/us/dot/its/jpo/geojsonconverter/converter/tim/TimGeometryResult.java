@@ -11,7 +11,8 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.Geometry;
  *
  * <p>A mapping entry is {@code null} when the corresponding source region could not be converted. For a simple
  * geometry the converted region maps to index {@code 0}; for multi-geometries and geometry collections the index
- * addresses the corresponding coordinate or geometry component.</p>
+ * addresses the corresponding coordinate or geometry component. A multipart source region is kept as one
+ * GeometryCollection component so its index addresses all of its pieces.</p>
  */
 record TimGeometryResult(Geometry geometry, List<Integer> regionGeometryIndices) {
     TimGeometryResult {
