@@ -104,7 +104,7 @@ class TimAntimeridianTest {
                 converter.createGeometryFromRegion(circle(longitude, 400000000L, 100)));
         var actual = toJts(result);
         assertTrue(actual.isValid());
-        assertTrue(actual.contains(factory.createPoint(new Coordinate(longitude / 10000000.0, 40))));
+        assertTrue(actual.contains(factory.createPoint(new Coordinate((double) longitude / 10000000.0, 40))));
         assertTrue(actual.contains(factory.createPoint(new Coordinate(179.9999, 40))));
         assertTrue(actual.contains(factory.createPoint(new Coordinate(-179.9999, 40))));
         assertFalse(actual.contains(factory.createPoint(new Coordinate(0, 40))));
@@ -117,7 +117,7 @@ class TimAntimeridianTest {
         Geometry result = converter.createGeometryFromRegion(circle(300000000L, latitude, 1000));
         var actual = toJts(result);
         assertTrue(actual.isValid());
-        assertTrue(actual.contains(factory.createPoint(new Coordinate(0, Math.copySign(89.99999, latitude)))));
+        assertTrue(actual.contains(factory.createPoint(new Coordinate(0, Math.copySign(89.99999, (double) latitude)))));
         assertFalse(actual.contains(factory.createPoint(new Coordinate(0, 0))));
     }
 
@@ -183,8 +183,8 @@ class TimAntimeridianTest {
         assertTrue(toJts(result).distance(factory.createPoint(new Coordinate(-179.9995, 40.00075))) < 1e-8);
         double[][] first = result.getCoordinates()[0];
         double[][] last = result.getCoordinates()[1];
-        assertEquals(positions[0][0] / 10000000.0, first[0][0]);
-        assertEquals(positions[1][0] / 10000000.0, last[last.length - 1][0]);
+        assertEquals((double) positions[0][0] / 10000000.0, first[0][0]);
+        assertEquals((double) positions[1][0] / 10000000.0, last[last.length - 1][0]);
         for (double[][] piece : result.getCoordinates()) {
             for (int i = 1; i < piece.length; i++) {
                 assertTrue(Math.abs(piece[i][0] - piece[i - 1][0]) <= 180);

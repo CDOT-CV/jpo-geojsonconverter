@@ -33,18 +33,17 @@ final class TimLineGeometry {
             // edge on its current side instead of dividing by a zero delta.
             if (unwrappedNext == previous[0]) {
                 current.add(new double[] {previous[0], next[1]});
-                continue;
+            } else {
+                double boundary = delta < 0.0 ? 180.0 : -180.0;
+                double fraction = (boundary - previous[0]) / (unwrappedNext - previous[0]);
+                double latitude = previous[1] + fraction * (next[1] - previous[1]);
+                double[] seam = {boundary, latitude};
+                if (!Arrays.equals(previous, seam)) current.add(seam);
+                addPiece(pieces, current);
+                current = new ArrayList<>();
+                current.add(new double[] {-boundary, latitude});
+                current.add(next);
             }
-
-            double boundary = delta < 0.0 ? 180.0 : -180.0;
-            double fraction = (boundary - previous[0]) / (unwrappedNext - previous[0]);
-            double latitude = previous[1] + fraction * (next[1] - previous[1]);
-            double[] seam = {boundary, latitude};
-            if (!Arrays.equals(previous, seam)) current.add(seam);
-            addPiece(pieces, current);
-            current = new ArrayList<>();
-            current.add(new double[] {-boundary, latitude});
-            current.add(next);
         }
 
         if (!crossed) return new LineString(coordinates);

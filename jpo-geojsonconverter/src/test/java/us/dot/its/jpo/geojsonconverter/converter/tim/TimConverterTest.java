@@ -321,6 +321,107 @@ class TimConverterTest {
     }
 
     @Test
+    void testReorderedFramesKeepSourceIndexesAndPropertiesWhenMiddleGeometryIsUnavailable() {
+        TravelerDataFrame circleFrame = findDataFrameWithRegionType(ProcessedRegionType.CIRCLE);
+        TravelerDataFrame polygonFrame = findDataFrameWithRegionType(ProcessedRegionType.POLYGON);
+        TravelerDataFrame pathFrame = findDataFrameWithRegionType(ProcessedRegionType.PATH);
+        assertNotNull(circleFrame);
+        assertNotNull(polygonFrame);
+        assertNotNull(pathFrame);
+
+        GeographicalPath unsupportedRegion = unsupportedRegion();
+        TravelerDataFrame.SequenceOfRegions unsupportedRegions = new TravelerDataFrame.SequenceOfRegions();
+        unsupportedRegions.add(unsupportedRegion);
+        polygonFrame.setRegions(unsupportedRegions);
+
+        circleFrame.setContent(createSpeedLimitContent());
+        polygonFrame.setContent(createWorkZoneContent());
+        pathFrame.setContent(createGenericSignContent());
+
+        travelerInfo.getDataFrames().clear();
+        travelerInfo.getDataFrames().add(circleFrame);
+        travelerInfo.getDataFrames().add(polygonFrame);
+        travelerInfo.getDataFrames().add(pathFrame);
+
+        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, timMF.getMetadata());
+        var features = processedTim.getDataFrameFeatureCollection().getFeatures();
+        assertEquals(travelerInfo.getDataFrames().size(), features.size());
+        assertEquals(3, features.size());
+
+        var circleFeature = features.get(0);
+        assertEquals(0, circleFeature.getId());
+        assertNotNull(circleFeature.getGeometry());
+        assertEquals(ProcessedRegionType.CIRCLE,
+                circleFeature.getProperties().getRegionInfoList().getFirst().getRegionType());
+        assertEquals(ProcessedContentType.ROAD_SIGNAGE, circleFeature.getProperties().getContent().getType());
+        assertEquals("speed-limit Slow down", circleFeature.getProperties().getContent().getSentence());
+
+        var unavailableFeature = features.get(1);
+        assertEquals(1, unavailableFeature.getId());
+        assertNull(unavailableFeature.getGeometry());
+        assertNotNull(unavailableFeature.getProperties().getValidityPeriod());
+        assertEquals(1, unavailableFeature.getProperties().getRegionInfoList().size());
+        assertEquals(ProcessedRegionType.UNKNOWN,
+                unavailableFeature.getProperties().getRegionInfoList().getFirst().getRegionType());
+        assertNull(unavailableFeature.getProperties().getRegionInfoList().getFirst().getGeometryIndex());
+        assertEquals(ProcessedContentType.COMMERCIAL_SIGNAGE,
+                unavailableFeature.getProperties().getContent().getType());
+        assertEquals("speed-limit Work ahead", unavailableFeature.getProperties().getContent().getSentence());
+
+        var pathFeature = features.get(2);
+        assertEquals(2, pathFeature.getId());
+        assertNotNull(pathFeature.getGeometry());
+        assertEquals(ProcessedRegionType.PATH,
+                pathFeature.getProperties().getRegionInfoList().getFirst().getRegionType());
+        assertEquals(ProcessedContentType.GENERIC_SIGN, pathFeature.getProperties().getContent().getType());
+        assertEquals("Turn left speed-limit", pathFeature.getProperties().getContent().getSentence());
+    }
+
+    @Test
+    void testMixedRegionOrderKeepsGeometryIndexesAroundUnsupportedMiddleRegion() {
+        TravelerDataFrame pathFrame = findDataFrameWithRegionType(ProcessedRegionType.PATH);
+        TravelerDataFrame polygonFrame = findDataFrameWithRegionType(ProcessedRegionType.POLYGON);
+        assertNotNull(pathFrame);
+        assertNotNull(polygonFrame);
+
+        GeographicalPath pathRegion = pathFrame.getRegions().getFirst();
+        GeographicalPath polygonRegion = polygonFrame.getRegions().getFirst();
+        TravelerDataFrame.SequenceOfRegions orderedRegions = new TravelerDataFrame.SequenceOfRegions();
+        orderedRegions.add(pathRegion);
+        orderedRegions.add(unsupportedRegion());
+        orderedRegions.add(polygonRegion);
+        pathFrame.setRegions(orderedRegions);
+
+        int sourceFrameIndex = travelerInfo.getDataFrames().indexOf(pathFrame);
+        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, timMF.getMetadata());
+        var feature = processedTim.getDataFrameFeatureCollection().getFeatures().get(sourceFrameIndex);
+        assertEquals(sourceFrameIndex, feature.getId());
+        assertInstanceOf(GeometryCollection.class, feature.getGeometry());
+
+        var regionInfo = feature.getProperties().getRegionInfoList();
+        assertEquals(3, regionInfo.size());
+        assertEquals(ProcessedRegionType.PATH, regionInfo.get(0).getRegionType());
+        assertEquals(ProcessedRegionType.UNKNOWN, regionInfo.get(1).getRegionType());
+        assertEquals(ProcessedRegionType.POLYGON, regionInfo.get(2).getRegionType());
+        assertEquals(0, regionInfo.get(0).getGeometryIndex());
+        assertNull(regionInfo.get(1).getGeometryIndex());
+        assertEquals(1, regionInfo.get(2).getGeometryIndex());
+
+        GeometryCollection geometry = (GeometryCollection) feature.getGeometry();
+        assertEquals(2, geometry.getGeometries().length);
+        assertInstanceOf(LineString.class, geometry.getGeometries()[0]);
+        assertInstanceOf(Polygon.class, geometry.getGeometries()[1]);
+    }
+
+    private GeographicalPath unsupportedRegion() {
+        GeographicalPath region = new GeographicalPath();
+        GeographicalPath.DescriptionChoice description = new GeographicalPath.DescriptionChoice();
+        description.setOldRegion(new ValidRegion());
+        region.setDescription(description);
+        return region;
+    }
+
+    @Test
     void testCreateFailureProcessedTim() {
         String failureMessage = "Test failure message";
 

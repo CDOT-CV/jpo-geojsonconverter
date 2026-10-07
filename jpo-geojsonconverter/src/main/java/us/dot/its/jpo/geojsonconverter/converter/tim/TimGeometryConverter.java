@@ -144,10 +144,6 @@ public class TimGeometryConverter {
      * @return OffsetInformation containing node-aligned elevation and lane width offsets, or null if no path
      */
     public OffsetInformation extractOffsetInformation(GeographicalPath region) {
-        return extractOffsetInformation(region, -1, -1);
-    }
-
-    OffsetInformation extractOffsetInformation(GeographicalPath region, int dataFrameIndex, int regionIndex) {
         if (region.getDescription() == null || region.getDescription().getPath() == null) {
             return null;
         }
@@ -378,7 +374,7 @@ public class TimGeometryConverter {
         if (path.getScale() != null) {
             // Zoom is applied as 2^zoom for coordinate scaling
             // A value of 0 is 1:1 zoom (no zoom), 1 is 2:1 zoom, 2 is 4:1 zoom, etc.
-            return Math.pow(2, path.getScale().getValue());
+            return Math.pow(2, (double) path.getScale().getValue());
         }
         return 1.0;
     }
@@ -433,65 +429,52 @@ public class TimGeometryConverter {
      *        be uninitialized or contain default values.
      */
     private void processLLNode(NodeOffsetPointLL node, double zoomFactor, double[] currentCoords) {
-        // Initialize with current coordinates if available, otherwise use defaults
-        double currentLon = (currentCoords != null && currentCoords.length > 0) ? currentCoords[0] : 0.0;
-        double currentLat = (currentCoords != null && currentCoords.length > 1) ? currentCoords[1] : 0.0;
+        if (currentCoords == null || currentCoords.length < 2) {
+            return;
+        }
 
         // Process different LL node types
         if (node.getNode_LL1() != null) {
             var nodeLL1 = node.getNode_LL1();
-            Double lonOffset = FieldConversions.convertLongWithZoom(nodeLL1.getLon().getValue(), zoomFactor);
-            Double latOffset = FieldConversions.convertLatWithZoom(nodeLL1.getLat().getValue(), zoomFactor);
-            if (lonOffset != null) currentLon += lonOffset;
-            if (latOffset != null) currentLat += latOffset;
+            applyRelativeLLOffsets(nodeLL1.getLon().getValue(), nodeLL1.getLat().getValue(), zoomFactor,
+                    currentCoords);
         } else if (node.getNode_LL2() != null) {
             var nodeLL2 = node.getNode_LL2();
-            Double lonOffset = FieldConversions.convertLongWithZoom(nodeLL2.getLon().getValue(), zoomFactor);
-            Double latOffset = FieldConversions.convertLatWithZoom(nodeLL2.getLat().getValue(), zoomFactor);
-            if (lonOffset != null) currentLon += lonOffset;
-            if (latOffset != null) currentLat += latOffset;
+            applyRelativeLLOffsets(nodeLL2.getLon().getValue(), nodeLL2.getLat().getValue(), zoomFactor,
+                    currentCoords);
         } else if (node.getNode_LL3() != null) {
             var nodeLL3 = node.getNode_LL3();
-            Double lonOffset = FieldConversions.convertLongWithZoom(nodeLL3.getLon().getValue(), zoomFactor);
-            Double latOffset = FieldConversions.convertLatWithZoom(nodeLL3.getLat().getValue(), zoomFactor);
-            if (lonOffset != null) currentLon += lonOffset;
-            if (latOffset != null) currentLat += latOffset;
+            applyRelativeLLOffsets(nodeLL3.getLon().getValue(), nodeLL3.getLat().getValue(), zoomFactor,
+                    currentCoords);
         } else if (node.getNode_LL4() != null) {
             var nodeLL4 = node.getNode_LL4();
-            Double lonOffset = FieldConversions.convertLongWithZoom(nodeLL4.getLon().getValue(), zoomFactor);
-            Double latOffset = FieldConversions.convertLatWithZoom(nodeLL4.getLat().getValue(), zoomFactor);
-            if (lonOffset != null) currentLon += lonOffset;
-            if (latOffset != null) currentLat += latOffset;
+            applyRelativeLLOffsets(nodeLL4.getLon().getValue(), nodeLL4.getLat().getValue(), zoomFactor,
+                    currentCoords);
         } else if (node.getNode_LL5() != null) {
             var nodeLL5 = node.getNode_LL5();
-            Double lonOffset = FieldConversions.convertLongWithZoom(nodeLL5.getLon().getValue(), zoomFactor);
-            Double latOffset = FieldConversions.convertLatWithZoom(nodeLL5.getLat().getValue(), zoomFactor);
-            if (lonOffset != null) currentLon += lonOffset;
-            if (latOffset != null) currentLat += latOffset;
+            applyRelativeLLOffsets(nodeLL5.getLon().getValue(), nodeLL5.getLat().getValue(), zoomFactor,
+                    currentCoords);
         } else if (node.getNode_LL6() != null) {
             var nodeLL6 = node.getNode_LL6();
-            Double lonOffset = FieldConversions.convertLongWithZoom(nodeLL6.getLon().getValue(), zoomFactor);
-            Double latOffset = FieldConversions.convertLatWithZoom(nodeLL6.getLat().getValue(), zoomFactor);
-            if (lonOffset != null) currentLon += lonOffset;
-            if (latOffset != null) currentLat += latOffset;
+            applyRelativeLLOffsets(nodeLL6.getLon().getValue(), nodeLL6.getLat().getValue(), zoomFactor,
+                    currentCoords);
         } else if (node.getNode_LatLon() != null) {
             var nodeLatLon = node.getNode_LatLon();
             // node_LatLon contains absolute coordinates, not offsets - doesn't require anchor
             Double absLon = FieldConversions.convertLong(nodeLatLon.getLon().getValue());
             Double absLat = FieldConversions.convertLat(nodeLatLon.getLat().getValue());
             if (absLon != null && absLat != null) {
-                currentLon = absLon;
-                currentLat = absLat;
+                currentCoords[0] = absLon;
+                currentCoords[1] = absLat;
             }
         }
+    }
 
-        // Update coordinates array (ensure it's initialized)
-        if (currentCoords == null || currentCoords.length < 2) {
-            // This shouldn't happen in normal flow, but handle defensively
-            return;
-        }
-        currentCoords[0] = currentLon;
-        currentCoords[1] = currentLat;
+    private void applyRelativeLLOffsets(long longitude, long latitude, double zoomFactor, double[] currentCoords) {
+        Double longitudeOffset = FieldConversions.convertLongWithZoom(longitude, zoomFactor);
+        Double latitudeOffset = FieldConversions.convertLatWithZoom(latitude, zoomFactor);
+        if (longitudeOffset != null) currentCoords[0] += longitudeOffset;
+        if (latitudeOffset != null) currentCoords[1] += latitudeOffset;
     }
 
     /**

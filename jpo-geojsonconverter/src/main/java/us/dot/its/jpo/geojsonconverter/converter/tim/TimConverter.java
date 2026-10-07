@@ -248,7 +248,7 @@ public class TimConverter {
         setDeploymentAgency(properties, dataFrame);
         setValidityPeriod(properties, dataFrame, odeDate, dataFrameIndex);
         setPriority(properties, dataFrame);
-        setRegionAndDirectionInfo(properties, dataFrame, dataFrameIndex);
+        setRegionAndDirectionInfo(properties, dataFrame);
         setContent(properties, dataFrame);
 
         return properties;
@@ -319,17 +319,13 @@ public class TimConverter {
     /**
      * Set region and direction information.
      */
-    private void setRegionAndDirectionInfo(ProcessedTimProperties properties, TravelerDataFrame dataFrame,
-            int dataFrameIndex) {
+    private void setRegionAndDirectionInfo(ProcessedTimProperties properties, TravelerDataFrame dataFrame) {
         if (dataFrame.getRegions() != null && !dataFrame.getRegions().isEmpty()) {
             List<ProcessedRegionInfoBase> regionInfoList = new ArrayList<>();
 
             // Create one region info object for each region
-            for (int regionIndex = 0; regionIndex < dataFrame.getRegions().size(); regionIndex++) {
-                GeographicalPath region = dataFrame.getRegions().get(regionIndex);
-                ProcessedRegionInfoBase regionInfo =
-                        createProcessedRegionInfoFromAsnData(region, dataFrameIndex, regionIndex);
-                regionInfoList.add(regionInfo);
+            for (GeographicalPath region : dataFrame.getRegions()) {
+                regionInfoList.add(createProcessedRegionInfoFromAsnData(region));
             }
 
             properties.setRegionInfoList(regionInfoList);
@@ -349,8 +345,7 @@ public class TimConverter {
     /**
      * Create processed region info from ASN.1 data.
      */
-    private ProcessedRegionInfoBase createProcessedRegionInfoFromAsnData(GeographicalPath region, int dataFrameIndex,
-            int regionIndex) {
+    private ProcessedRegionInfoBase createProcessedRegionInfoFromAsnData(GeographicalPath region) {
         ProcessedRegionType regionType = geometryProcessor.determineRegionType(region);
         ProcessedElevationProfile elevationProfile = new ProcessedElevationProfile();
 
@@ -358,11 +353,10 @@ public class TimConverter {
         ProcessedAnchorPoint anchorPoint = setAnchorPointAndElevation(region, elevationProfile);
 
         // Extract and apply offset information for elevation and lane width profiles
-        populateProfilesWithOffsets(region, elevationProfile, dataFrameIndex, regionIndex);
+        populateProfilesWithOffsets(region, elevationProfile);
 
         // Create the appropriate region info object based on type
-        ProcessedRegionInfoBase regionInfo =
-                createRegionInfoByType(regionType, region, elevationProfile, dataFrameIndex, regionIndex);
+        ProcessedRegionInfoBase regionInfo = createRegionInfoByType(regionType, region, elevationProfile);
         regionInfo.setAnchorPoint(anchorPoint);
 
         // Set direction info for this specific region (ITWG rules vary by geofence type)
@@ -375,10 +369,9 @@ public class TimConverter {
     /**
      * Populate elevation and lane width profiles with offset-calculated values.
      */
-    private void populateProfilesWithOffsets(GeographicalPath region, ProcessedElevationProfile elevationProfile,
-            int dataFrameIndex, int regionIndex) {
+    private void populateProfilesWithOffsets(GeographicalPath region, ProcessedElevationProfile elevationProfile) {
         // Extract offset information from the region's path
-        OffsetInformation offsetInfo = geometryProcessor.extractOffsetInformation(region, dataFrameIndex, regionIndex);
+        OffsetInformation offsetInfo = geometryProcessor.extractOffsetInformation(region);
         if (offsetInfo == null) {
             return;
         }
@@ -405,9 +398,9 @@ public class TimConverter {
      * Populate lane width profile with offset-calculated values.
      */
     private void populateLaneWidthProfileWithOffsets(GeographicalPath region,
-            ProcessedLaneWidthProfile laneWidthProfile, int dataFrameIndex, int regionIndex) {
+            ProcessedLaneWidthProfile laneWidthProfile) {
         // Extract offset information from the region's path
-        OffsetInformation offsetInfo = geometryProcessor.extractOffsetInformation(region, dataFrameIndex, regionIndex);
+        OffsetInformation offsetInfo = geometryProcessor.extractOffsetInformation(region);
         if (offsetInfo == null) {
             return;
         }
@@ -497,7 +490,7 @@ public class TimConverter {
     }
 
     private ProcessedRegionInfoBase createRegionInfoByType(ProcessedRegionType regionType, GeographicalPath region,
-            ProcessedElevationProfile elevationProfile, int dataFrameIndex, int regionIndex) {
+            ProcessedElevationProfile elevationProfile) {
         ProcessedRegionInfoBase regionInfo;
 
         switch (regionType) {
@@ -510,7 +503,7 @@ public class TimConverter {
 
                 // Preserve node alignment when offsets exist without a base width. In
                 // that case, the calculated absolute widths are unknown (null).
-                populateLaneWidthProfileWithOffsets(region, laneWidthProfile, dataFrameIndex, regionIndex);
+                populateLaneWidthProfileWithOffsets(region, laneWidthProfile);
 
                 if (laneWidthProfile.getDefaultWidthMeters() != null
                         || laneWidthProfile.getNodeLaneWidthMeters() != null) {

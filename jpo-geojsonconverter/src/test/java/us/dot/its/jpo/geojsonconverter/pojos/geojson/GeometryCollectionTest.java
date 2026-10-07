@@ -23,7 +23,7 @@ class GeometryCollectionTest {
         assertTrue(collection.toString().contains("geometries"));
         assertNotEquals(collection, new GeometryCollection(new Geometry[] {geometries[0]}));
         assertNotEquals(collection, new GeometryCollection(null));
-        assertNotEquals(collection, null);
+        assertNotEquals(null, collection);
         assertNotEquals(new Object(), collection);
 
         GeometryCollection empty = new GeometryCollection(null);

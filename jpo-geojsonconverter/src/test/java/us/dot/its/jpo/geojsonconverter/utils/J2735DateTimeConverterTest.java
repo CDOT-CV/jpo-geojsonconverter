@@ -4,22 +4,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.NullSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import us.dot.its.jpo.asn.j2735.r2024.Common.DSecond;
 import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
 
 public class J2735DateTimeConverterTest {
-
-    // Test data - January 1, 2024 12:00:00 UTC
-    private static final ZonedDateTime TEST_BASE_DATE = ZonedDateTime.of(2024, 1, 1, 12, 0, 0, 0, ZoneOffset.UTC);
 
     // Test data - June 15, 2024 15:30:45 UTC
     private static final ZonedDateTime TEST_ODE_DATE = ZonedDateTime.of(2024, 6, 15, 15, 30, 45, 0, ZoneOffset.UTC);
