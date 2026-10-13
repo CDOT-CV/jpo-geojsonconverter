@@ -672,12 +672,13 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
    - A `dataFrameFeatureCollection` containing GeoJSON Feature objects, one for each dataframe within the incoming TIM.
    - A `location` field containing a representative region-anchor point for coarse MongoDB 2dsphere indexing
    - Optional IEEE 1609.2 signed-message metadata, including certificate validity timestamps when supplied by the ODE
-   - `validationMessages` for J2735/ODE JSON schema issues
+   - `validationMessages` for J2735/ODE JSON schema issues and TIM conversion failures
 
 2. **Data Frame to Feature Conversion**: Each `TravelerDataFrame` in the TIM message becomes a GeoJSON Feature in the `dataFrameFeatureCollection`:
    - Each data frame within a TIM is assigned a sequential feature ID (0, 1, 2, ...)
    - The geometry is derived from the regions defined in the data frame
    - Properties are extracted from the data frame metadata and content
+   - Feature positions and IDs match source data-frame indexes. If a frame fails conversion, its feature is retained with `geometry: null` and any fully converted properties; an indexed diagnostic is added to `validationMessages`. A collection-level failure produces an empty feature collection with a collection-level diagnostic.
 
 3. **Region Geometry Processing**: Regions within each data frame are converted to GeoJSON geometries based on their type:
    - **PATH**: Converted to `LineString` geometry from LL/XY offsets or explicit LL latitude/longitude nodes
@@ -977,8 +978,6 @@ Verify the jpo-ode, kafka, zookeeper, asn1-decoder and asn1-encoder are running 
 #### Step 3 - Generate GitHub Token
 
 A GitHub token is required to pull artifacts from GitHub repositories. This is required to obtain the jpo-ode jars and must be done before attempting to build this repository.
-
-This branch requires `jpo-ode` version `7.0.0-alpha1` from the `CDOT-CV` GitHub Packages organization. Set `MAVEN_GITHUB_ORG=CDOT-CV` before running Maven with `-s settings.xml` from `jpo-geojsonconverter`. The repository URL in that settings file reads this variable; no additional Maven profile is required. Use `usdot-jpo-ode` when building against an upstream version published by that organization.
 
 1. Log into GitHub.
 2. Navigate to Settings -> Developer settings -> Personal access tokens.

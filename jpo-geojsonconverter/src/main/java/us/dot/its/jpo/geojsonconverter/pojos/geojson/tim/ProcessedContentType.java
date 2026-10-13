@@ -4,11 +4,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * The selected J2735 TravelerDataFrame content choice, independent of TravelerInfoType.
+ * The selected J2735 TravelerDataFrame content choice.
  */
 public enum ProcessedContentType {
-    ADVISORY("ADVISORY"), WORK_ZONE("WORK_ZONE"), SPEED_LIMIT("SPEED_LIMIT"),
-    GENERIC_SIGN("GENERIC_SIGN"), EXIT_SERVICE("EXIT_SERVICE");
+    ADVISORY("ADVISORY"),
+    WORK_ZONE("WORK_ZONE"),
+    SPEED_LIMIT("SPEED_LIMIT"),
+    GENERIC_SIGN("GENERIC_SIGN"),
+    EXIT_SERVICE("EXIT_SERVICE");
 
     private final String value;
 

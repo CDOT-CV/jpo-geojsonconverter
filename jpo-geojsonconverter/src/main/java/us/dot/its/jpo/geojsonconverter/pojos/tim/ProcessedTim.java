@@ -47,7 +47,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
  * location - GeoJSON Point representing the average of valid region anchors for coarse MongoDB 2dsphere indexing;
  * it may lie outside the TIM geometry, so use dataFrameFeatureCollection for geometry intersection queries
  * <p>
- * validationMessages - J2735/ODE JSON schema validation messages
+ * validationMessages - J2735/ODE JSON schema validation messages and TIM conversion failures
  * <p>
  * dataFrameFeatureCollection - GeoJSON FeatureCollection containing the TIM data frames
  */

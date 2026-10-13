@@ -149,11 +149,12 @@ public class TimConverter {
             ZonedDateTime odeDate) {
         try {
             ProcessedTimFeatureCollection featureCollection = new ProcessedTimFeatureCollection();
-            List<ProcessedTimFeature<?>> features = processDataFrames(travelerInfo, odeDate);
+            List<ProcessedTimFeature<?>> features = processDataFrames(travelerInfo, odeDate, processedTim);
             featureCollection.setFeatures(features);
             processedTim.setDataFrameFeatureCollection(featureCollection);
         } catch (Exception e) {
             log.error("Error processing TIM ASN.1 data: {}", e.getMessage(), e);
+            addConversionFailure(processedTim, "$.dataFrames", "Failed to process TIM data frames: " + e.getMessage(), e);
             // Create empty feature collection if processing fails
             ProcessedTimFeatureCollection featureCollection = new ProcessedTimFeatureCollection();
             featureCollection.setFeatures(new ArrayList<ProcessedTimFeature<?>>());
@@ -184,18 +185,17 @@ public class TimConverter {
     }
 
     /**
-     * Process data frames from the traveler information.
+     * Process data frames in source order, retaining a feature for every frame even when conversion fails.
      */
-    private List<ProcessedTimFeature<?>> processDataFrames(TravelerInformation travelerInfo, ZonedDateTime odeDate) {
+    private List<ProcessedTimFeature<?>> processDataFrames(TravelerInformation travelerInfo, ZonedDateTime odeDate,
+            ProcessedTim processedTim) {
         List<ProcessedTimFeature<?>> features = new ArrayList<>();
 
-        if (travelerInfo.getDataFrames() != null) {
-            for (int i = 0; i < travelerInfo.getDataFrames().size(); i++) {
-                TravelerDataFrame dataFrame = travelerInfo.getDataFrames().get(i);
-                ProcessedTimFeature<?> feature = createProcessedTimFeatureFromAsnData(odeDate, dataFrame, i);
-                if (feature != null) {
-                    features.add(feature);
-                }
+        List<TravelerDataFrame> dataFrames = travelerInfo.getDataFrames();
+        if (dataFrames != null) {
+            for (int i = 0; i < dataFrames.size(); i++) {
+                TravelerDataFrame dataFrame = dataFrames.get(i);
+                features.add(createProcessedTimFeatureFromAsnData(odeDate, dataFrame, i, processedTim));
             }
         }
 
@@ -206,18 +206,32 @@ public class TimConverter {
      * Create a processed TIM feature from ASN.1 data.
      */
     private ProcessedTimFeature<?> createProcessedTimFeatureFromAsnData(ZonedDateTime odeDate,
-            TravelerDataFrame dataFrame, int featureId) {
+            TravelerDataFrame dataFrame, int featureId, ProcessedTim processedTim) {
+        ProcessedTimProperties properties = null;
         try {
-            ProcessedTimProperties properties = createProcessedTimProperties(dataFrame, odeDate, featureId);
+            properties = createProcessedTimProperties(dataFrame, odeDate, featureId);
             TimGeometryResult geometryResult =
                     geometryProcessor.createGeometryResultFromDataFrame(dataFrame, featureId);
             applyRegionGeometryIndices(properties, geometryResult.regionGeometryIndices());
 
             return new ProcessedTimFeature<>(featureId, geometryResult.geometry(), properties);
         } catch (Exception e) {
-            log.error("Error creating TIM feature from ASN.1 data: {}", e.getMessage(), e);
-            return null;
+            log.error("Error creating TIM feature at dataFrames[{}]: {}", featureId, e.getMessage(), e);
+            addConversionFailure(processedTim, "$.dataFrames[" + featureId + "]",
+                    "Failed to convert TIM data frame " + featureId + ": " + e.getMessage(), e);
+            if (properties == null) {
+                properties = new ProcessedTimProperties();
+            }
+            return new ProcessedTimFeature<>(featureId, null, properties);
         }
+    }
+
+    private void addConversionFailure(ProcessedTim processedTim, String jsonPath, String message, Exception exception) {
+        ProcessedValidationMessage validationMessage = new ProcessedValidationMessage();
+        validationMessage.setMessage(message);
+        validationMessage.setJsonPath(jsonPath);
+        validationMessage.setException(Arrays.toString(exception.getStackTrace()));
+        processedTim.addValidationMessage(validationMessage);
     }
 
     /** Apply zero-based geometry component indexes to region metadata in source-region order. */
