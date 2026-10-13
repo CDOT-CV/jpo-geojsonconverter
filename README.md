@@ -699,7 +699,7 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
    - **ITIS Codes**: Converted to both numeric codes and human-readable phrases using the generated J2735 `ITIScodes` POJO from `jpo-asn-pojos`
    - **Unknown ITIS Codes**: Preserved numerically and assigned the phrase `unknown`; new standard codes are added by updating the J2735 ASN.1 bundle in `jpo-asn-pojos`
    - **Text Content**: Plain text items are preserved as-is
-   - **Content Type**: Determined from the J2735 content choice: ADVISORY, ROAD_SIGNAGE, COMMERCIAL_SIGNAGE, GENERIC_SIGN, or EXIT_SERVICE. Existing values are preserved; the latter two were added for the previously unsupported choices.
+   - **Content Type**: Identifies the selected J2735 content choice: `advisory` → `ADVISORY`, `workZone` → `WORK_ZONE`, `speedLimit` → `SPEED_LIMIT`, `genericSign` → `GENERIC_SIGN`, or `exitService` → `EXIT_SERVICE`.
    - **Combined Sentence**: All content items are concatenated in order to form a readable sentence
 
 6. **Validity Period Calculation**: The validity period is calculated from:
@@ -790,7 +790,7 @@ Example `ProcessedTim` message:
       }
      ],
      "content": {
-      "type": "COMMERCIAL_SIGNAGE",
+      "type": "WORK_ZONE",
       "contentItems": [
        {
         "type": "ITIS_CODE",
@@ -845,7 +845,7 @@ Example `ProcessedTim` message:
       }
      ],
      "content": {
-      "type": "ROAD_SIGNAGE",
+      "type": "SPEED_LIMIT",
       "contentItems": [
        {
         "type": "ITIS_CODE",
@@ -977,6 +977,8 @@ Verify the jpo-ode, kafka, zookeeper, asn1-decoder and asn1-encoder are running 
 #### Step 3 - Generate GitHub Token
 
 A GitHub token is required to pull artifacts from GitHub repositories. This is required to obtain the jpo-ode jars and must be done before attempting to build this repository.
+
+This branch requires `jpo-ode` version `7.0.0-alpha1` from the `CDOT-CV` GitHub Packages organization. Set `MAVEN_GITHUB_ORG=CDOT-CV` before running Maven with `-s settings.xml` from `jpo-geojsonconverter`. The repository URL in that settings file reads this variable; no additional Maven profile is required. Use `usdot-jpo-ode` when building against an upstream version published by that organization.
 
 1. Log into GitHub.
 2. Navigate to Settings -> Developer settings -> Personal access tokens.

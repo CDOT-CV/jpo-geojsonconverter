@@ -435,10 +435,10 @@ public class TimConverter {
                 timContent.setType(ProcessedContentType.ADVISORY);
                 processAdvisoryContent(content.getAdvisory(), contentItems);
             } else if (content.getSpeedLimit() != null) {
-                timContent.setType(ProcessedContentType.ROAD_SIGNAGE);
+                timContent.setType(ProcessedContentType.SPEED_LIMIT);
                 processSpeedLimitContent(content.getSpeedLimit(), contentItems);
             } else if (content.getWorkZone() != null) {
-                timContent.setType(ProcessedContentType.COMMERCIAL_SIGNAGE);
+                timContent.setType(ProcessedContentType.WORK_ZONE);
                 processWorkZoneContent(content.getWorkZone(), contentItems);
             } else if (content.getGenericSign() != null) {
                 timContent.setType(ProcessedContentType.GENERIC_SIGN);

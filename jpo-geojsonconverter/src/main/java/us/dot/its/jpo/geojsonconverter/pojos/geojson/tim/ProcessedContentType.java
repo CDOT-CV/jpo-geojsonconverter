@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * Enum for content types in TIM messages.
+ * The selected J2735 TravelerDataFrame content choice, independent of TravelerInfoType.
  */
 public enum ProcessedContentType {
-    ADVISORY("ADVISORY"), ROAD_SIGNAGE("ROAD_SIGNAGE"), COMMERCIAL_SIGNAGE("COMMERCIAL_SIGNAGE"),
+    ADVISORY("ADVISORY"), WORK_ZONE("WORK_ZONE"), SPEED_LIMIT("SPEED_LIMIT"),
     GENERIC_SIGN("GENERIC_SIGN"), EXIT_SERVICE("EXIT_SERVICE");
 
     private final String value;

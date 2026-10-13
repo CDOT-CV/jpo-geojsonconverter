@@ -345,10 +345,10 @@ public class FieldConversions {
     }
 
     /**
-     * Converts a J2735 speed value to meters per second. Speed ::= INTEGER (0..8191) Units of 0.02 m/s. Value 8191
-     * indicates speed is unavailable.
+     * Converts a J2735 Speed integer encoded in units of 0.02 m/s to meters per second. For example, 1000 represents
+     * 20 m/s. Value 8191 indicates speed is unavailable.
      *
-     * @param speed J2735 speed value
+     * @param speed Encoded J2735 Speed integer in units of 0.02 m/s (valid range 0..8190)
      * @return Speed in m/s, or null if unavailable
      */
     public static Double convertSpeed(long speed) {

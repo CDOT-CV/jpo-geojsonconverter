@@ -13,7 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Represents the content of a TIM message with support for both ITIS codes and plain text.
  * <p>
- * type - The type of content (advisory, road signage, commercial signage, generic sign, exit service)
+ * type - The selected J2735 content choice (advisory, work zone, speed limit, generic sign, exit service), independent
+ * of the frame's TravelerInfoType
  * <p>
  * contentItems - Ordered list of content items (ITIS codes and plain text) as they appear in the original message
  * <p>

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Arrays;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInfoType;
@@ -36,10 +37,16 @@ class ProcessedTimEnumTest {
     }
 
     @Test
-    void contentTypeMapsEveryWireValueAndRejectsUnknownValues() {
+    void contentTypeMapsEveryWireValueAndRejectsUnknownValues() throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
         for (ProcessedContentType contentType : ProcessedContentType.values()) {
             assertEquals(contentType, ProcessedContentType.fromValue(contentType.getValue()));
+            String json = mapper.writeValueAsString(contentType);
+            assertEquals("\"" + contentType.getValue() + "\"", json);
+            assertEquals(contentType, mapper.readValue(json, ProcessedContentType.class));
         }
+        assertThrows(IllegalArgumentException.class, () -> ProcessedContentType.fromValue("ROAD_SIGNAGE"));
+        assertThrows(IllegalArgumentException.class, () -> ProcessedContentType.fromValue("COMMERCIAL_SIGNAGE"));
         assertThrows(IllegalArgumentException.class, () -> ProcessedContentType.fromValue("unrecognized"));
     }
 }

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.DirectionOfUse;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.GeographicalPath;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerDataFrame;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInfoType;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformation;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformationMessageFrame;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.ValidRegion;
@@ -34,6 +35,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Polygon;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedCircleRegionInfo;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedContentType;
+import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedDeploymentAgency;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedDirectionType;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedDirectionality;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedDirectionalityDirectionInfo;
@@ -353,7 +355,7 @@ class TimConverterTest {
         assertNotNull(circleFeature.getGeometry());
         assertEquals(ProcessedRegionType.CIRCLE,
                 circleFeature.getProperties().getRegionInfoList().getFirst().getRegionType());
-        assertEquals(ProcessedContentType.ROAD_SIGNAGE, circleFeature.getProperties().getContent().getType());
+        assertEquals(ProcessedContentType.SPEED_LIMIT, circleFeature.getProperties().getContent().getType());
         assertEquals("speed-limit Slow down", circleFeature.getProperties().getContent().getSentence());
 
         var unavailableFeature = features.get(1);
@@ -364,7 +366,7 @@ class TimConverterTest {
         assertEquals(ProcessedRegionType.UNKNOWN,
                 unavailableFeature.getProperties().getRegionInfoList().getFirst().getRegionType());
         assertNull(unavailableFeature.getProperties().getRegionInfoList().getFirst().getGeometryIndex());
-        assertEquals(ProcessedContentType.COMMERCIAL_SIGNAGE,
+        assertEquals(ProcessedContentType.WORK_ZONE,
                 unavailableFeature.getProperties().getContent().getType());
         assertEquals("speed-limit Work ahead", unavailableFeature.getProperties().getContent().getSentence());
 
@@ -449,10 +451,36 @@ class TimConverterTest {
 
     @Test
     void testConvertsSpeedLimitAndWorkZoneContent() {
-        assertConvertedContent(createSpeedLimitContent(), ProcessedContentType.ROAD_SIGNAGE, "speed-limit Slow down");
-        assertConvertedContent(createWorkZoneContent(), ProcessedContentType.COMMERCIAL_SIGNAGE, "speed-limit Work ahead");
+        assertConvertedContent(createSpeedLimitContent(), ProcessedContentType.SPEED_LIMIT, "speed-limit Slow down");
+        assertConvertedContent(createWorkZoneContent(), ProcessedContentType.WORK_ZONE, "speed-limit Work ahead");
         assertConvertedContent(createGenericSignContent(), ProcessedContentType.GENERIC_SIGN, "Turn left speed-limit");
         assertConvertedContent(createExitServiceContent(), ProcessedContentType.EXIT_SERVICE, "speed-limit Exit ahead");
+    }
+
+    @Test
+    void testContentChoiceIsIndependentOfFrameType() {
+        TravelerDataFrame frame = travelerInfo.getDataFrames().getFirst();
+        TravelerDataFrame.ContentChoice advisoryContent = frame.getContent();
+
+        for (TravelerInfoType frameType : TravelerInfoType.values()) {
+            frame.setFrameType(frameType);
+            for (ProcessedContentType contentType : ProcessedContentType.values()) {
+                frame.setContent(switch (contentType) {
+                    case ADVISORY -> advisoryContent;
+                    case WORK_ZONE -> createWorkZoneContent();
+                    case SPEED_LIMIT -> createSpeedLimitContent();
+                    case GENERIC_SIGN -> createGenericSignContent();
+                    case EXIT_SERVICE -> createExitServiceContent();
+                });
+
+                ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, timMF.getMetadata());
+                var properties = processedTim.getDataFrameFeatureCollection().getFeatures().getFirst().getProperties();
+                String context = "frameType=" + frameType + ", contentType=" + contentType;
+                assertEquals(contentType, properties.getContent().getType(), context);
+                assertEquals(ProcessedDeploymentAgency.fromValue(frameType), properties.getDeploymentAgencyType(),
+                        context);
+            }
+        }
     }
 
     private void assertConvertedContent(TravelerDataFrame.ContentChoice content, ProcessedContentType expectedType,

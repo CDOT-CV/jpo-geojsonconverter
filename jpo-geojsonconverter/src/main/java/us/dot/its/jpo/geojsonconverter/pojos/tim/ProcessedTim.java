@@ -44,7 +44,8 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
  * <p>
  * packetId - The packet ID of the TIM message
  * <p>
- * location - GeoJSON Point representing the center location for MongoDB 2D sphere indexing
+ * location - GeoJSON Point representing the average of valid region anchors for coarse MongoDB 2dsphere indexing;
+ * it may lie outside the TIM geometry, so use dataFrameFeatureCollection for geometry intersection queries
  * <p>
  * validationMessages - J2735/ODE JSON schema validation messages
  * <p>
