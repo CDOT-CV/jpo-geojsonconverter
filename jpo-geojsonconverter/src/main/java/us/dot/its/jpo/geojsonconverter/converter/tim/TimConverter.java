@@ -338,12 +338,9 @@ public class TimConverter {
      */
     private void setRegionAndDirectionInfo(ProcessedTimProperties properties, TravelerDataFrame dataFrame) {
         if (dataFrame.getRegions() != null && !dataFrame.getRegions().isEmpty()) {
-            List<ProcessedRegionInfoBase> regionInfoList = new ArrayList<>();
-
-            // Create one region info object for each region
-            for (GeographicalPath region : dataFrame.getRegions()) {
-                regionInfoList.add(createProcessedRegionInfoFromAsnData(region));
-            }
+            List<ProcessedRegionInfoBase> regionInfoList = dataFrame.getRegions().stream()
+                    .map(this::createProcessedRegionInfoFromAsnData)
+                    .collect(Collectors.toCollection(ArrayList::new));
 
             properties.setRegionInfoList(regionInfoList);
         }
