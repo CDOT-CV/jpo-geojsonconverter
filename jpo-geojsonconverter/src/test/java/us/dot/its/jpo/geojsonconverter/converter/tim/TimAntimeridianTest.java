@@ -145,7 +145,7 @@ class TimAntimeridianTest {
     @Test
     void onlySplitRegionKeepsAllPiecesUnderItsIndexAndRoundTripsThroughTheSerde() {
         ProcessedTim original = processed(datelineRectangle(false));
-        try (var serde = JsonSerdes.ProcessedTim()) {
+        try (var serde = JsonSerdes.processedTim()) {
             byte[] json = serde.serializer().serialize("test", original);
             ProcessedTim result = serde.deserializer().deserialize("test", json);
             var feature = result.getDataFrameFeatureCollection().getFeatures().getFirst();
@@ -214,7 +214,7 @@ class TimAntimeridianTest {
         GeographicalPath region = closedLlPath(new long[][] {{1799990000L, 400000000L}, {-1799990000L, 400000000L}});
         region.setClosedPath(new Asn1Boolean(false));
         ProcessedTim original = processed(region);
-        try (var serde = JsonSerdes.ProcessedTim()) {
+        try (var serde = JsonSerdes.processedTim()) {
             ProcessedTim result = serde.deserializer().deserialize("test", serde.serializer().serialize("test", original));
             var feature = result.getDataFrameFeatureCollection().getFeatures().getFirst();
             GeometryCollection collection = assertInstanceOf(GeometryCollection.class, feature.getGeometry());

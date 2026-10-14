@@ -12,7 +12,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 
 class TimXyOffsetRegressionTest {
     @ParameterizedTest
-    @CsvSource({"1, 2", "2, 2", "3, 2", "4, 2", "5, 2", "6, 2",
+    @CsvSource({"1, 0", "1, 15", "1, 2", "2, 2", "3, 2", "4, 2", "5, 2", "6, 2",
             "1, -1", "2, -1", "3, -1", "4, -1", "5, -1", "6, -1"})
     void xyVariantsApplyZoomAndAccumulateSignedOffsets(int variant, int zoom) throws Exception {
         String json = """

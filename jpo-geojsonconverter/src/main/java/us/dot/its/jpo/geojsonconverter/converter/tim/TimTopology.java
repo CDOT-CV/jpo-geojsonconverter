@@ -74,7 +74,7 @@ public class TimTopology {
 
         processedJsonTimStream.to(
                 // Push the ProcessedTim to the output topic partitioned by RsuTimKey
-                timProcessedJsonTopic, Produced.with(JsonSerdes.rsuTimKey(), JsonSerdes.ProcessedTim(),
+                timProcessedJsonTopic, Produced.with(JsonSerdes.rsuTimKey(), JsonSerdes.processedTim(),
                         new RsuTimPartitioner<RsuTimKey, ProcessedTim>()));
 
         return builder.build();

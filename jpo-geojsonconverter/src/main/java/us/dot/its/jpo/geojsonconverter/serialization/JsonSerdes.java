@@ -75,7 +75,7 @@ public class JsonSerdes {
         return Serdes.serdeFrom(new JsonSerializer<>(), new JsonDeserializer<>(ProcessedRTCM.class));
     }
 
-    public static Serde<ProcessedTim> ProcessedTim() {
+    public static Serde<ProcessedTim> processedTim() {
         return Serdes.serdeFrom(new JsonSerializer<ProcessedTim>(), new JsonDeserializer<>(ProcessedTim.class));
     }
 
