@@ -483,18 +483,7 @@ public class TimConverter {
         }
 
         Position3D anchor = region.getAnchor();
-        ProcessedAnchorPoint anchorPoint = new ProcessedAnchorPoint();
-
-        // Set latitude and longitude
-        if (anchor.getLat() != null) {
-            anchorPoint.setLatitude(FieldConversions.convertLat(anchor.getLat().getValue()));
-        }
-        if (anchor.getLong_() != null) {
-            anchorPoint.setLongitude(FieldConversions.convertLong(anchor.getLong_().getValue()));
-        }
-        if (anchor.getElevation() != null) {
-            anchorPoint.setElevationMeters(FieldConversions.convertElevation(anchor.getElevation().getValue()));
-        }
+        ProcessedAnchorPoint anchorPoint = createProcessedPoint(anchor);
 
         // Set default elevation from anchor point
         if (anchor.getElevation() != null) {
@@ -503,6 +492,20 @@ public class TimConverter {
         }
 
         return anchorPoint;
+    }
+
+    private ProcessedAnchorPoint createProcessedPoint(Position3D position) {
+        ProcessedAnchorPoint point = new ProcessedAnchorPoint();
+        if (position.getLat() != null) {
+            point.setLatitude(FieldConversions.convertLat(position.getLat().getValue()));
+        }
+        if (position.getLong_() != null) {
+            point.setLongitude(FieldConversions.convertLong(position.getLong_().getValue()));
+        }
+        if (position.getElevation() != null) {
+            point.setElevationMeters(FieldConversions.convertElevation(position.getElevation().getValue()));
+        }
+        return point;
     }
 
     private ProcessedRegionInfoBase createRegionInfoByType(ProcessedRegionType regionType, GeographicalPath region,
@@ -550,6 +553,9 @@ public class TimConverter {
         if (region.getDescription() != null && region.getDescription().getGeometry() != null
                 && region.getDescription().getGeometry().getCircle() != null) {
             Circle circle = region.getDescription().getGeometry().getCircle();
+            if (circle.getCenter() != null) {
+                regionInfo.setCenter(createProcessedPoint(circle.getCenter()));
+            }
             if (circle.getRadius() != null) {
                 long radiusValue = circle.getRadius().getValue();
                 DistanceUnits units = circle.getUnits();

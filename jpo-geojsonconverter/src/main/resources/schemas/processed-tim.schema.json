@@ -74,6 +74,9 @@
         "anchorPoint" : {
           "$ref" : "#/$defs/ProcessedAnchorPoint"
         },
+        "center" : {
+          "$ref" : "#/$defs/ProcessedAnchorPoint"
+        },
         "directionInfo" : {
           "anyOf" : [ {
             "$ref" : "#/$defs/ProcessedDirectionalityDirectionInfo-2"

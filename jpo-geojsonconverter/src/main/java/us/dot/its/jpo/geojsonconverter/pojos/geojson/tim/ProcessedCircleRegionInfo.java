@@ -13,7 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Represents information about a CIRCLE TIM region.
  * <p>
- * Circle regions include radius but do not include lane width profiles and only support heading-based direction info.
+ * Circle regions include center and radius but do not include lane width profiles and only support heading-based
+ * direction info.
  */
 @Data
 @Generated
@@ -24,6 +25,9 @@ import lombok.extern.slf4j.Slf4j;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Slf4j
 public class ProcessedCircleRegionInfo extends ProcessedRegionInfoBase {
+    /** Circle center from description.geometry.circle.center, which is independent of the region anchor. */
+    private ProcessedAnchorPoint center;
+
     /** Circle radius in meters, preserving the precision provided by J2735 DistanceUnits. */
     private Double radius;
 

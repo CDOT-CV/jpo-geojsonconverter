@@ -421,6 +421,11 @@
                                     }
                                 ]
                             },
+                            "center": {
+                                "latitude": 42.2438011,
+                                "longitude": -83.5564811,
+                                "elevationMeters": 183.0
+                            },
                             "radius": 100.10000000000001
                         }
                     ],
