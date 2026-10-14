@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.DirectionOfUse;
@@ -219,6 +220,31 @@ class TimConverterTest {
         assertEquals(firstStart, secondStart);
         assertEquals(0, firstStart.getSecond());
         assertEquals(0, firstStart.getNano());
+    }
+
+    @Test
+    void testTimeStampHasMinutePrecisionIndependentOfReceiveSubseconds() {
+        var metadata = timMF.getMetadata();
+        metadata.setOdeReceivedAt("2025-10-07T21:40:19.711Z");
+        ProcessedTim first = timConverter.createProcessedTim(travelerInfo, metadata);
+        metadata.setOdeReceivedAt("2025-10-07T21:40:58.999Z");
+        ProcessedTim second = timConverter.createProcessedTim(travelerInfo, metadata);
+
+        // Sample timeStamp 386520 is day 269 at 10:00 UTC.
+        assertEquals(Instant.parse("2025-09-26T10:00:00Z"), first.getTimeStamp().toInstant());
+        assertEquals(first.getTimeStamp(), second.getTimeStamp());
+        assertEquals("2025-10-07T21:40:58.999Z", second.getOdeReceivedAt());
+    }
+
+    @Test
+    void testMissingTimeStampFallsBackToReceiveMinute() {
+        travelerInfo.setTimeStamp(null);
+        var metadata = timMF.getMetadata();
+        metadata.setOdeReceivedAt("2025-10-07T21:40:19.711Z");
+
+        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, metadata);
+
+        assertEquals(Instant.parse("2025-10-07T21:40:00Z"), processedTim.getTimeStamp().toInstant());
     }
 
     @Test

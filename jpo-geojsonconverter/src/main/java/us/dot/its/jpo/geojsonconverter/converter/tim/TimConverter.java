@@ -121,8 +121,10 @@ public class TimConverter {
         processedTim.setSignedDataMetadata(signedDataMetadata);
         processedTim.setCertPresent(metadata.isCertPresent());
 
+        // TIM timeStamp is minute-precise and carries no DSecond. Passing zero keeps the receive timestamp's seconds
+        // and milliseconds out of the message timestamp; the full receive time remains available in odeReceivedAt.
         ZonedDateTime creationTimestamp =
-                J2735DateTimeConverter.generateUTCTimestamp(travelerInfo.getTimeStamp(), odeDate);
+                J2735DateTimeConverter.generateUTCTimestamp(travelerInfo.getTimeStamp(), new DSecond(0), odeDate);
         processedTim.setTimeStamp(creationTimestamp);
 
         return processedTim;
