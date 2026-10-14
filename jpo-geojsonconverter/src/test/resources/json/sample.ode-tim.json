@@ -1,0 +1,785 @@
+{
+	"metadata": {
+		"logFileName": "",
+		"recordType": "timMsg",
+		"securityResultCode": "success",
+		"receivedMessageDetails": {
+			"rxSource": "NA"
+		},
+		"payloadType": "us.dot.its.jpo.ode.model.OdeMessageFramePayload",
+		"serialId": {
+			"streamId": "aff21add-4305-4007-b25d-a9de2cb9441c",
+			"bundleSize": 1,
+			"bundleId": 0,
+			"recordId": 0,
+			"serialNumber": 0
+		},
+		"odeReceivedAt": "2025-10-07T21:40:19.711Z",
+		"schemaVersion": 9,
+		"maxDurationTime": 0,
+		"recordGeneratedAt": "",
+		"recordGeneratedBy": "RSU",
+		"sanitized": false,
+		"odePacketID": "",
+		"odeTimStartDateTime": "",
+		"asn1": "001f81bc7015e5d818d4a500000d7ba1330f775d9b220200003f4b157e7d004011e94ed2a473397c14bb1e6005dc800c22df18a5bf6ffea0d1959039bfe5b85977ecc2d76ca4666715b1834646a0b95a86c78278538f4a76952399cbe0a5d8f3002ee4006116f8c50dfb7ff55cdff2dc04ce0b2efd985aed9484cce2b63572b50d823ce3c13c29c000146a3e1e200fad004306232221040400007e962afcfa008003529da5931e72f88b6a3cc00bb80081e506a76326ebec84432e6c22d467c21fdeb640ce1c9a211d70d90d8b27a20b1607c174641c000146a341e200fad004306232221040400007e962f70fa004003529da59af672f839e83ce805b843c03d4ed2cd7b397c1cf417263e94000041b040a808d4050100001fa58bdc3e801000dca76971269cbdfc3e8f3a016e81e00008b78daf64c53ba67f7f2c071aa5f17106a0690000043608140b40400007e962afcfa008023d29da548e672f829763cc00bb9001845be31437edffd4737fcb70b2efd985aed9484cce2b63172b50d8f04f0a71e94ed2a473397c14bb1e6005dc800c22df18a1bf6ffea39bfe5b85977ecc2d76ca4266715b18b95a86c7827853800028d47c3c401f5a00860c4644420",
+		"source": "RSU",
+		"originIp": "172.27.0.1",
+		"isCertPresent": false
+	},
+	"payload": {
+		"data": {
+			"messageId": 31,
+			"value": {
+				"TravelerInformation": {
+					"msgCnt": 1,
+					"timeStamp": 386520,
+					"packetID": "18D4A500000D7BA133",
+					"urlB": "null",
+					"dataFrames": [
+						{
+							"doNotUse1": 0,
+							"frameType": "roadSignage",
+							"msgId": {
+								"furtherInfoID": "0000"
+							},
+							"startYear": 2025,
+							"startTime": 404220,
+							"durationTime": 32000,
+							"priority": 2,
+							"doNotUse2": 0,
+							"regions": [
+								{
+									"anchor": {
+										"lat": 422427507,
+										"long": -835566916,
+										"elevation": 3680
+									},
+									"laneWidth": 750,
+									"directionality": "forward",
+									"closedPath": false,
+									"description": {
+										"path": {
+											"offset": {
+												"xy": {
+													"nodes": [
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": -1313,
+																	"y": -1654
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": -37,
+																	"y": 4085
+																}
+															},
+															"attributes": {
+																"dWidth": 50,
+																"dElevation": 200
+															}
+														},
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": 895,
+																	"y": 2414
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": 1211,
+																	"y": 1894
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": 1398,
+																	"y": 1188
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY5": {
+																	"x": 4920,
+																	"y": 2915
+																}
+															},
+															"attributes": {
+																"dWidth": 50,
+																"dElevation": -300
+															}
+														},
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": 1622,
+																	"y": 539
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": 2087,
+																	"y": 167
+																}
+															}
+														}
+													]
+												}
+											}
+										}
+									}
+								},
+								{
+									"anchor": {
+										"lat": 422427507,
+										"long": -835566916,
+										"elevation": 3680
+									},
+									"laneWidth": 750,
+									"directionality": "forward",
+									"closedPath": false,
+									"description": {
+										"path": {
+											"offset": {
+												"xy": {
+													"nodes": [
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": -1313,
+																	"y": -1654
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": -37,
+																	"y": 4085
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": 895,
+																	"y": 2414
+																}
+															},
+															"attributes": {
+																"dElevation": -100
+															}
+														},
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": 1211,
+																	"y": 1894
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": 1398,
+																	"y": 1188
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY5": {
+																	"x": 4920,
+																	"y": 2915
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": 1622,
+																	"y": 539
+																}
+															},
+															"attributes": {
+																"dWidth": -25
+															}
+														},
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": 2087,
+																	"y": 167
+																}
+															}
+														}
+													]
+												}
+											}
+										}
+									}
+								}
+							],
+							"doNotUse3": 0,
+							"doNotUse4": 0,
+							"content": {
+								"advisory": [
+									{
+										"item": {
+											"itis": 13599
+										}
+									},
+									{
+										"item": {
+											"itis": 7712
+										}
+									},
+									{
+										"item": {
+											"itis": 8026
+										}
+									},
+									{
+										"item": {
+											"itis": 268
+										}
+									},
+									{
+										"item": {
+											"itis": 12569
+										}
+									},
+									{
+										"item": {
+											"itis": 8720
+										}
+									}
+								]
+							}
+						},
+						{
+							"doNotUse1": 0,
+							"frameType": "roadSignage",
+							"msgId": {
+								"furtherInfoID": "0000"
+							},
+							"startYear": 2025,
+							"startTime": 404220,
+							"durationTime": 32000,
+							"priority": 2,
+							"doNotUse2": 0,
+							"regions": [
+								{
+									"anchor": {
+										"lat": 422437007,
+										"long": -835554378,
+										"elevation": 3680
+									},
+									"laneWidth": 750,
+									"closedPath": false,
+									"description": {
+										"path": {
+											"offset": {
+												"xy": {
+													"nodes": [
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": 2369,
+																	"y": 1339
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": -2851,
+																	"y": -78
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": -1511,
+																	"y": -202
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": -1324,
+																	"y": -388
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY5": {
+																	"x": -4113,
+																	"y": -2360
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": -2290,
+																	"y": -1630
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": -1106,
+																	"y": -1614
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": -935,
+																	"y": -2142
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY2": {
+																	"x": -234,
+																	"y": -962
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY2": {
+																	"x": -93,
+																	"y": -761
+																}
+															}
+														}
+													]
+												}
+											}
+										}
+									}
+								}
+							],
+							"doNotUse3": 0,
+							"doNotUse4": 0,
+							"content": {
+								"advisory": [
+									{
+										"item": {
+											"itis": 13594
+										}
+									},
+									{
+										"item": {
+											"itis": 7712
+										}
+									},
+									{
+										"item": {
+											"itis": 8026
+										}
+									},
+									{
+										"item": {
+											"itis": 268
+										}
+									},
+									{
+										"item": {
+											"itis": 12569
+										}
+									},
+									{
+										"item": {
+											"itis": 8720
+										}
+									}
+								]
+							}
+						},
+						{
+							"doNotUse1": 0,
+							"frameType": "roadSignage",
+							"msgId": {
+								"furtherInfoID": "0000"
+							},
+							"startYear": 2025,
+							"startTime": 405360,
+							"durationTime": 32000,
+							"priority": 1,
+							"doNotUse2": 0,
+							"regions": [
+								{
+									"anchor": {
+										"lat": 422438011,
+										"long": -835564811,
+										"elevation": 3700
+									},
+									"laneWidth": 366,
+									"closedPath": false,
+									"description": {
+										"geometry": {
+											"direction": "F00F",
+											"circle": {
+												"center": {
+													"lat": 422438011,
+													"long": -835564811,
+													"elevation": 1830
+												},
+												"radius": 1001,
+												"units": "decimeter"
+											}
+										}
+									}
+								}
+							],
+							"doNotUse3": 0,
+							"doNotUse4": 0,
+							"content": {
+								"advisory": [
+									{
+										"item": {
+											"itis": 6916
+										}
+									},
+									{
+										"item": {
+											"itis": 5377
+										}
+									},
+									{
+										"item": {
+											"itis": 13569
+										}
+									}
+								]
+							}
+						},
+						{
+							"doNotUse1": 0,
+							"frameType": "roadSignage",
+							"msgId": {
+								"furtherInfoID": "0000"
+							},
+							"startYear": 2025,
+							"startTime": 405360,
+							"durationTime": 32000,
+							"priority": 1,
+							"doNotUse2": 0,
+							"regions": [
+								{
+									"anchor": {
+										"lat": 422443341,
+										"long": -835574146,
+										"elevation": 3700
+									},
+									"laneWidth": 366,
+									"closedPath": true,
+									"direction": "03C0",
+									"description": {
+										"path": {
+											"offset": {
+												"xy": {
+													"nodes": [
+														{
+															"delta": {
+																"node-XY6": {
+																	"x": 15469,
+																	"y": -1242
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY6": {
+																	"x": -17498,
+																	"y": -129
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY6": {
+																	"x": 227,
+																	"y": -11074
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY6": {
+																	"x": 17434,
+																	"y": 420
+																}
+															}
+														}
+													]
+												}
+											}
+										}
+									}
+								}
+							],
+							"doNotUse3": 0,
+							"doNotUse4": 0,
+							"content": {
+								"advisory": [
+									{
+										"item": {
+											"itis": 6916
+										}
+									},
+									{
+										"item": {
+											"itis": 5131
+										}
+									}
+								]
+							}
+						},
+						{
+							"doNotUse1": 0,
+							"frameType": "roadSignage",
+							"msgId": {
+								"furtherInfoID": "0000"
+							},
+							"startYear": 2025,
+							"startTime": 404220,
+							"durationTime": 32000,
+							"priority": 2,
+							"doNotUse2": 0,
+							"regions": [
+								{
+									"anchor": {
+										"lat": 422427507,
+										"long": -835566916,
+										"elevation": 3680
+									},
+									"laneWidth": 750,
+									"directionality": "forward",
+									"closedPath": false,
+									"description": {
+										"path": {
+											"offset": {
+												"xy": {
+													"nodes": [
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": -1313,
+																	"y": -1654
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": -37,
+																	"y": 4085
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": 895,
+																	"y": 2414
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": 1211,
+																	"y": 1894
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": 1398,
+																	"y": 1188
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY5": {
+																	"x": 4920,
+																	"y": 2915
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": 1622,
+																	"y": 539
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": 2087,
+																	"y": 167
+																}
+															}
+														}
+													]
+												}
+											}
+										}
+									}
+								},
+								{
+									"anchor": {
+										"lat": 422427507,
+										"long": -835566916,
+										"elevation": 3680
+									},
+									"laneWidth": 750,
+									"directionality": "forward",
+									"closedPath": false,
+									"description": {
+										"path": {
+											"offset": {
+												"xy": {
+													"nodes": [
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": -1313,
+																	"y": -1654
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": -37,
+																	"y": 4085
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": 895,
+																	"y": 2414
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": 1211,
+																	"y": 1894
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": 1398,
+																	"y": 1188
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY5": {
+																	"x": 4920,
+																	"y": 2915
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY3": {
+																	"x": 1622,
+																	"y": 539
+																}
+															}
+														},
+														{
+															"delta": {
+																"node-XY4": {
+																	"x": 2087,
+																	"y": 167
+																}
+															}
+														}
+													]
+												}
+											}
+										}
+									}
+								}
+							],
+							"doNotUse3": 0,
+							"doNotUse4": 0,
+							"content": {
+								"advisory": [
+									{
+										"item": {
+											"itis": 13599
+										}
+									},
+									{
+										"item": {
+											"itis": 7712
+										}
+									},
+									{
+										"item": {
+											"itis": 8026
+										}
+									},
+									{
+										"item": {
+											"itis": 268
+										}
+									},
+									{
+										"item": {
+											"itis": 12569
+										}
+									},
+									{
+										"item": {
+											"itis": 8720
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			}
+		},
+		"dataType": "us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformationMessageFrame"
+	}
+}
