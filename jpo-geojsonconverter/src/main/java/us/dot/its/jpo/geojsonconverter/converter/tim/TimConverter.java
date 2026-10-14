@@ -173,7 +173,8 @@ public class TimConverter {
             if (jtsPoint != null) {
                 // Convert JTS Point to GeoJSON Point
                 us.dot.its.jpo.geojsonconverter.pojos.geojson.Point geoJsonPoint =
-                        new us.dot.its.jpo.geojsonconverter.pojos.geojson.Point(jtsPoint.getX(), jtsPoint.getY());
+                        new us.dot.its.jpo.geojsonconverter.pojos.geojson.Point(TimCoordinates.round(jtsPoint.getX()),
+                                TimCoordinates.round(jtsPoint.getY()));
                 processedTim.setLocation(geoJsonPoint);
             } else {
                 log.warn(

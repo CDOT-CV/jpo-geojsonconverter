@@ -1,5 +1,6 @@
 package us.dot.its.jpo.geojsonconverter.converter.tim;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
@@ -10,6 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import us.dot.its.jpo.asn.runtime.types.Asn1Boolean;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Latitude;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Longitude;
 import us.dot.its.jpo.asn.j2735.r2024.Common.Node_LLmD_64b;
@@ -18,6 +20,7 @@ import us.dot.its.jpo.asn.j2735.r2024.Common.Position3D;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.*;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Geometry;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
+import us.dot.its.jpo.geojsonconverter.pojos.geojson.Polygon;
 
 class TimLlOffsetRegressionTest {
     private static final long ANCHOR_LONGITUDE = -1041234567L;
@@ -68,6 +71,31 @@ class TimLlOffsetRegressionTest {
         assertEquals(41.0, line.getCoordinates()[0][1], 0.00000001);
         assertEquals(-104.125, line.getCoordinates()[1][0], 0.00000001);
         assertEquals(41.0375, line.getCoordinates()[1][1], 0.00000001);
+    }
+
+    @Test
+    void closedPathReturningToFirstNodeDoesNotAddRoundingErrorVertex() {
+        GeographicalPath region = regionWithAnchor();
+        region.getAnchor().setLong_(new Longitude(-824572000L));
+        region.getAnchor().setLat(new Latitude(279506896L));
+        region.setClosedPath(new Asn1Boolean(true));
+        region.getDescription().getPath().setScale(new Zoom(0));
+        // The deltas sum to zero, so the final node is the first node again.
+        region.getDescription().getPath().setOffset(createOffset(
+                node(relativeLlNode(6, 0L, 0L)),
+                node(relativeLlNode(6, 12345L, 6789L)),
+                node(relativeLlNode(6, 1111L, -23456L)),
+                node(relativeLlNode(6, -9876L, -3333L)),
+                node(relativeLlNode(6, -3580L, 20000L))));
+
+        Polygon polygon = assertInstanceOf(Polygon.class, geometryConverter.createGeometryFromRegion(region));
+        double[][] ring = polygon.getCoordinates()[0];
+        assertEquals(5, ring.length);
+        assertArrayEquals(ring[0], ring[ring.length - 1]);
+        for (double[] position : ring) {
+            assertEquals(TimCoordinates.round(position[0]), position[0]);
+            assertEquals(TimCoordinates.round(position[1]), position[1]);
+        }
     }
 
     private static Stream<Arguments> llVariantCases() {

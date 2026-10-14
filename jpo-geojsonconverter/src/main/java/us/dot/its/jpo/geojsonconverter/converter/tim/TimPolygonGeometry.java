@@ -89,8 +89,12 @@ final class TimPolygonGeometry {
         if (geometry instanceof org.locationtech.jts.geom.Polygon polygon) {
             if (polygon.isEmpty() || polygon.getArea() <= 0.0) return;
             var translated = (org.locationtech.jts.geom.Polygon) polygon.copy();
-            translated.apply((org.locationtech.jts.geom.CoordinateFilter) coordinate ->
-                    coordinate.x = Math.clamp(coordinate.x - shift, -180.0, 180.0));
+            // Round here, before the multipart validity check, so clipping and translation noise is removed from the
+            // geometry JTS validates rather than after it.
+            translated.apply((org.locationtech.jts.geom.CoordinateFilter) coordinate -> {
+                coordinate.x = TimCoordinates.round(Math.clamp(coordinate.x - shift, -180.0, 180.0));
+                coordinate.y = TimCoordinates.round(coordinate.y);
+            });
             translated.geometryChanged();
             pieces.add(translated);
         } else if (geometry instanceof org.locationtech.jts.geom.GeometryCollection collection) {

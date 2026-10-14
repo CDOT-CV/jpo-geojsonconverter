@@ -46,11 +46,11 @@ final class TimLineGeometry {
             }
         }
 
-        if (!crossed) return new LineString(coordinates);
+        if (!crossed) return new LineString(TimCoordinates.round(coordinates));
         addPiece(pieces, current);
         if (pieces.isEmpty()) return null;
-        if (pieces.size() == 1) return new LineString(pieces.getFirst());
-        return new MultiLineString(pieces.toArray(double[][][]::new));
+        if (pieces.size() == 1) return new LineString(TimCoordinates.round(pieces.getFirst()));
+        return new MultiLineString(pieces.stream().map(TimCoordinates::round).toArray(double[][][]::new));
     }
 
     private static void addPiece(List<double[][]> pieces, List<double[]> coordinates) {

@@ -646,7 +646,11 @@ public class TimGeometryConverter {
         Long dwidthOffset = offsets != null ? offsets[0] : null;
         Long delevationOffset = offsets != null ? offsets[1] : null;
         currentCoords[0] = normalizeLongitude(currentCoords[0]);
-        pathData.add(new PathNodeData(Arrays.asList(currentCoords[0], currentCoords[1]), dwidthOffset,
+        // Round only the emitted position so a ring returning to its first node closes exactly, while the running
+        // offset sum keeps full precision.
+        pathData.add(new PathNodeData(
+                Arrays.asList(TimCoordinates.round(currentCoords[0]), TimCoordinates.round(currentCoords[1])),
+                dwidthOffset,
                 delevationOffset));
     }
 
@@ -750,7 +754,7 @@ public class TimGeometryConverter {
                     log.error("Geodesic circle calculation produced a non-finite coordinate");
                     return new ArrayList<>();
                 }
-                coordinates.add(Arrays.asList(longitude, latitude));
+                coordinates.add(Arrays.asList(TimCoordinates.round(longitude), TimCoordinates.round(latitude)));
             }
 
             // GeoJSON polygon rings repeat the first point as the final point.
