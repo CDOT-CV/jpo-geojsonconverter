@@ -810,12 +810,26 @@ public class TimGeometryConverter {
             return null;
         }
 
-        // Ensure the polygon is closed (first and last coordinates are the same)
+        // Ensure the polygon is closed (first and last coordinates are the same). Offset accumulation can leave the
+        // encoded closing node slightly off the first node, so snap it (within 1e-6 degrees, about 11 cm) rather
+        // than appending a near-duplicate.
         List<List<Double>> closedCoordinates = new ArrayList<>(coordinates);
+        final double tolerance = 1e-6;
         if (closedCoordinates.size() > 2) {
-            List<Double> first = closedCoordinates.get(0);
-            List<Double> last = closedCoordinates.get(closedCoordinates.size() - 1);
-            if (!first.equals(last)) {
+            List<Double> first = closedCoordinates.getFirst();
+            int lastIndex = closedCoordinates.size() - 1;
+            List<Double> last = closedCoordinates.get(lastIndex);
+            Double firstX = first.size() > 1 ? first.get(0) : null;
+            Double firstY = first.size() > 1 ? first.get(1) : null;
+            Double lastX = last.size() > 1 ? last.get(0) : null;
+            Double lastY = last.size() > 1 ? last.get(1) : null;
+            boolean lastIsFirst =
+                        firstX != null && firstY != null && lastX != null && lastY != null
+                        && Math.abs(firstX - lastX) <= tolerance
+                        && Math.abs(firstY - lastY) <= tolerance;
+            if (lastIsFirst) {
+                closedCoordinates.set(lastIndex, new ArrayList<>(first));
+            } else {
                 closedCoordinates.add(new ArrayList<>(first));
             }
         }
