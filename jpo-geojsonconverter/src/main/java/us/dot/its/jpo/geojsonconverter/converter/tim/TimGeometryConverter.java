@@ -242,7 +242,7 @@ public class TimGeometryConverter {
      * Add the region anchor or circle center for a circle region
      */
     private void addRegionPosition(GeographicalPath region, List<Double> longitudes, List<Double> latitudes) {
-        double[] position = null;
+        Coordinate position = null;
         if (region.getDescription() != null && region.getDescription().getGeometry() != null
                 && region.getDescription().getGeometry().getCircle() != null) {
             position = validPosition(region.getDescription().getGeometry().getCircle().getCenter());
@@ -251,12 +251,15 @@ public class TimGeometryConverter {
             position = validPosition(region.getAnchor());
         }
         if (position != null) {
-            longitudes.add(position[0]);
-            latitudes.add(position[1]);
+            longitudes.add(position.getX());
+            latitudes.add(position.getY());
         }
     }
 
-    private static double[] validPosition(Position3D position) {
+    /**
+     * Convert a J2735 position to a longitude/latitude coordinate, or {@code null} when it is missing or unavailable.
+     */
+    private static Coordinate validPosition(Position3D position) {
         if (position == null || position.getLat() == null || position.getLong_() == null) {
             return null;
         }
@@ -265,7 +268,7 @@ public class TimGeometryConverter {
         if (latitude == null || longitude == null) {
             return null;
         }
-        return new double[] {longitude, latitude};
+        return new Coordinate(longitude, latitude);
     }
 
     /**
