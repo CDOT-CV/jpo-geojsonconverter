@@ -670,7 +670,7 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
 1. **Message Structure**: The `ProcessedTim` is a single JSON object containing:
    - Root-level metadata (message type, timestamps, origin IP, ASN.1 data, etc.)
    - A `dataFrameFeatureCollection` containing GeoJSON Feature objects, one for each dataframe within the incoming TIM.
-   - A `location` field containing a representative region-anchor point for coarse MongoDB 2dsphere indexing
+   - A `location` field containing a representative region point (circle centers and region anchors) for coarse MongoDB 2dsphere indexing
    - Optional IEEE 1609.2 signed-message metadata, including certificate validity timestamps when supplied by the ODE
    - `validationMessages` for J2735/ODE JSON schema issues and TIM conversion failures
 
@@ -717,7 +717,7 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
    - **Geometry Index**: Zero-based position of the region in the feature geometry. For `Multi*` geometries it indexes the corresponding coordinate component; for `GeometryCollection` it indexes `geometries`. It is omitted when a region cannot be converted.
    - Invalid one-position lines and degenerate or self-intersecting polygon rings are omitted from geometry; their region metadata remains present with no geometry index.
 
-8. **Representative Location Calculation**: The `location` field is the average of all valid region anchors across the data frames. Longitudes use a circular mean, which is independent of anchor order and keeps dateline-spanning TIMs near ±180. It supports coarse containment or proximity filtering only; it may fall outside the rendered TIM geometry, so consumers must use `dataFrameFeatureCollection` for geometry intersection or roadway-traversal queries. The field is omitted when no valid anchors are available.
+8. **Representative Location Calculation**: The `location` field is the average of at most one position per region across the data frames: the circle center for circle regions or the region anchor. Longitudes use a circular mean, which is independent of region order and keeps dateline-spanning TIMs near ±180. It supports coarse containment or proximity filtering only; it may fall outside the rendered TIM geometry, so consumers must use `dataFrameFeatureCollection` for geometry intersection or roadway-traversal queries. The field is omitted when no region has a valid circle center or anchor.
 
 9. **Validation Messages**: ODE TIMs are structurally validated against the TIM JSON schema. Schema failures are recorded in a root-level `validationMessages` list, matching ProcessedBsm/ProcessedPsm/ProcessedSrm/ProcessedSsm. Content-level Interoperability Technical Working Group (ITWG) or Connecting The West (CTW) best-practice checking is planned for a follow-up that pulls in the TIM validator library.
 

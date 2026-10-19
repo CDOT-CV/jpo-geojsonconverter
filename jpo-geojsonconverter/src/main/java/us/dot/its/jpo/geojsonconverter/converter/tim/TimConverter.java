@@ -165,11 +165,11 @@ public class TimConverter {
     }
 
     /**
-     * Set the representative region-anchor location used for coarse MongoDB 2dsphere indexing.
+     * Set the representative region location used for coarse MongoDB 2dsphere indexing.
      */
     private void setLocation(ProcessedTim processedTim, TravelerInformation travelerInfo) {
         try {
-            Point jtsPoint = geometryProcessor.calculateCenterLocationFromRegionAnchors(travelerInfo);
+            Point jtsPoint = geometryProcessor.calculateRepresentativeLocation(travelerInfo);
             if (jtsPoint != null) {
                 // Convert JTS Point to GeoJSON Point
                 us.dot.its.jpo.geojsonconverter.pojos.geojson.Point geoJsonPoint =
@@ -178,11 +178,11 @@ public class TimConverter {
                 processedTim.setLocation(geoJsonPoint);
             } else {
                 log.warn(
-                        "Omitting TIM location because no representative region-anchor point could be calculated; packetId={}",
+                        "Omitting TIM location because no region has a valid circle center or anchor; packetId={}",
                         processedTim.getPacketId());
             }
         } catch (Exception e) {
-            log.error("Error calculating center location: {}", e.getMessage(), e);
+            log.error("Error calculating representative TIM location: {}", e.getMessage(), e);
             // Location will remain null if calculation fails
         }
     }

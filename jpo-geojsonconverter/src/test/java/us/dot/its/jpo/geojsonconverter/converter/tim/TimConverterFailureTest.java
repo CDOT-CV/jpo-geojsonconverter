@@ -144,6 +144,20 @@ class TimConverterFailureTest {
     }
 
     @Test
+    void locationFailureOmitsLocationAndKeepsTheRestOfTheMessage() {
+        TimGeometryConverter geometryProcessor = spy(new TimGeometryConverter());
+        doThrow(new IllegalStateException("location failed")).when(geometryProcessor)
+                .calculateRepresentativeLocation(any(TravelerInformation.class));
+
+        var processedTim = new TimConverter(geometryProcessor)
+                .createProcessedTim(travelerInfo, timMessageFrame.getMetadata());
+
+        assertNull(processedTim.getLocation());
+        assertEquals(3, processedTim.getDataFrameFeatureCollection().getFeatures().size());
+        assertTrue(processedTim.getValidationMessages().isEmpty());
+    }
+
+    @Test
     void absentDataFramesProduceAnEmptyCollectionWithoutAConversionFailure() {
         travelerInfo.setDataFrames(null);
         var processedTim = new TimConverter(new TimGeometryConverter())

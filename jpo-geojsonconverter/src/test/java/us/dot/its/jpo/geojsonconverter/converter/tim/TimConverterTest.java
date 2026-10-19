@@ -1,6 +1,8 @@
 package us.dot.its.jpo.geojsonconverter.converter.tim;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -92,7 +94,9 @@ class TimConverterTest {
         assertNotNull(processedTim.getDataFrameFeatureCollection().getFeatures());
         assertTrue(processedTim.getDataFrameFeatureCollection().getFeatures().size() > 0);
 
+        // Average of the sample's region positions, rounded to 8 decimal places
         assertNotNull(processedTim.getLocation());
+        assertArrayEquals(new double[] {-83.5565857, 42.24326267}, processedTim.getLocation().getCoordinates());
 
         var feature = processedTim.getDataFrameFeatureCollection().getFeatures().get(0);
         assertNotNull(feature.getProperties());
@@ -108,6 +112,32 @@ class TimConverterTest {
         assertEquals(ProcessedContentType.ADVISORY, feature.getProperties().getContent().getType());
         assertNotNull(feature.getProperties().getContent().getContentItems());
         assertTrue(feature.getProperties().getContent().getContentItems().size() > 0);
+    }
+
+    @Test
+    void testLocationUsesCircleCenterWhenNoRegionHasAnAnchor() {
+        travelerInfo.getDataFrames().forEach(dataFrame -> dataFrame.getRegions().forEach(region -> region.setAnchor(null)));
+
+        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, timMF.getMetadata());
+
+        assertNotNull(processedTim.getLocation());
+        assertArrayEquals(new double[] {-83.5564811, 42.2438011}, processedTim.getLocation().getCoordinates());
+    }
+
+    @Test
+    void testLocationIsOmittedWithoutAnchorsOrCircleCenters() {
+        travelerInfo.getDataFrames().forEach(dataFrame -> dataFrame.getRegions().forEach(region -> {
+            region.setAnchor(null);
+            if (region.getDescription().getGeometry() != null) {
+                region.getDescription().getGeometry().getCircle().setCenter(null);
+            }
+        }));
+
+        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, timMF.getMetadata());
+
+        assertNull(processedTim.getLocation());
+        assertFalse(processedTim.toString().contains("\"location\""));
+        assertFalse(processedTim.getDataFrameFeatureCollection().getFeatures().isEmpty());
     }
 
     @Test

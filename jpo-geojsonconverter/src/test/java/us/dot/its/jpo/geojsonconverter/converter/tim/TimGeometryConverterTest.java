@@ -206,57 +206,145 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    void testCalculateCenterLocationFromRegionAnchors() {
+    void testCalculateRepresentativeLocation() {
         // Extract ASN.1 data
         TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
         TravelerInformation travelerInfo = messageFrame.getValue();
 
-        // Test center location calculation
-        Point centerPoint = geometryConverter.calculateCenterLocationFromRegionAnchors(travelerInfo);
+        // Test representative location calculation
+        Point location = geometryConverter.calculateRepresentativeLocation(travelerInfo);
 
-        // Verify center point calculation
-        assertNotNull(centerPoint);
-        assertNotNull(centerPoint.getCoordinate());
+        // Verify representative location calculation
+        assertNotNull(location);
+        assertNotNull(location.getCoordinate());
 
         // Verify coordinates are valid
-        double x = centerPoint.getX();
-        double y = centerPoint.getY();
+        double x = location.getX();
+        double y = location.getY();
         assertTrue(x >= -180.0 && x <= 180.0, "Invalid longitude: " + x);
         assertTrue(y >= -90.0 && y <= 90.0, "Invalid latitude: " + y);
     }
 
     @Test
-    void testCalculateCenterLocationReturnsNullWithoutAnchors() {
+    void testCalculateRepresentativeLocationReturnsNullWithoutAnchorsOrCircleCenters() {
         TravelerInformationMessageFrame messageFrame = (TravelerInformationMessageFrame) timMF.getPayload().getData();
         TravelerInformation travelerInfo = messageFrame.getValue();
 
         for (TravelerDataFrame dataFrame : travelerInfo.getDataFrames()) {
             if (dataFrame.getRegions() != null) {
-                dataFrame.getRegions().forEach(region -> region.setAnchor(null));
+                dataFrame.getRegions().forEach(region -> {
+                    region.setAnchor(null);
+                    if (region.getDescription() != null && region.getDescription().getGeometry() != null
+                            && region.getDescription().getGeometry().getCircle() != null) {
+                        region.getDescription().getGeometry().getCircle().setCenter(null);
+                    }
+                });
             }
         }
 
-        assertNull(geometryConverter.calculateCenterLocationFromRegionAnchors(travelerInfo));
+        assertNull(geometryConverter.calculateRepresentativeLocation(travelerInfo));
     }
 
     @Test
-    void testCalculateCenterLocationUnwrapsLongitudeAcrossAntimeridian() {
-        TravelerInformation travelerInfo = travelerInformation();
-        while (travelerInfo.getDataFrames().size() > 1) {
-            travelerInfo.getDataFrames().removeLast();
-        }
+    void testCalculateRepresentativeLocationUsesCircleCenterWithoutAnchor() {
+        TravelerInformation travelerInfo = singleFrameWithRegions(circleRegion(null, -1050000000L, 397000000L));
 
-        TravelerDataFrame dataFrame = travelerInfo.getDataFrames().getFirst();
-        TravelerDataFrame.SequenceOfRegions regions = new TravelerDataFrame.SequenceOfRegions();
-        regions.add(regionWithAnchor(1790000000L, 0L));
-        regions.add(regionWithAnchor(-1790000000L, 0L));
-        dataFrame.setRegions(regions);
+        Point location = geometryConverter.calculateRepresentativeLocation(travelerInfo);
 
-        Point centerPoint = geometryConverter.calculateCenterLocationFromRegionAnchors(travelerInfo);
-        assertNotNull(centerPoint);
-        assertEquals(180.0, Math.abs(centerPoint.getX()), 0.000001,
+        assertNotNull(location, "A circle without an anchor still has a required center");
+        assertEquals(-105.0, location.getX(), 0.000001);
+        assertEquals(39.7, location.getY(), 0.000001);
+    }
+
+    @Test
+    void testCalculateRepresentativeLocationPrefersCircleCenterOverAnchor() {
+        GeographicalPath circle = circleRegion(position(-1040000000L, 400000000L), -1050000000L, 397000000L);
+        TravelerInformation travelerInfo = singleFrameWithRegions(circle);
+
+        assertLocation(-105.0, 39.7, geometryConverter.calculateRepresentativeLocation(travelerInfo));
+    }
+
+    @Test
+    void testCalculateRepresentativeLocationFallsBackToAnchorWhenCircleCenterUnavailable() {
+        // 900000001 is the J2735 "latitude unavailable" value.
+        GeographicalPath circle = circleRegion(position(-1040000000L, 400000000L), -1050000000L, 900000001L);
+        TravelerInformation travelerInfo = singleFrameWithRegions(circle);
+
+        assertLocation(-104.0, 40.0, geometryConverter.calculateRepresentativeLocation(travelerInfo));
+    }
+
+    @Test
+    void testCalculateRepresentativeLocationFallsBackToAnchorWhenCircleCenterLongitudeUnavailable() {
+        // 1800000001 is the J2735 "longitude unavailable" value.
+        GeographicalPath circle = circleRegion(position(-1040000000L, 400000000L), 1800000001L, 397000000L);
+
+        assertLocation(-104.0, 40.0,
+                geometryConverter.calculateRepresentativeLocation(singleFrameWithRegions(circle)));
+    }
+
+    @Test
+    void testCalculateRepresentativeLocationFallsBackToAnchorWhenCircleCenterMissing() {
+        GeographicalPath circle = circleRegion(position(-1040000000L, 400000000L), -1050000000L, 397000000L);
+        circle.getDescription().getGeometry().getCircle().setCenter(null);
+
+        assertLocation(-104.0, 40.0,
+                geometryConverter.calculateRepresentativeLocation(singleFrameWithRegions(circle)));
+    }
+
+    @Test
+    void testCalculateRepresentativeLocationFallsBackToAnchorWhenCircleCenterLatitudeMissing() {
+        GeographicalPath circle = circleRegion(position(-1040000000L, 400000000L), -1050000000L, 397000000L);
+        circle.getDescription().getGeometry().getCircle().getCenter().setLat(null);
+
+        assertLocation(-104.0, 40.0,
+                geometryConverter.calculateRepresentativeLocation(singleFrameWithRegions(circle)));
+    }
+
+    @Test
+    void testCalculateRepresentativeLocationUsesAnchorForGeometryWithoutCircle() {
+        GeographicalPath region = circleRegion(position(-1040000000L, 400000000L), -1050000000L, 397000000L);
+        region.getDescription().getGeometry().setCircle(null);
+
+        assertLocation(-104.0, 40.0,
+                geometryConverter.calculateRepresentativeLocation(singleFrameWithRegions(region)));
+    }
+
+    @Test
+    void testCalculateRepresentativeLocationUsesCircleCenterWhenAnchorUnavailable() {
+        GeographicalPath circle = circleRegion(position(-1040000000L, 900000001L), -1050000000L, 397000000L);
+
+        assertLocation(-105.0, 39.7,
+                geometryConverter.calculateRepresentativeLocation(singleFrameWithRegions(circle)));
+    }
+
+    @Test
+    void testCalculateRepresentativeLocationAveragesCircleCentersAndAnchorsInOneFrame() {
+        TravelerInformation travelerInfo = singleFrameWithRegions(circleRegion(null, -1050000000L, 397000000L),
+                regionWithAnchor(-1040000000L, 403000000L));
+
+        assertLocation(-104.5, 40.0, geometryConverter.calculateRepresentativeLocation(travelerInfo));
+    }
+
+    @Test
+    void testCalculateRepresentativeLocationAveragesOnePositionPerRegionAcrossFrames() {
+        // The circle's anchor is ignored in favor of its center, and the region with neither contributes nothing.
+        TravelerInformation travelerInfo = framesWithRegions(
+                new GeographicalPath[] {circleRegion(position(-900000000L, 300000000L), -1050000000L, 397000000L)},
+                new GeographicalPath[] {regionWithAnchor(-1040000000L, 403000000L), new GeographicalPath()});
+
+        assertLocation(-104.5, 40.0, geometryConverter.calculateRepresentativeLocation(travelerInfo));
+    }
+
+    @Test
+    void testCalculateRepresentativeLocationUnwrapsLongitudeAcrossAntimeridian() {
+        TravelerInformation travelerInfo = singleFrameWithRegions(regionWithAnchor(1790000000L, 0L),
+                regionWithAnchor(-1790000000L, 0L));
+
+        Point location = geometryConverter.calculateRepresentativeLocation(travelerInfo);
+        assertNotNull(location);
+        assertEquals(180.0, Math.abs(location.getX()), 0.000001,
                 "Dateline-spanning anchors should stay near ±180, not average to 0");
-        assertEquals(0.0, centerPoint.getY(), 0.000001);
+        assertEquals(0.0, location.getY(), 0.000001);
     }
 
     @Test
@@ -279,7 +367,7 @@ public class TimGeometryConverterTest {
     }
 
     @Test
-    void testAverageLongitudeFallsBackWhenAnchorsCancel() {
+    void testAverageLongitudeFallsBackWhenLongitudesCancel() {
         assertEquals(10.0, TimGeometryConverter.averageLongitude(List.of(10.0, -170.0)), 0.000001);
     }
 
@@ -899,13 +987,57 @@ public class TimGeometryConverterTest {
         return travelerInformation().getDataFrames().getFirst().getRegions().getFirst();
     }
 
+    private static Position3D position(long longitude, long latitude) {
+        Position3D position = new Position3D();
+        position.setLong_(new Longitude(longitude));
+        position.setLat(new Latitude(latitude));
+        return position;
+    }
+
+    private static void assertLocation(double expectedLongitude, double expectedLatitude, Point location) {
+        assertNotNull(location);
+        assertEquals(expectedLongitude, location.getX(), 0.000001);
+        assertEquals(expectedLatitude, location.getY(), 0.000001);
+    }
+
     private GeographicalPath regionWithAnchor(long longitude, long latitude) {
         GeographicalPath region = new GeographicalPath();
-        Position3D anchor = new Position3D();
-        anchor.setLong_(new Longitude(longitude));
-        anchor.setLat(new Latitude(latitude));
-        region.setAnchor(anchor);
+        region.setAnchor(position(longitude, latitude));
         return region;
+    }
+
+    private GeographicalPath circleRegion(Position3D anchor, long centerLongitude, long centerLatitude) {
+        Circle circle = new Circle();
+        circle.setCenter(position(centerLongitude, centerLatitude));
+        GeometricProjection projection = new GeometricProjection();
+        projection.setCircle(circle);
+        GeographicalPath.DescriptionChoice description = new GeographicalPath.DescriptionChoice();
+        description.setGeometry(projection);
+        GeographicalPath region = new GeographicalPath();
+        region.setAnchor(anchor);
+        region.setDescription(description);
+        return region;
+    }
+
+    private TravelerInformation singleFrameWithRegions(GeographicalPath... regionArray) {
+        return framesWithRegions(regionArray);
+    }
+
+    /** Sample TIM trimmed to one data frame per argument, each holding only the given regions. */
+    private TravelerInformation framesWithRegions(GeographicalPath[]... regionsPerFrame) {
+        TravelerInformation travelerInfo = travelerInformation();
+        assertTrue(travelerInfo.getDataFrames().size() >= regionsPerFrame.length);
+        while (travelerInfo.getDataFrames().size() > regionsPerFrame.length) {
+            travelerInfo.getDataFrames().removeLast();
+        }
+        for (int i = 0; i < regionsPerFrame.length; i++) {
+            TravelerDataFrame.SequenceOfRegions regions = new TravelerDataFrame.SequenceOfRegions();
+            for (GeographicalPath region : regionsPerFrame[i]) {
+                regions.add(region);
+            }
+            travelerInfo.getDataFrames().get(i).setRegions(regions);
+        }
+        return travelerInfo;
     }
 
     private GeographicalPath regionWithAnchorAndPath(long longitude, long latitude) {

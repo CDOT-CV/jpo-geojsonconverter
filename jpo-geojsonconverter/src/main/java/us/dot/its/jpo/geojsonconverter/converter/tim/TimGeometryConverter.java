@@ -1,26 +1,40 @@
 package us.dot.its.jpo.geojsonconverter.converter.tim;
 
-import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.*;
-import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.GeographicalPath.DescriptionChoice;
-import us.dot.its.jpo.asn.j2735.r2024.Common.*;
-import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.*;
-import us.dot.its.jpo.geojsonconverter.pojos.tim.OffsetInformation;
-import us.dot.its.jpo.geojsonconverter.pojos.tim.PathNodeData;
-import us.dot.its.jpo.geojsonconverter.pojos.geojson.*;
-import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.geotools.referencing.GeodeticCalculator;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-
-import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import org.springframework.stereotype.Component;
+import lombok.extern.slf4j.Slf4j;
+import us.dot.its.jpo.asn.j2735.r2024.Common.NodeOffsetPointXY;
+import us.dot.its.jpo.asn.j2735.r2024.Common.NodeXY;
+import us.dot.its.jpo.asn.j2735.r2024.Common.Node_LLmD_64b;
+import us.dot.its.jpo.asn.j2735.r2024.Common.Position3D;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.Circle;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.DistanceUnits;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.GeographicalPath;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.GeographicalPath.DescriptionChoice;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.GeometricProjection;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.NodeLL;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.NodeOffsetPointLL;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.OffsetSystem;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerDataFrame;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformation;
+import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
+import us.dot.its.jpo.geojsonconverter.pojos.geojson.Geometry;
+import us.dot.its.jpo.geojsonconverter.pojos.geojson.GeometryCollection;
+import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
+import us.dot.its.jpo.geojsonconverter.pojos.geojson.MultiLineString;
+import us.dot.its.jpo.geojsonconverter.pojos.geojson.MultiPolygon;
+import us.dot.its.jpo.geojsonconverter.pojos.geojson.Polygon;
+import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedRegionType;
+import us.dot.its.jpo.geojsonconverter.pojos.tim.OffsetInformation;
+import us.dot.its.jpo.geojsonconverter.pojos.tim.PathNodeData;
 
 /**
  * Handles geometry conversions for TIM regions to GeoJSON types. This class encapsulates all geometry-related
@@ -181,24 +195,26 @@ public class TimGeometryConverter {
     }
 
     /**
-     * Calculate a representative location from all valid region anchors in the TIM message.
+     * Calculate a representative location from the regions in the TIM message. Each region contributes its anchor or circle
+     * center to the representative location.
      *
      * <p>
      * This point is intended for coarse geospatial indexing. It is not the centroid of the complete TIM geometry, and
      * callers should use the feature geometries for intersection or roadway-traversal queries. Longitudes use a
-     * circular mean, which is independent of anchor order and keeps anchors that straddle the antimeridian near ±180.
+     * circular mean, which is independent of region order and keeps positions that straddle the antimeridian near
+     * ±180.
      *
      * @param travelerInfo The ASN.1 TravelerInformation object
-     * @return JTS Point representing the average region-anchor location, or {@code null} when no valid anchors are
-     *         available
+     * @return JTS Point representing the average region location, or {@code null} when no region has a valid circle
+     *         center or anchor
      */
-    public Point calculateCenterLocationFromRegionAnchors(TravelerInformation travelerInfo) {
+    public Point calculateRepresentativeLocation(TravelerInformation travelerInfo) {
         List<Double> longitudes = new ArrayList<>();
         List<Double> latitudes = new ArrayList<>();
 
         if (travelerInfo.getDataFrames() != null) {
             for (TravelerDataFrame dataFrame : travelerInfo.getDataFrames()) {
-                addValidRegionAnchors(dataFrame, longitudes, latitudes);
+                addRegionPositions(dataFrame, longitudes, latitudes);
             }
         }
 
@@ -212,28 +228,44 @@ public class TimGeometryConverter {
                 .createPoint(new Coordinate(averageLongitude(longitudes), average(latitudes)));
     }
 
-    private void addValidRegionAnchors(TravelerDataFrame dataFrame, List<Double> longitudes, List<Double> latitudes) {
+    private void addRegionPositions(TravelerDataFrame dataFrame, List<Double> longitudes, List<Double> latitudes) {
         if (dataFrame.getRegions() == null) {
             return;
         }
 
         for (GeographicalPath region : dataFrame.getRegions()) {
-            addValidRegionAnchor(region, longitudes, latitudes);
+            addRegionPosition(region, longitudes, latitudes);
         }
     }
 
-    private void addValidRegionAnchor(GeographicalPath region, List<Double> longitudes, List<Double> latitudes) {
-        if (region.getAnchor() == null || region.getAnchor().getLat() == null
-                || region.getAnchor().getLong_() == null) {
-            return;
+    /**
+     * Add the region anchor or circle center for a circle region
+     */
+    private void addRegionPosition(GeographicalPath region, List<Double> longitudes, List<Double> latitudes) {
+        double[] position = null;
+        if (region.getDescription() != null && region.getDescription().getGeometry() != null
+                && region.getDescription().getGeometry().getCircle() != null) {
+            position = validPosition(region.getDescription().getGeometry().getCircle().getCenter());
         }
+        if (position == null) {
+            position = validPosition(region.getAnchor());
+        }
+        if (position != null) {
+            longitudes.add(position[0]);
+            latitudes.add(position[1]);
+        }
+    }
 
-        Double latitude = FieldConversions.convertLat(region.getAnchor().getLat().getValue());
-        Double longitude = FieldConversions.convertLong(region.getAnchor().getLong_().getValue());
-        if (latitude != null && longitude != null) {
-            longitudes.add(longitude);
-            latitudes.add(latitude);
+    private static double[] validPosition(Position3D position) {
+        if (position == null || position.getLat() == null || position.getLong_() == null) {
+            return null;
         }
+        Double latitude = FieldConversions.convertLat(position.getLat().getValue());
+        Double longitude = FieldConversions.convertLong(position.getLong_().getValue());
+        if (latitude == null || longitude == null) {
+            return null;
+        }
+        return new double[] {longitude, latitude};
     }
 
     /**
@@ -253,8 +285,8 @@ public class TimGeometryConverter {
             cosSum += Math.cos(radians);
         }
         if (Math.hypot(sinSum, cosSum) < UNSTABLE_LONGITUDE_MEAN_MAGNITUDE) {
-            log.warn(
-                    "Longitude anchors are spread around the circle; representative longitude falls back to the first anchor");
+            log.warn("Region longitudes are spread around the circle; representative longitude falls back to the "
+                    + "first region position");
             return longitudes.get(0);
         }
         return Math.toDegrees(Math.atan2(sinSum, cosSum));
