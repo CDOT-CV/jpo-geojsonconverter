@@ -15,7 +15,8 @@
             "request": "launch",
             "mainClass": "us.dot.its.jpo.geojsonconverter.GeoJsonConverterApplication",
             "projectName": "jpo-geojsonconverter",
-            "envFile": "${workspaceFolder}/.env"
+            "envFile": "${workspaceFolder}/.env",
+            "preLaunchTask": "run-ode-services"
         }
     ]
 }
