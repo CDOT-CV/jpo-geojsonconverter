@@ -23,9 +23,14 @@ FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /home
 
-# Install gpsdecode tool for RTCM decoding
-RUN apk update
-RUN apk add gpsd-clients
+COPY --from=builder /home/jpo-geojsonconverter/src/main/resources/application.yaml /home
+COPY --from=builder /home/jpo-geojsonconverter/src/main/resources/logback.xml /home
+COPY --from=builder /home/jpo-geojsonconverter/target/jpo-geojsonconverter.jar /home
+
+# Upgrade base image packages so cached base layers still get OS security fixes (e.g. brotli-libs, CVE-2026-111497)
+# and install gpsdecode tool for RTCM decoding
+RUN apk --no-cache upgrade \
+    && apk --no-cache add gpsd-clients
 
 COPY --from=builder /home/jpo-geojsonconverter/src/main/resources/application.yaml /home
 COPY --from=builder /home/jpo-geojsonconverter/src/main/resources/logback.xml /home
