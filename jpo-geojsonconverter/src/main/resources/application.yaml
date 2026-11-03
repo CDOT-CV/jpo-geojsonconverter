@@ -36,6 +36,9 @@ kafka.topics:
     - name: topic.ProcessedRtcm
       cleanupPolicy: delete
       retentionMs: 300000
+    - name: topic.ProcessedTim
+      cleanupPolicy: delete
+      retentionMs: 300000
     - name: topic.ProcessedSrm
       cleanupPolicy: delete
       retentionMs: 300000
@@ -53,6 +56,8 @@ rtcm.full.decode: true
 geojsonconverter:
   kafka-topic-ode-rtcm-json: topic.OdeRtcmJson
   kafka-topic-processed-rtcm: topic.ProcessedRtcm
+  kafka-topic-ode-tim-json: topic.OdeTimJson
+  kafka-topic-processed-tim: topic.ProcessedTim
   kafka-topic-ode-srm-json: topic.OdeSrmJson
   kafka-topic-processed-srm: topic.ProcessedSrm
   kafka-topic-ode-ssm-json: topic.OdeSsmJson

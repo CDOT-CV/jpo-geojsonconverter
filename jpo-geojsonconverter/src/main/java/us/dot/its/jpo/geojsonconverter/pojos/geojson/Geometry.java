@@ -14,7 +14,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 )
 @JsonSubTypes( {
     @JsonSubTypes.Type(value=Point.class, name="Point"  ),
-    @JsonSubTypes.Type(value=LineString.class, name="LineString"  )
+    @JsonSubTypes.Type(value=LineString.class, name="LineString"  ),
+    @JsonSubTypes.Type(value=Polygon.class, name="Polygon"),
+    @JsonSubTypes.Type(value=MultiPolygon.class, name="MultiPolygon"),
+    @JsonSubTypes.Type(value=MultiLineString.class, name="MultiLineString"),
+    @JsonSubTypes.Type(value=GeometryCollection.class, name="GeometryCollection")
 } )
 
 @JsonIgnoreProperties(ignoreUnknown = true)

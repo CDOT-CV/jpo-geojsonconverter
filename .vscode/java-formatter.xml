@@ -453,7 +453,7 @@
         <setting
             id="org.eclipse.jdt.core.formatter.alignment_for_annotations_on_field.count_dependent"
             value="1585|-1|1585" />
-        <setting id="org.eclipse.jdt.core.formatter.keep_imple_if_on_one_line" value="false" />
+        <setting id="org.eclipse.jdt.core.formatter.keep_imple_if_on_one_line" value="true" />
         <setting
             id="org.eclipse.jdt.core.formatter.insert_space_before_comma_in_constructor_declaration_parameters"
             value="do not insert" />
@@ -611,7 +611,7 @@
         <setting
             id="org.eclipse.jdt.core.formatter.insert_space_before_closing_paren_in_enum_constant"
             value="do not insert" />
-        <setting id="org.eclipse.jdt.core.formatter.alignment_for_enum_constants" value="0" />
+        <setting id="org.eclipse.jdt.core.formatter.alignment_for_enum_constants" value="48" />
         <setting
             id="org.eclipse.jdt.core.formatter.insert_space_before_closing_paren_in_parenthesized_expression"
             value="do not insert" />

@@ -13,4 +13,5 @@ public class ProcessedSchemaVersions {
     public static final int PROCESSED_RTCM_SCHEMA_VERSION = 1;
     public static final int PROCESSED_SSM_SCHEMA_VERSION = 1;
     public static final int PROCESSED_SRM_SCHEMA_VERSION = 1;
+    public static final int PROCESSED_TIM_SCHEMA_VERSION = 1;
 }
