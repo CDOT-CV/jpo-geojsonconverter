@@ -15,7 +15,7 @@
 			"serialNumber": 0
 		},
 		"odeReceivedAt": "2025-10-07T21:40:19.711Z",
-		"schemaVersion": 9,
+		"schemaVersion": 10,
 		"maxDurationTime": 0,
 		"recordGeneratedAt": "",
 		"recordGeneratedBy": "RSU",
