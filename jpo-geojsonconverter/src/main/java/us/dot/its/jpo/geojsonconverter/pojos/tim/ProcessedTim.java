@@ -34,7 +34,7 @@ import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
  * <p>
  * asn1 - The ASN.1 encoded string of the origin J2735 TIM message
  * <p>
- * signedDataMetadata - IEEE 1609.2 signed-message metadata, when supplied by the ODE
+ * signedDataMetadata - IEEE 1609.2 signed-message metadata, when supplied by the ODE. Includes signature generation and expiry times and certificate validity start and end.
  * <p>
  * isCertPresent - Whether the signing certificate was included with the incoming message
  * <p>

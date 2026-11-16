@@ -12,13 +12,17 @@
           "type" : "string",
           "format" : "date-time"
         },
+        "expiryTime" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
         "generationTime" : {
           "type" : "string",
           "format" : "date-time"
         },
         "psid" : {
           "type" : "integer",
-          "format" : "int32"
+          "format" : "int64"
         }
       }
     },

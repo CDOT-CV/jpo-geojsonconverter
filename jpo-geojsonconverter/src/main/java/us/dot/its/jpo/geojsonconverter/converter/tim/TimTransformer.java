@@ -66,8 +66,7 @@ public class TimTransformer
         TravelerInformationMessageFrame travelerInfoMessageFrame =
                 (TravelerInformationMessageFrame) rawValue.getPayload().getData();
 
-        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfoMessageFrame.getValue(), timMetadata,
-                rawTim.getSignedDataMetadata());
+        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfoMessageFrame.getValue(), timMetadata);
         processedTim.setSchemaVersion(ProcessedSchemaVersions.PROCESSED_TIM_SCHEMA_VERSION);
 
         // Apply validation results

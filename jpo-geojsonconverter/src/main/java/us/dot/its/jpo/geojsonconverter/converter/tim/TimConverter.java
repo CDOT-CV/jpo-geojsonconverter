@@ -63,28 +63,16 @@ public class TimConverter {
     }
 
     /**
-     * Create a processed TIM object from ASN.1 data.
+     * Create a processed TIM object from ASN.1 data. IEEE 1609.2 signed-message metadata is taken from the ODE
+     * metadata's {@code certMetadata} when present.
      *
      * @param travelerInfo The ASN.1 TravelerInformation object
      * @param metadata The ODE message frame metadata
      * @return Processed TIM object
      */
     public ProcessedTim createProcessedTim(TravelerInformation travelerInfo, OdeMessageFrameMetadata metadata) {
-        return createProcessedTim(travelerInfo, metadata, null);
-    }
-
-    /**
-     * Create a processed TIM object from ASN.1 data and optional IEEE 1609.2 signed-message metadata.
-     *
-     * @param travelerInfo The ASN.1 TravelerInformation object
-     * @param metadata The ODE message frame metadata
-     * @param signedDataMetadata IEEE 1609.2 signed-data metadata from the raw ODE frame
-     * @return Processed TIM object
-     */
-    public ProcessedTim createProcessedTim(TravelerInformation travelerInfo, OdeMessageFrameMetadata metadata,
-            Ieee1609Dot2SignedDataMetadata signedDataMetadata) {
         ZonedDateTime odeDate = Instant.parse(metadata.getOdeReceivedAt()).atZone(ZoneId.of(UTC_ZONE_ID));
-        ProcessedTim processedTim = initializeProcessedTim(metadata, travelerInfo, odeDate, signedDataMetadata);
+        ProcessedTim processedTim = initializeProcessedTim(metadata, travelerInfo, odeDate);
 
         setBasicTimProperties(processedTim, travelerInfo);
         setFeatureCollection(processedTim, travelerInfo, odeDate);
@@ -113,12 +101,12 @@ public class TimConverter {
      * Initialize the basic ProcessedTim object with metadata and timestamp.
      */
     private ProcessedTim initializeProcessedTim(OdeMessageFrameMetadata metadata, TravelerInformation travelerInfo,
-            ZonedDateTime odeDate, Ieee1609Dot2SignedDataMetadata signedDataMetadata) {
+            ZonedDateTime odeDate) {
         ProcessedTim processedTim = new ProcessedTim();
         processedTim.setOdeReceivedAt(metadata.getOdeReceivedAt());
         processedTim.setOriginIp(metadata.getOriginIp());
         processedTim.setAsn1(metadata.getAsn1());
-        processedTim.setSignedDataMetadata(signedDataMetadata);
+        processedTim.setSignedDataMetadata(Ieee1609Dot2SignedDataMetadata.fromOde(metadata.getCertMetadata()));
         processedTim.setCertPresent(metadata.isCertPresent());
 
         // TIM timeStamp is minute-precise and carries no DSecond. Passing zero keeps the receive timestamp's seconds

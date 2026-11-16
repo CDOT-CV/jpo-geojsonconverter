@@ -69,8 +69,9 @@ class TimSerializationTest {
             assertTrue(processedTim.isCertPresent());
             Ieee1609Dot2SignedDataMetadata signedDataMetadata = processedTim.getSignedDataMetadata();
             assertNotNull(signedDataMetadata);
-            assertEquals(131, signedDataMetadata.getPsid());
+            assertEquals(131L, signedDataMetadata.getPsid());
             assertEquals(Instant.parse("2026-06-10T23:59:05.885Z"), signedDataMetadata.getGenerationTime());
+            assertEquals(Instant.parse("2026-06-11T00:29:05.885Z"), signedDataMetadata.getExpiryTime());
             assertEquals(Instant.parse("2026-06-04T19:42:18Z"), signedDataMetadata.getCertificateValidityStart());
             assertEquals(Instant.parse("2026-06-11T20:42:18Z"), signedDataMetadata.getCertificateValidityEnd());
         }

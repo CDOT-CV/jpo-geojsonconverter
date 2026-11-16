@@ -2,11 +2,13 @@ package us.dot.its.jpo.geojsonconverter.converter.tim;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.List;
 
 import org.apache.kafka.common.serialization.ByteArraySerializer;
@@ -51,6 +53,33 @@ class TimTopologyTest {
             assertNotNull(result.value);
             assertEquals("TIM", result.value.getMessageType());
             assertTrue(result.value.getValidationMessages().isEmpty());
+            assertNull(result.value.getSignedDataMetadata());
+        }
+    }
+
+    @Test
+    void mapsOdeCertMetadataToSignedDataMetadata() throws IOException {
+        Topology topology = TimTopology.build(INPUT_TOPIC, OUTPUT_TOPIC,
+                new TimJsonValidator("classpath:schemas/tim.schema.json"), new TimConverter(new TimGeometryConverter()));
+
+        try (TopologyTestDriver driver = new TopologyTestDriver(topology)) {
+            var inputTopic = driver.createInputTopic(INPUT_TOPIC, new VoidSerializer(), new ByteArraySerializer());
+            var outputTopic = driver.createOutputTopic(OUTPUT_TOPIC, new JsonDeserializer<>(RsuTimKey.class),
+                    new JsonDeserializer<>(ProcessedTim.class));
+
+            inputTopic.pipeInput(loadResource("/json/sample.ode-tim-with-signature.json"));
+
+            ProcessedTim processedTim = outputTopic.readValue();
+            assertTrue(processedTim.getValidationMessages().isEmpty(),
+                    () -> "ODE schema validation failed: " + processedTim.getValidationMessages());
+            assertTrue(processedTim.isCertPresent());
+            Ieee1609Dot2SignedDataMetadata signedDataMetadata = processedTim.getSignedDataMetadata();
+            assertNotNull(signedDataMetadata);
+            assertEquals(131L, signedDataMetadata.getPsid());
+            assertEquals(Instant.parse("2026-06-08T23:59:14.142Z"), signedDataMetadata.getGenerationTime());
+            assertEquals(Instant.parse("2026-06-09T03:59:14.142Z"), signedDataMetadata.getExpiryTime());
+            assertEquals(Instant.parse("2026-06-04T19:42:18Z"), signedDataMetadata.getCertificateValidityStart());
+            assertEquals(Instant.parse("2026-06-11T20:42:18Z"), signedDataMetadata.getCertificateValidityEnd());
         }
     }
 
@@ -78,8 +107,7 @@ class TimTopologyTest {
     void dropsResultWhenTimConversionThrows() throws IOException {
         TimConverter failingConverter = new TimConverter(new TimGeometryConverter()) {
             @Override
-            public ProcessedTim createProcessedTim(TravelerInformation travelerInfo, OdeMessageFrameMetadata metadata,
-                    Ieee1609Dot2SignedDataMetadata signedDataMetadata) {
+            public ProcessedTim createProcessedTim(TravelerInformation travelerInfo, OdeMessageFrameMetadata metadata) {
                 throw new IllegalStateException("conversion failure");
             }
         };

@@ -707,7 +707,7 @@ When an `OdeTimJson` message is processed through the jpo-geojsonconverter, a `P
    - Start time: Derived at minute precision from `startYear` and `startTime` (MinuteOfTheYear). A missing or zero year is inferred from ODE receive time; when the encoded start time cannot be resolved, the frame is retained without a derived finite end time.
    - End time: Calculated by adding `durationTime` (in minutes) to the start time
    - Infinite duration: If `durationTime` equals 32000, the validity period is marked as infinite with an end time of "9999-12-31T23:59:59.999Z"
-   - This period describes TIM applicability, not certificate validity. When present, signature generation time and certificate validity are reported separately in root-level `signedDataMetadata`; `isCertPresent` records whether the incoming message included the certificate.
+   - This period describes TIM applicability, not signature lifetime or certificate validity. When the ODE supplies `metadata.certMetadata` (jpo-ode 7.0.0 and later), the PSID, signature generation time, signature expiry time, and certificate validity start and end are reported separately in root-level `signedDataMetadata`; `isCertPresent` records whether the incoming message included the certificate.
 
 7. **Region Information Extraction**: For each region, the following information is extracted:
    - **Region Type**: Determined by checking for circle geometry, closed path flag, or path existence

@@ -33,6 +33,7 @@ import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.ExitServiceSequence;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.MinutesDuration;
 import us.dot.its.jpo.asn.j2735.r2024.Common.DYear;
 import us.dot.its.jpo.asn.j2735.r2024.Common.MinuteOfTheYear;
+import us.dot.its.jpo.geojsonconverter.pojos.common.Ieee1609Dot2SignedDataMetadata;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.GeometryCollection;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.LineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Polygon;
@@ -72,6 +73,47 @@ class TimConverterTest {
 
         TimGeometryConverter geometryProcessor = new TimGeometryConverter();
         timConverter = new TimConverter(geometryProcessor);
+    }
+
+    @Test
+    void testSignatureMetadataDatetimesAreUsedInProcessedTim() throws IOException {
+        byte[] signedTimJson =
+                Files.readAllBytes(Paths.get("src/test/resources/json/sample.ode-tim-with-signature.json"));
+        OdeMessageFrameData signedTim;
+        try (JsonDeserializer<OdeMessageFrameData> odeTimDeserializer =
+                new JsonDeserializer<>(OdeMessageFrameData.class)) {
+            signedTim = odeTimDeserializer.deserialize("test-topic", signedTimJson);
+        }
+
+        TravelerInformationMessageFrame messageFrame =
+                (TravelerInformationMessageFrame) signedTim.getPayload().getData();
+        ProcessedTim processedTim = timConverter.createProcessedTim(messageFrame.getValue(), signedTim.getMetadata());
+
+        assertEquals("2026-09-24T02:29:50.765Z", processedTim.getOdeReceivedAt());
+        assertTrue(processedTim.isCertPresent());
+
+        Ieee1609Dot2SignedDataMetadata processedMetadata = processedTim.getSignedDataMetadata();
+        assertNotNull(processedMetadata);
+        assertEquals(131L, processedMetadata.getPsid());
+        assertEquals(Instant.parse("2026-06-08T23:59:14.142Z"), processedMetadata.getGenerationTime());
+        assertEquals(Instant.parse("2026-06-09T03:59:14.142Z"), processedMetadata.getExpiryTime());
+        assertEquals(Instant.parse("2026-06-04T19:42:18.000Z"), processedMetadata.getCertificateValidityStart());
+        assertEquals(Instant.parse("2026-06-11T20:42:18.000Z"), processedMetadata.getCertificateValidityEnd());
+
+        // Signature/certificate times are reported separately and do not affect the TIM applicability period
+        var validity = processedTim.getDataFrameFeatureCollection().getFeatures().get(0).getProperties()
+                .getValidityPeriod();
+        assertEquals(Instant.parse("2026-06-08T23:59:00Z"), validity.getStartTime().toInstant());
+        assertEquals(Instant.parse("2026-06-09T00:00:00Z"), validity.getEndTime().toInstant());
+        assertFalse(validity.isInfinite());
+    }
+
+    @Test
+    void testUnsignedTimHasNoSignedDataMetadata() {
+        ProcessedTim processedTim = timConverter.createProcessedTim(travelerInfo, timMF.getMetadata());
+
+        assertNull(processedTim.getSignedDataMetadata());
+        assertFalse(processedTim.isCertPresent());
     }
 
     @Test
