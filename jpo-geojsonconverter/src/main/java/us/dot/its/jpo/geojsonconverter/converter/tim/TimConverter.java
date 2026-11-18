@@ -32,7 +32,6 @@ import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.ExitServiceSequence;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.WorkZoneSequence;
 import us.dot.its.jpo.geojsonconverter.converter.FieldConversions;
 import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
-import us.dot.its.jpo.geojsonconverter.pojos.common.Ieee1609Dot2SignedDataMetadata;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.*;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.OffsetInformation;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
@@ -106,7 +105,7 @@ public class TimConverter {
         processedTim.setOdeReceivedAt(metadata.getOdeReceivedAt());
         processedTim.setOriginIp(metadata.getOriginIp());
         processedTim.setAsn1(metadata.getAsn1());
-        processedTim.setSignedDataMetadata(Ieee1609Dot2SignedDataMetadata.fromOde(metadata.getCertMetadata()));
+        processedTim.setSignedDataMetadata(metadata.getCertMetadata());
         processedTim.setCertPresent(metadata.isCertPresent());
 
         // TIM timeStamp is minute-precise and carries no DSecond. Passing zero keeps the receive timestamp's seconds

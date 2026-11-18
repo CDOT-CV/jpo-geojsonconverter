@@ -17,9 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import us.dot.its.jpo.geojsonconverter.DateJsonMapper;
 import us.dot.its.jpo.geojsonconverter.pojos.ProcessedValidationMessage;
-import us.dot.its.jpo.geojsonconverter.pojos.common.Ieee1609Dot2SignedDataMetadata;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedTimFeatureCollection;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.Point;
+import us.dot.its.jpo.ode.model.SignedDataMetadata;
 
 /**
  * Represents a processed TIM (Traveler Information Message) message.
@@ -65,7 +65,7 @@ public class ProcessedTim {
     private String odeReceivedAt;
     private String originIp;
     private String asn1;
-    private Ieee1609Dot2SignedDataMetadata signedDataMetadata;
+    private SignedDataMetadata signedDataMetadata;
     private boolean certPresent;
     private Integer msgCnt;
     private ZonedDateTime timeStamp;

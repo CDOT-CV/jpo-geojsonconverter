@@ -12,18 +12,22 @@ import java.time.Instant;
 import java.util.List;
 
 import org.apache.kafka.common.serialization.ByteArraySerializer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.VoidSerializer;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyTestDriver;
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
+import us.dot.its.jpo.geojsonconverter.DateJsonMapper;
 import us.dot.its.jpo.geojsonconverter.partitioner.RsuTimKey;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
 import us.dot.its.jpo.geojsonconverter.serialization.deserializers.JsonDeserializer;
 import us.dot.its.jpo.geojsonconverter.validator.TimJsonValidator;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformation;
-import us.dot.its.jpo.geojsonconverter.pojos.common.Ieee1609Dot2SignedDataMetadata;
+import us.dot.its.jpo.ode.model.SignedDataMetadata;
 import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 
 class TimTopologyTest {
@@ -73,13 +77,34 @@ class TimTopologyTest {
             assertTrue(processedTim.getValidationMessages().isEmpty(),
                     () -> "ODE schema validation failed: " + processedTim.getValidationMessages());
             assertTrue(processedTim.isCertPresent());
-            Ieee1609Dot2SignedDataMetadata signedDataMetadata = processedTim.getSignedDataMetadata();
+            SignedDataMetadata signedDataMetadata = processedTim.getSignedDataMetadata();
             assertNotNull(signedDataMetadata);
             assertEquals(131L, signedDataMetadata.getPsid());
             assertEquals(Instant.parse("2026-06-08T23:59:14.142Z"), signedDataMetadata.getGenerationTime());
             assertEquals(Instant.parse("2026-06-09T03:59:14.142Z"), signedDataMetadata.getExpiryTime());
             assertEquals(Instant.parse("2026-06-04T19:42:18Z"), signedDataMetadata.getCertificateValidityStart());
             assertEquals(Instant.parse("2026-06-11T20:42:18Z"), signedDataMetadata.getCertificateValidityEnd());
+        }
+    }
+
+    @Test
+    void serializesSignedDataMetadataTimestampsWithFixedWidthMilliseconds() throws IOException {
+        Topology topology = TimTopology.build(INPUT_TOPIC, OUTPUT_TOPIC,
+                new TimJsonValidator("classpath:schemas/tim.schema.json"), new TimConverter(new TimGeometryConverter()));
+
+        try (TopologyTestDriver driver = new TopologyTestDriver(topology)) {
+            var inputTopic = driver.createInputTopic(INPUT_TOPIC, new VoidSerializer(), new ByteArraySerializer());
+            var outputTopic = driver.createOutputTopic(OUTPUT_TOPIC, new JsonDeserializer<>(RsuTimKey.class),
+                    new StringDeserializer());
+
+            inputTopic.pipeInput(loadResource("/json/sample.ode-tim-with-signature.json"));
+
+            JsonNode signedDataMetadata = DateJsonMapper.getInstance().readTree(outputTopic.readValue())
+                    .path("signedDataMetadata");
+            assertEquals("2026-06-08T23:59:14.142Z", signedDataMetadata.path("generationTime").asText());
+            assertEquals("2026-06-09T03:59:14.142Z", signedDataMetadata.path("expiryTime").asText());
+            assertEquals("2026-06-04T19:42:18.000Z", signedDataMetadata.path("certificateValidityStart").asText());
+            assertEquals("2026-06-11T20:42:18.000Z", signedDataMetadata.path("certificateValidityEnd").asText());
         }
     }
 

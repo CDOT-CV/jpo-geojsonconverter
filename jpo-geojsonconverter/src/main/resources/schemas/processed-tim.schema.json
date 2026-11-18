@@ -1,31 +1,6 @@
 {
   "$schema" : "https://json-schema.org/draft/2020-12/schema",
   "$defs" : {
-    "Ieee1609Dot2SignedDataMetadata" : {
-      "type" : "object",
-      "properties" : {
-        "certificateValidityEnd" : {
-          "type" : "string",
-          "format" : "date-time"
-        },
-        "certificateValidityStart" : {
-          "type" : "string",
-          "format" : "date-time"
-        },
-        "expiryTime" : {
-          "type" : "string",
-          "format" : "date-time"
-        },
-        "generationTime" : {
-          "type" : "string",
-          "format" : "date-time"
-        },
-        "psid" : {
-          "type" : "integer",
-          "format" : "int64"
-        }
-      }
-    },
     "Point-1" : {
       "type" : "object",
       "properties" : {
@@ -453,6 +428,31 @@
         }
       }
     },
+    "SignedDataMetadata" : {
+      "type" : "object",
+      "properties" : {
+        "certificateValidityEnd" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "certificateValidityStart" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "expiryTime" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "generationTime" : {
+          "type" : "string",
+          "format" : "date-time"
+        },
+        "psid" : {
+          "type" : "integer",
+          "format" : "int64"
+        }
+      }
+    },
     "TimContentItemType" : {
       "type" : "string",
       "enum" : [ "ITIS_CODE", "PLAIN_TEXT" ]
@@ -493,7 +493,7 @@
       "format" : "int32"
     },
     "signedDataMetadata" : {
-      "$ref" : "#/$defs/Ieee1609Dot2SignedDataMetadata"
+      "$ref" : "#/$defs/SignedDataMetadata"
     },
     "timeStamp" : {
       "type" : "string",

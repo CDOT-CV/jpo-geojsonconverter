@@ -16,7 +16,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformationMessageFrame;
-import us.dot.its.jpo.geojsonconverter.pojos.common.Ieee1609Dot2SignedDataMetadata;
+import us.dot.its.jpo.ode.model.SignedDataMetadata;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.MultiLineString;
 import us.dot.its.jpo.geojsonconverter.pojos.geojson.tim.ProcessedHeadingDirectionInfo;
 import us.dot.its.jpo.geojsonconverter.pojos.tim.ProcessedTim;
@@ -67,7 +67,7 @@ class TimSerializationTest {
                     certPresentProcessedTimJson.getBytes(StandardCharsets.UTF_8));
 
             assertTrue(processedTim.isCertPresent());
-            Ieee1609Dot2SignedDataMetadata signedDataMetadata = processedTim.getSignedDataMetadata();
+            SignedDataMetadata signedDataMetadata = processedTim.getSignedDataMetadata();
             assertNotNull(signedDataMetadata);
             assertEquals(131L, signedDataMetadata.getPsid());
             assertEquals(Instant.parse("2026-06-10T23:59:05.885Z"), signedDataMetadata.getGenerationTime());
