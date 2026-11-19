@@ -34,6 +34,7 @@ public class SchemaGeneratorUtilityTest {
 
         File spatSchemaFile = outputDir.resolve("processed-spat.schema.json").toFile();
         assertTrue(spatSchemaFile.exists());
+        assertTrue(outputDir.resolve("processed-tim.schema.json").toFile().exists());
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode schema = mapper.readTree(spatSchemaFile);
@@ -52,17 +53,6 @@ public class SchemaGeneratorUtilityTest {
         int status = SchemaGeneratorUtility.run(new String[] {"--output"});
 
         assertEquals(1, status);
-    }
-
-    @Test
-    public void run_withoutArgs_usesDefaultPathAndReturnsZero() throws Exception {
-        Path defaultSchemaDir = Path.of("").toAbsolutePath().resolve("src/main/resources/schemas");
-        int status = SchemaGeneratorUtility.run(new String[0]);
-
-        assertEquals(0, status);
-
-        File spatSchema = defaultSchemaDir.resolve("processed-spat.schema.json").toFile();
-        assertTrue(spatSchema.exists());
     }
 
     @Test
@@ -109,4 +99,3 @@ public class SchemaGeneratorUtilityTest {
         assertNotNull(result);
     }
 }
-

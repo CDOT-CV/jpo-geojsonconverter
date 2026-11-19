@@ -1,0 +1,700 @@
+{
+    "schemaVersion": 1,
+    "messageType": "TIM",
+    "odeReceivedAt": "2025-10-07T21:40:19.711Z",
+    "originIp": "172.27.0.1",
+    "asn1": "001f81bc7015e5d818d4a500000d7ba1330f775d9b220200003f4b157e7d004011e94ed2a473397c14bb1e6005dc800c22df18a5bf6ffea0d1959039bfe5b85977ecc2d76ca4666715b1834646a0b95a86c78278538f4a76952399cbe0a5d8f3002ee4006116f8c50dfb7ff55cdff2dc04ce0b2efd985aed9484cce2b63572b50d823ce3c13c29c000146a3e1e200fad004306232221040400007e962afcfa008003529da5931e72f88b6a3cc00bb80081e506a76326ebec84432e6c22d467c21fdeb640ce1c9a211d70d90d8b27a20b1607c174641c000146a341e200fad004306232221040400007e962f70fa004003529da59af672f839e83ce805b843c03d4ed2cd7b397c1cf417263e94000041b040a808d4050100001fa58bdc3e801000dca76971269cbdfc3e8f3a016e81e00008b78daf64c53ba67f7f2c071aa5f17106a0690000043608140b40400007e962afcfa008023d29da548e672f829763cc00bb9001845be31437edffd4737fcb70b2efd985aed9484cce2b63172b50d8f04f0a71e94ed2a473397c14bb1e6005dc800c22df18a1bf6ffea39bfe5b85977ecc2d76ca4266715b18b95a86c7827853800028d47c3c401f5a00860c4644420",
+    "msgCnt": 1,
+    "timeStamp": "2025-09-26T10:00:00Z",
+    "packetId": "18D4A500000D7BA133",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            -83.5565857,
+            42.24326267
+        ]
+    },
+    "validationMessages": [],
+    "dataFrameFeatureCollection": {
+        "features": [
+            {
+                "type": "Feature",
+                "id": 0,
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [
+                            [
+                                -83.55685068,
+                                42.2426018
+                            ],
+                            [
+                                -83.55685517,
+                                42.24296956
+                            ],
+                            [
+                                -83.55674673,
+                                42.24318688
+                            ],
+                            [
+                                -83.5566,
+                                42.24335739
+                            ],
+                            [
+                                -83.55643062,
+                                42.24346434
+                            ],
+                            [
+                                -83.5558345,
+                                42.24372677
+                            ],
+                            [
+                                -83.55563797,
+                                42.24377529
+                            ],
+                            [
+                                -83.55538511,
+                                42.24379033
+                            ]
+                        ],
+                        [
+                            [
+                                -83.55685068,
+                                42.2426018
+                            ],
+                            [
+                                -83.55685517,
+                                42.24296956
+                            ],
+                            [
+                                -83.55674673,
+                                42.24318688
+                            ],
+                            [
+                                -83.5566,
+                                42.24335739
+                            ],
+                            [
+                                -83.55643062,
+                                42.24346434
+                            ],
+                            [
+                                -83.5558345,
+                                42.24372677
+                            ],
+                            [
+                                -83.55563797,
+                                42.24377529
+                            ],
+                            [
+                                -83.55538511,
+                                42.24379033
+                            ]
+                        ]
+                    ]
+                },
+                "properties": {
+                    "deploymentAgencyType": "STATE_OR_LOCAL",
+                    "validityPeriod": {
+                        "startTime": "2025-10-08T17:00:00Z",
+                        "endTime": "9999-12-31T23:59:59.999Z",
+                        "infinite": true
+                    },
+                    "priority": 2,
+                    "regionInfoList": [
+                        {
+                            "regionType": "PATH",
+                            "geometryIndex": 0,
+                            "elevationProfile": {
+                                "defaultElevationMeters": 368.0,
+                                "nodeElevationMeters": [
+                                    368.0,
+                                    370.0,
+                                    370.0,
+                                    370.0,
+                                    370.0,
+                                    367.0,
+                                    367.0,
+                                    367.0
+                                ]
+                            },
+                            "anchorPoint": {
+                                "latitude": 42.2427507,
+                                "longitude": -83.5566916,
+                                "elevationMeters": 368.0
+                            },
+                            "directionInfo": {
+                                "directionType": "DIRECTIONALITY",
+                                "directionality": "forward"
+                            },
+                            "laneWidthProfile": {
+                                "defaultWidthMeters": 7.5,
+                                "nodeLaneWidthMeters": [
+                                    7.5,
+                                    8.0,
+                                    8.0,
+                                    8.0,
+                                    8.0,
+                                    8.5,
+                                    8.5,
+                                    8.5
+                                ]
+                            }
+                        },
+                        {
+                            "regionType": "PATH",
+                            "geometryIndex": 1,
+                            "elevationProfile": {
+                                "defaultElevationMeters": 368.0,
+                                "nodeElevationMeters": [
+                                    368.0,
+                                    368.0,
+                                    367.0,
+                                    367.0,
+                                    367.0,
+                                    367.0,
+                                    367.0,
+                                    367.0
+                                ]
+                            },
+                            "anchorPoint": {
+                                "latitude": 42.2427507,
+                                "longitude": -83.5566916,
+                                "elevationMeters": 368.0
+                            },
+                            "directionInfo": {
+                                "directionType": "DIRECTIONALITY",
+                                "directionality": "forward"
+                            },
+                            "laneWidthProfile": {
+                                "defaultWidthMeters": 7.5,
+                                "nodeLaneWidthMeters": [
+                                    7.5,
+                                    7.5,
+                                    7.5,
+                                    7.5,
+                                    7.5,
+                                    7.5,
+                                    7.25,
+                                    7.25
+                                ]
+                            }
+                        }
+                    ],
+                    "content": {
+                        "type": "ADVISORY",
+                        "contentItems": [
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 13599,
+                                "itisPhrase": "right-turn"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 7712,
+                                "itisPhrase": "advice"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 8026,
+                                "itisPhrase": "on-curve"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 268,
+                                "itisPhrase": "speed-limit"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 12569,
+                                "itisPhrase": "n25"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 8720,
+                                "itisPhrase": "mPH"
+                            }
+                        ],
+                        "sentence": "right-turn advice on-curve speed-limit n25 mPH"
+                    }
+                }
+            },
+            {
+                "type": "Feature",
+                "id": 1,
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [
+                            -83.55515077,
+                            42.24382125
+                        ],
+                        [
+                            -83.5554962,
+                            42.24381422
+                        ],
+                        [
+                            -83.55567928,
+                            42.24379604
+                        ],
+                        [
+                            -83.5558397,
+                            42.24376111
+                        ],
+                        [
+                            -83.55633804,
+                            42.24354864
+                        ],
+                        [
+                            -83.5566155,
+                            42.2434019
+                        ],
+                        [
+                            -83.5567495,
+                            42.2432566
+                        ],
+                        [
+                            -83.55686279,
+                            42.24306376
+                        ],
+                        [
+                            -83.55689114,
+                            42.24297715
+                        ],
+                        [
+                            -83.55690241,
+                            42.24290864
+                        ]
+                    ]
+                },
+                "properties": {
+                    "deploymentAgencyType": "STATE_OR_LOCAL",
+                    "validityPeriod": {
+                        "startTime": "2025-10-08T17:00:00Z",
+                        "endTime": "9999-12-31T23:59:59.999Z",
+                        "infinite": true
+                    },
+                    "priority": 2,
+                    "regionInfoList": [
+                        {
+                            "regionType": "PATH",
+                            "geometryIndex": 0,
+                            "elevationProfile": {
+                                "defaultElevationMeters": 368.0
+                            },
+                            "anchorPoint": {
+                                "latitude": 42.2437007,
+                                "longitude": -83.5554378,
+                                "elevationMeters": 368.0
+                            },
+                            "laneWidthProfile": {
+                                "defaultWidthMeters": 7.5
+                            }
+                        }
+                    ],
+                    "content": {
+                        "type": "ADVISORY",
+                        "contentItems": [
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 13594,
+                                "itisPhrase": "left-turn"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 7712,
+                                "itisPhrase": "advice"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 8026,
+                                "itisPhrase": "on-curve"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 268,
+                                "itisPhrase": "speed-limit"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 12569,
+                                "itisPhrase": "n25"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 8720,
+                                "itisPhrase": "mPH"
+                            }
+                        ],
+                        "sentence": "left-turn advice on-curve speed-limit n25 mPH"
+                    }
+                }
+            },
+            {
+                "type": "Feature",
+                "id": 2,
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [
+                                -83.55526826,
+                                42.24380109
+                            ],
+                            [
+                                -83.55543074,
+                                42.24425168
+                            ],
+                            [
+                                -83.55587467,
+                                42.24458153
+                            ],
+                            [
+                                -83.5564811,
+                                42.24470227
+                            ],
+                            [
+                                -83.55708753,
+                                42.24458153
+                            ],
+                            [
+                                -83.55753146,
+                                42.24425168
+                            ],
+                            [
+                                -83.55769394,
+                                42.24380109
+                            ],
+                            [
+                                -83.55753144,
+                                42.24335051
+                            ],
+                            [
+                                -83.55708751,
+                                42.24302066
+                            ],
+                            [
+                                -83.5564811,
+                                42.24289993
+                            ],
+                            [
+                                -83.55587469,
+                                42.24302066
+                            ],
+                            [
+                                -83.55543076,
+                                42.24335051
+                            ],
+                            [
+                                -83.55526826,
+                                42.24380109
+                            ]
+                        ]
+                    ]
+                },
+                "properties": {
+                    "deploymentAgencyType": "STATE_OR_LOCAL",
+                    "validityPeriod": {
+                        "startTime": "2025-10-09T12:00:00Z",
+                        "endTime": "9999-12-31T23:59:59.999Z",
+                        "infinite": true
+                    },
+                    "priority": 1,
+                    "regionInfoList": [
+                        {
+                            "regionType": "CIRCLE",
+                            "geometryIndex": 0,
+                            "elevationProfile": {
+                                "defaultElevationMeters": 370.0
+                            },
+                            "anchorPoint": {
+                                "latitude": 42.2438011,
+                                "longitude": -83.5564811,
+                                "elevationMeters": 370.0
+                            },
+                            "directionInfo": {
+                                "directionType": "HEADING",
+                                "headingList": [
+                                    {
+                                        "heading": 0.0,
+                                        "range": 180.0
+                                    }
+                                ]
+                            },
+                            "center": {
+                                "latitude": 42.2438011,
+                                "longitude": -83.5564811,
+                                "elevationMeters": 183.0
+                            },
+                            "radius": 100.10000000000001
+                        }
+                    ],
+                    "content": {
+                        "type": "ADVISORY",
+                        "contentItems": [
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 6916,
+                                "itisPhrase": "alert"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 5377,
+                                "itisPhrase": "dense-fog"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 13569,
+                                "itisPhrase": "ahead"
+                            }
+                        ],
+                        "sentence": "alert dense-fog ahead"
+                    }
+                }
+            },
+            {
+                "type": "Feature",
+                "id": 3,
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [
+                                -83.55554032,
+                                42.24422227
+                            ],
+                            [
+                                -83.55766044,
+                                42.24421064
+                            ],
+                            [
+                                -83.55763294,
+                                42.24321368
+                            ],
+                            [
+                                -83.55552061,
+                                42.24325147
+                            ],
+                            [
+                                -83.55554032,
+                                42.24422227
+                            ]
+                        ]
+                    ]
+                },
+                "properties": {
+                    "deploymentAgencyType": "STATE_OR_LOCAL",
+                    "validityPeriod": {
+                        "startTime": "2025-10-09T12:00:00Z",
+                        "endTime": "9999-12-31T23:59:59.999Z",
+                        "infinite": true
+                    },
+                    "priority": 1,
+                    "regionInfoList": [
+                        {
+                            "regionType": "POLYGON",
+                            "geometryIndex": 0,
+                            "elevationProfile": {
+                                "defaultElevationMeters": 370.0
+                            },
+                            "anchorPoint": {
+                                "latitude": 42.2443341,
+                                "longitude": -83.5574146,
+                                "elevationMeters": 370.0
+                            },
+                            "directionInfo": {
+                                "directionType": "HEADING",
+                                "headingList": [
+                                    {
+                                        "heading": 180.0,
+                                        "range": 90.0
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "content": {
+                        "type": "ADVISORY",
+                        "contentItems": [
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 6916,
+                                "itisPhrase": "alert"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 5131,
+                                "itisPhrase": "gusty-winds"
+                            }
+                        ],
+                        "sentence": "alert gusty-winds"
+                    }
+                }
+            },
+            {
+                "type": "Feature",
+                "id": 4,
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [
+                            [
+                                -83.55685068,
+                                42.2426018
+                            ],
+                            [
+                                -83.55685517,
+                                42.24296956
+                            ],
+                            [
+                                -83.55674673,
+                                42.24318688
+                            ],
+                            [
+                                -83.5566,
+                                42.24335739
+                            ],
+                            [
+                                -83.55643062,
+                                42.24346434
+                            ],
+                            [
+                                -83.5558345,
+                                42.24372677
+                            ],
+                            [
+                                -83.55563797,
+                                42.24377529
+                            ],
+                            [
+                                -83.55538511,
+                                42.24379033
+                            ]
+                        ],
+                        [
+                            [
+                                -83.55685068,
+                                42.2426018
+                            ],
+                            [
+                                -83.55685517,
+                                42.24296956
+                            ],
+                            [
+                                -83.55674673,
+                                42.24318688
+                            ],
+                            [
+                                -83.5566,
+                                42.24335739
+                            ],
+                            [
+                                -83.55643062,
+                                42.24346434
+                            ],
+                            [
+                                -83.5558345,
+                                42.24372677
+                            ],
+                            [
+                                -83.55563797,
+                                42.24377529
+                            ],
+                            [
+                                -83.55538511,
+                                42.24379033
+                            ]
+                        ]
+                    ]
+                },
+                "properties": {
+                    "deploymentAgencyType": "STATE_OR_LOCAL",
+                    "validityPeriod": {
+                        "startTime": "2025-10-08T17:00:00Z",
+                        "endTime": "9999-12-31T23:59:59.999Z",
+                        "infinite": true
+                    },
+                    "priority": 2,
+                    "regionInfoList": [
+                        {
+                            "regionType": "PATH",
+                            "geometryIndex": 0,
+                            "elevationProfile": {
+                                "defaultElevationMeters": 368.0
+                            },
+                            "anchorPoint": {
+                                "latitude": 42.2427507,
+                                "longitude": -83.5566916,
+                                "elevationMeters": 368.0
+                            },
+                            "directionInfo": {
+                                "directionType": "DIRECTIONALITY",
+                                "directionality": "forward"
+                            },
+                            "laneWidthProfile": {
+                                "defaultWidthMeters": 7.5
+                            }
+                        },
+                        {
+                            "regionType": "PATH",
+                            "geometryIndex": 1,
+                            "elevationProfile": {
+                                "defaultElevationMeters": 368.0
+                            },
+                            "anchorPoint": {
+                                "latitude": 42.2427507,
+                                "longitude": -83.5566916,
+                                "elevationMeters": 368.0
+                            },
+                            "directionInfo": {
+                                "directionType": "DIRECTIONALITY",
+                                "directionality": "forward"
+                            },
+                            "laneWidthProfile": {
+                                "defaultWidthMeters": 7.5
+                            }
+                        }
+                    ],
+                    "content": {
+                        "type": "ADVISORY",
+                        "contentItems": [
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 13599,
+                                "itisPhrase": "right-turn"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 7712,
+                                "itisPhrase": "advice"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 8026,
+                                "itisPhrase": "on-curve"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 268,
+                                "itisPhrase": "speed-limit"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 12569,
+                                "itisPhrase": "n25"
+                            },
+                            {
+                                "type": "ITIS_CODE",
+                                "itisCode": 8720,
+                                "itisPhrase": "mPH"
+                            }
+                        ],
+                        "sentence": "right-turn advice on-curve speed-limit n25 mPH"
+                    }
+                }
+            }
+        ],
+        "type": "FeatureCollection"
+    },
+    "isCertPresent": false
+}

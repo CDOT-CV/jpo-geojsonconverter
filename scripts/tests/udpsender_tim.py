@@ -1,0 +1,23 @@
+import socket
+import time
+import os
+
+# Currently set to oim-dev environment's ODE
+UDP_IP = os.getenv('DOCKER_HOST_IP')
+UDP_PORT = 47900
+MESSAGES = [
+  "001f813b7015e5d818d4a500000d7ba1330f775d9b1a0200003f4b157e7d004011e94ed2a473397c14bb1e6005dc800c22df18a1bf6ffea39bfe5b85977ecc2d76ca4266715b18b95a86c78278538f4a76952399cbe0a5d8f3002ee4006116f8c50dfb7ff51cdff2dc2cbbf6616bb65213338ad8c5cad4363c13c29c000146a3e1e200fad004306232221040400007e962afcfa008003529da5931e72f88b6a3cc00bb80081e506a76326ebec84432e6c22d467c21fdeb640ce1c9a211d70d90d8b27a20b1607c174641c000146a341e200fad004306232221040400007e962f70fa004003529da59af672f839e83ce805b843c03d4ed2cd7b397c1cf417263e94000041b040a808d4050100001fa58bdc3e801000dca76971269cbdfc3e8f3a016e81e00008b78daf64c53ba67f7f2c071aa5f17106a0690000043608140b"
+]
+
+print("UDP target IP:", UDP_IP)
+print("UDP target port:", UDP_PORT)
+
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
+
+print("sending TIM every 5 second")
+
+while True:
+  print ("sending TIM")
+  for MESSAGE in MESSAGES:
+    sock.sendto(bytes.fromhex(MESSAGE), (UDP_IP, UDP_PORT))
+  time.sleep(5)

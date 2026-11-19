@@ -78,7 +78,9 @@ services:
     profiles:
       - all
       - geojson_full
-    image: usdotjpoode/jpo-ode:latest
+      - ode_full
+      - ode
+    image: usdotjpoode/jpo-ode:${ODE_VERSION:-latest}
     restart: ${RESTART_POLICY}
     deploy:
       resources:
@@ -138,7 +140,9 @@ services:
     profiles:
       - all
       - geojson_full
-    image: usdotjpoode/asn1_codec:latest
+      - ode_full
+      - adm
+    image: usdotjpoode/asn1_codec:${ODE_VERSION:-latest}
     restart: ${RESTART_POLICY}
     deploy:
       resources:

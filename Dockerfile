@@ -32,6 +32,10 @@ COPY --from=builder /home/jpo-geojsonconverter/target/jpo-geojsonconverter.jar /
 RUN apk --no-cache upgrade \
     && apk --no-cache add gpsd-clients
 
+COPY --from=builder /home/jpo-geojsonconverter/src/main/resources/application.yaml /home
+COPY --from=builder /home/jpo-geojsonconverter/src/main/resources/logback.xml /home
+COPY --from=builder /home/jpo-geojsonconverter/target/jpo-geojsonconverter.jar /home
+
 ENTRYPOINT ["java", \
 	"-Djava.rmi.server.hostname=$DOCKER_HOST_IP", \
 	"-Dcom.sun.management.jmxremote.port=9090", \
