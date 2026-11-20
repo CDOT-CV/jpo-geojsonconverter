@@ -1,4 +1,4 @@
-FROM maven:3.8-eclipse-temurin-21-alpine AS builder
+FROM maven:3.9-eclipse-temurin-21-alpine AS builder
 
 WORKDIR /home
 
@@ -22,10 +22,6 @@ RUN mvn -s settings.xml install -DskipTests
 FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /home
-
-COPY --from=builder /home/jpo-geojsonconverter/src/main/resources/application.yaml /home
-COPY --from=builder /home/jpo-geojsonconverter/src/main/resources/logback.xml /home
-COPY --from=builder /home/jpo-geojsonconverter/target/jpo-geojsonconverter.jar /home
 
 # Upgrade base image packages so cached base layers still get OS security fixes (e.g. brotli-libs, CVE-2026-111497)
 # and install gpsdecode tool for RTCM decoding
