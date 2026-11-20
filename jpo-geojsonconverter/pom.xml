@@ -29,7 +29,7 @@
         <sonar.exclusions>src/main/**/GeoJsonConverterApplication.java,
             src/main/**/GeoJsonConverterProperties.java, src/main/**/KafkaConfiguration.java</sonar.exclusions>
         <!-- JaCoCo Properties -->
-        <jacoco.version>0.8.14</jacoco.version>
+        <jacoco.version>0.8.16</jacoco.version>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
@@ -101,11 +101,6 @@
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-launcher</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jacoco</groupId>
-            <artifactId>jacoco-maven-plugin</artifactId>
-            <version>${jacoco.version}</version>
         </dependency>
 
         <!-- Kafka Dependencies -->
@@ -227,7 +222,7 @@
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
-                <version>3.10.0.2594</version>
+                <version>5.9.0.7382</version>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
@@ -291,7 +286,6 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-jar-plugin</artifactId>
-                        <version>3.2.0</version>
                         <configuration>
                             <archive>
                                 <manifest>
