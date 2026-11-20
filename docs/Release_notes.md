@@ -48,7 +48,7 @@ Removed from the runtime classpath:
 Intentionally not upgraded in this release:
 
 - **Kafka 4.x**: Kafka stays on the 3.9 line to match the jpo-conflictmonitor, which uses this project's `StreamPartitioner` implementations. Kafka 4 changes that interface, so the move will be coordinated across both projects.
-- **Jackson 3 libraries**: `jsonschema-generator` 5.x and `json-schema-validator` 3.x require Jackson 3. They will be adopted with the Jackson 3 migration, once jpo-ode moves to Jackson 3 ([CDOT-CV/jpo-ode#239](https://github.com/CDOT-CV/jpo-ode/pull/239)).
+- **Jackson 3 libraries**: `jsonschema-generator` 5.x and `json-schema-validator` 3.x require Jackson 3. They will be adopted with the Jackson 3 migration, once jpo-ode moves to Jackson 3 ([CDOT-CV/jpo-ode#239](https://github.com/CDOT-CV/jpo-ode/pull/239)). See [jackson3-migration-plan.md](jackson3-migration-plan.md).
 - **Spring Boot 4.2**: deferred until its first patch release.
 - **Lombok**: held at 1.18.30.
 
