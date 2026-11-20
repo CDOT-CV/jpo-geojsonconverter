@@ -2,6 +2,63 @@ JPO GeoJSON Converter Release Notes
 ----------------------------
 
 
+Version 4.0.0
+----------------------------------------
+
+### **Summary**
+
+This release upgrades the build-time and runtime dependencies to versions that are actively supported, and fixes the known vulnerabilities in the libraries that ship in the application jar. Spring Boot moves to the 4.1 line, Kafka moves to the latest 3.9 patch, and the geospatial, JSON schema and test libraries are updated. Several vulnerable transitive libraries are removed or overridden. A Trivy scan of the application jar went from 100 findings (10 critical, 38 high) to none.
+
+Enhancements in this release:
+
+- Dependency upgrades: build tooling and Maven plugins
+- Dependency upgrades: Spring Boot 4.1.3 and Kafka 3.9.2
+- Dependency upgrades: libraries and vulnerable transitive dependencies
+
+### **Dependency Updates**
+
+| Dependency | Previous | New |
+|---|---|---|
+| Spring Boot (`spring-boot-starter-parent`) | 4.0.6 | 4.1.3 |
+| Spring Framework (Boot-managed) | 7.0.7 | 7.0.11 |
+| Spring for Apache Kafka (Boot-managed) | 4.0.5 | 4.1.3 |
+| Apache Tomcat (Boot-managed) | 11.0.21 | 11.0.27 |
+| Jackson 2 / Jackson 3 (Boot-managed) | 2.21.2 / 3.1.2 | 2.21.8 / 3.1.8 |
+| Logback (Boot-managed) | 1.5.32 | 1.5.38 |
+| Kafka Streams / Kafka Clients | 3.9.1 | 3.9.2 |
+| JTS Core | 1.19.0 | 1.20.0 |
+| GeoTools `gt-referencing` | 33.2 | 35.2 |
+| networknt `json-schema-validator` | 2.0.1 | 2.0.8 |
+| `json-unit-assertj` (test) | 5.0.0 | 6.4.0 |
+| `snappy-java` (transitive, overridden) | 1.1.10.5 | 1.1.10.12 |
+| `lz4-java` (transitive, overridden) | `org.lz4` 1.8.0 | `at.yawk.lz4` 1.11.4 |
+| `org.json` (transitive, overridden) | 20231013 | 20260814 |
+| JaCoCo Maven plugin | 0.8.14 | 0.8.16 |
+| Sonar Maven plugin | 3.10.0.2594 | 5.9.0.7382 |
+| `maven-jar-plugin` (`package-jar` profile) | 3.2.0 | Boot-managed (3.5.1) |
+| Maven wrapper | Maven 3.9.9, wrapper 3.2.0 | Maven 3.9.16, wrapper 3.3.4 |
+| Docker builder image | `maven:3.8-eclipse-temurin-21-alpine` | `maven:3.9-eclipse-temurin-21-alpine` |
+| Devcontainer Maven / Kafka | 3.6.3 / 3.6.1 | 3.9.16 / 3.9.2 |
+
+Removed from the runtime classpath:
+
+- `jacoco-maven-plugin` was declared as a compile dependency, which brought in `plexus-utils` 3.0.24. It is now only used as a build plugin.
+- `groovy-all` 3.0.8, together with `ant` 1.10.9 and `testng` 7.4.0, is now excluded. The jpo-ode parent pom adds it to every module, but neither jpo-ode nor the GeoJSON converter uses it. The application jar is about 20 MB smaller.
+
+Intentionally not upgraded in this release:
+
+- **Kafka 4.x**: Kafka stays on the 3.9 line to match the jpo-conflictmonitor, which uses this project's `StreamPartitioner` implementations. Kafka 4 changes that interface, so the move will be coordinated across both projects.
+- **Jackson 3 libraries**: `jsonschema-generator` 5.x and `json-schema-validator` 3.x require Jackson 3. They will be adopted with the Jackson 3 migration, once jpo-ode moves to Jackson 3 ([CDOT-CV/jpo-ode#239](https://github.com/CDOT-CV/jpo-ode/pull/239)).
+- **Spring Boot 4.2**: deferred until its first patch release.
+- **Lombok**: held at 1.18.30.
+
+### **Operational Notes**
+
+- No Kafka broker changes are required. The client stays on the 3.9 line.
+- Local builds need Maven 3.9 or later. `./mvnw` downloads Maven 3.9.16 automatically.
+- The Docker builder stage now uses Maven 3.9. The runtime image (`eclipse-temurin:21-jre-alpine`) is unchanged.
+
+
 Version 3.3.0
 ----------------------------------------
 
